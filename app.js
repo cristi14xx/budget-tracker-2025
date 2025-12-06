@@ -1533,7 +1533,7 @@ ${context}
 
 Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritate. Dacă dai sfaturi, fii specific și actionabil. Poți folosi <strong> pentru text important.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${getGK()}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${getGK()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1616,7 +1616,7 @@ ${context}
 
 Răspunde în română, structurat și concis. Folosește emoji-uri pentru claritate.`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${getGK()}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${getGK()}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

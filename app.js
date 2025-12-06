@@ -15,8 +15,8 @@ const db = firebase.firestore();
 db.enablePersistence().catch(() => {});
 
 // Gemini API Key (encoded)
-const _gk = ['QUl6', 'YVN5', 'QnEt', 'MWFp', 'M1pD', 'ZUs1', 'aG11', 'VlZa', 'YnE3', 'ZUNX', 'VGVG', 'eHFv', 'cG5R'];
-const getGK = () => atob(_gk.join(''));
+
+const getGK = () => 'AIzaSyBq-1ai3ZCeK5hmuVVZbq7eC_TeFxqopnQ';
 
 // Categories with subcategories
 const categories = {

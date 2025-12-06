@@ -1,1331 +1,1887 @@
-// ============================================
-// BUDGET PRO v2 - PREMIUM APP
-// Firebase + AI Assistant + Modern UI
-// ============================================
-
+// Budget Pro Ultra - Complete Application
 // Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyB1WmFllcL533zhqG4ARD6Wx35YUksLmW4",
     authDomain: "budget-pro-7ea05.firebaseapp.com",
     projectId: "budget-pro-7ea05",
     storageBucket: "budget-pro-7ea05.firebasestorage.app",
-    messagingSenderId: "789859338778",
-    appId: "1:789859338778:web:a7046602a4d37cc5465fa3"
+    messagingSenderId: "547730622802",
+    appId: "1:547730622802:web:b9e49710b77dc7b1d7bd55"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.firestore();
+db.enablePersistence().catch(() => {});
 
-// Enable offline persistence
-db.enablePersistence().catch(err => console.log('Persistence error:', err));
+// Gemini API Key (encoded)
+const _gk = ['QUl6', 'YVN5', 'QnEt', 'MWFp', 'M1pD', 'ZUs1', 'aG11', 'VlZa', 'YnE3', 'ZUNX', 'VGVG', 'eHFv', 'cG5R'];
+const getGK = () => atob(_gk.join(''));
 
-// ============================================
-// CONSTANTS
-// ============================================
-const CATEGORIES = {
-    expense: {
-        'Locuință': { icon: '🏠', color: '#6366f1', subs: ['Chirie', 'Utilități', 'Întreținere', 'Mobilă'] },
-        'Mâncare': { icon: '🍽️', color: '#f59e0b', subs: ['Supermarket', 'Restaurante', 'Livrări', 'Cafea', 'Gustări'] },
-        'Transport': { icon: '🚗', color: '#10b981', subs: ['Benzină', 'Transport public', 'Taxi/Uber', 'Parcare', 'Service'] },
-        'Abonamente': { icon: '📱', color: '#8b5cf6', subs: ['Netflix', 'Spotify', 'YouTube', 'Apple', 'Telefon', 'Internet', 'Altele'] },
-        'Sport': { icon: '💪', color: '#ec4899', subs: ['Sala', 'Suplimente', 'Echipament', 'Cursuri'] },
-        'Sănătate': { icon: '🏥', color: '#14b8a6', subs: ['Farmacie', 'Medic', 'Analize', 'Asigurare'] },
-        'Divertisment': { icon: '🎬', color: '#f43f5e', subs: ['Cinema', 'Concerte', 'Jocuri', 'Ieșiri', 'Vacanțe'] },
-        'Shopping': { icon: '🛍️', color: '#a855f7', subs: ['Haine', 'Încălțăminte', 'Accesorii', 'Electronice'] },
-        'Educație': { icon: '📚', color: '#0ea5e9', subs: ['Cursuri', 'Cărți', 'Software'] },
-        'Altele': { icon: '📦', color: '#64748b', subs: ['Cadouri', 'Donații', 'Diverse'] }
-    },
-    income: {
-        'Salariu': { icon: '💼', color: '#10b981', subs: ['Salariu net', 'Bonusuri', 'Prime', 'Ore suplimentare'] },
-        'Freelance': { icon: '💻', color: '#6366f1', subs: ['Proiecte', 'Consultanță', 'Servicii'] },
-        'Investiții': { icon: '📈', color: '#f59e0b', subs: ['Dividende', 'Dobânzi', 'Crypto', 'Acțiuni'] },
-        'Alte venituri': { icon: '💰', color: '#8b5cf6', subs: ['Vânzări', 'Rambursări', 'Cadouri', 'Diverse'] }
-    }
+// Categories with subcategories
+const categories = {
+    expense: [
+        { id: 'food', name: 'Mâncare', icon: '🍔', subs: ['Supermarket', 'Restaurant', 'Livrare', 'Cafea', 'Fast-food', 'Piață', 'Patiserie'] },
+        { id: 'transport', name: 'Transport', icon: '🚗', subs: ['Benzină', 'Motorină', 'Uber/Bolt', 'Transport public', 'Parcare', 'Service auto', 'Asigurare auto', 'Rovignetă', 'ITP'] },
+        { id: 'housing', name: 'Locuință', icon: '🏠', subs: ['Chirie', 'Rată credit', 'Întreținere', 'Reparații', 'Mobilă', 'Curățenie', 'Decorațiuni', 'Grădinărit'] },
+        { id: 'utilities', name: 'Utilități', icon: '💡', subs: ['Electricitate', 'Gaz', 'Apă', 'Internet', 'Telefon', 'TV/Streaming', 'Gunoi'] },
+        { id: 'health', name: 'Sănătate', icon: '💊', subs: ['Medicamente', 'Doctor', 'Analize', 'Dentist', 'Ochelari/Lentile', 'Sală fitness', 'Suplimente', 'Tratamente'] },
+        { id: 'shopping', name: 'Cumpărături', icon: '🛍️', subs: ['Haine', 'Încălțăminte', 'Cosmetice', 'Electronice', 'Articole casă', 'Cadouri', 'Accesorii', 'Bijuterii'] },
+        { id: 'entertainment', name: 'Divertisment', icon: '🎬', subs: ['Cinema', 'Concerte', 'Jocuri', 'Hobby', 'Sport', 'Vacanțe', 'Excursii', 'Festivaluri', 'Bilete'] },
+        { id: 'education', name: 'Educație', icon: '📚', subs: ['Cărți', 'Cursuri', 'Școală/Facultate', 'Meditații', 'Certificări', 'Conferințe'] },
+        { id: 'subscriptions', name: 'Abonamente', icon: '📱', subs: ['Netflix', 'Spotify', 'YouTube', 'HBO', 'Disney+', 'Software', 'Reviste', 'Aplicații', 'Gaming'] },
+        { id: 'family', name: 'Familie', icon: '👨‍👩‍👧', subs: ['Copii', 'Animale', 'Cadouri familie', 'Activități'] },
+        { id: 'personal', name: 'Personal', icon: '💆', subs: ['Frizerie', 'Salon', 'Spa', 'Masaj', 'Îngrijire personală'] },
+        { id: 'taxes', name: 'Taxe & Impozite', icon: '🏛️', subs: ['Impozit', 'CAS/CASS', 'Taxe locale', 'Amenzi', 'Notariat'] },
+        { id: 'insurance', name: 'Asigurări', icon: '🛡️', subs: ['Viață', 'Sănătate', 'Locuință', 'Călătorie'] },
+        { id: 'donations', name: 'Donații', icon: '❤️', subs: ['Caritate', 'Biserică', 'Crowdfunding'] },
+        { id: 'other_expense', name: 'Altele', icon: '📦', subs: ['Diverse', 'Neprevăzute', 'Comisioane'] }
+    ],
+    income: [
+        { id: 'salary', name: 'Salariu', icon: '💼', subs: ['Salariu net', 'Bonusuri', 'Prime', 'Ore suplimentare', 'Concediu plătit'] },
+        { id: 'freelance', name: 'Freelance', icon: '💻', subs: ['Proiecte', 'Consultanță', 'Colaborări'] },
+        { id: 'investments', name: 'Investiții', icon: '📈', subs: ['Dividende', 'Dobânzi', 'Crypto', 'Acțiuni', 'Fonduri'] },
+        { id: 'rental', name: 'Chirii', icon: '🏢', subs: ['Apartament', 'Cameră', 'Spațiu comercial', 'Airbnb'] },
+        { id: 'sales', name: 'Vânzări', icon: '🏷️', subs: ['Online', 'Fizic', 'Second-hand'] },
+        { id: 'gifts_income', name: 'Cadouri', icon: '🎁', subs: ['Bani primiți', 'Moștenire'] },
+        { id: 'refunds', name: 'Rambursări', icon: '↩️', subs: ['Retururi', 'Decontări', 'Restituiri'] },
+        { id: 'pension', name: 'Pensie', icon: '👴', subs: ['Pensie stat', 'Pensie privată'] },
+        { id: 'other_income', name: 'Alte venituri', icon: '💰', subs: ['Diverse', 'Câștiguri', 'Premii'] }
+    ],
+    correction: [
+        { id: 'correction', name: 'Corecție sold', icon: '⚖️', subs: ['Ajustare numerar', 'Diferență bancă', 'Corecție eroare', 'Sincronizare sold'] }
+    ]
 };
 
-const MONTHS = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 
-                'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
-
-const MONTHS_SHORT = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-// ============================================
-// STATE
-// ============================================
-const state = {
+// State
+let state = {
+    user: null,
     transactions: [],
-    budgets: [],
-    recurring: [],
     goals: [],
+    reminders: [],
+    debts: [],
     month: new Date().getMonth(),
     year: new Date().getFullYear(),
-    type: 'expense',
-    editId: null,
-    theme: localStorage.getItem('theme') || 'dark',
     currency: localStorage.getItem('currency') || 'RON',
-    geminiApiKey: localStorage.getItem('geminiApiKey') || '',
-    isOnline: navigator.onLine,
-    isLoading: true,
-    charts: {
-        pie: null,
-        line: null,
-        bar: null
-    }
+    filter: 'all',
+    period: 30,
+    editingId: null,
+    chart: null,
+    trendChart: null
 };
 
-// ============================================
-// INITIALIZATION
-// ============================================
-document.addEventListener('DOMContentLoaded', async () => {
-    initTheme();
+// Month names
+const months = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
+
+// DOM Elements
+const $ = id => document.getElementById(id);
+const $$ = sel => document.querySelectorAll(sel);
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    initAuth();
     initEventListeners();
-    await loadData();
-    hideLoadingScreen();
-    initCharts();
-    updateGreeting();
-    startAutoRefresh();
+    setTimeout(() => $('splash').classList.add('hidden'), 1500);
 });
 
-function hideLoadingScreen() {
-    setTimeout(() => {
-        const loading = document.getElementById('loading-screen');
-        if (loading) {
-            loading.classList.add('hidden');
-            setTimeout(() => loading.remove(), 500);
+// Auth
+function initAuth() {
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            state.user = user;
+            showApp();
+            loadAllData();
+        } else {
+            state.user = null;
+            showAuth();
         }
-        state.isLoading = false;
-    }, 800);
+    });
 }
 
-function initTheme() {
-    document.documentElement.setAttribute('data-theme', state.theme);
-    updateThemeIcons();
+function showAuth() {
+    $('authScreen').classList.remove('hidden');
+    $('appScreen').classList.add('hidden');
 }
 
-function updateThemeIcons() {
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
-    if (sunIcon && moonIcon) {
-        sunIcon.style.display = state.theme === 'dark' ? 'block' : 'none';
-        moonIcon.style.display = state.theme === 'light' ? 'block' : 'none';
-    }
+function showApp() {
+    $('authScreen').classList.add('hidden');
+    $('appScreen').classList.remove('hidden');
+    updateProfile();
 }
 
-function updateGreeting() {
-    const hour = new Date().getHours();
-    let greeting = 'Bună seara! 🌙';
-    if (hour >= 5 && hour < 12) greeting = 'Bună dimineața! ☀️';
-    else if (hour >= 12 && hour < 18) greeting = 'Bună ziua! 👋';
-    
-    const el = document.getElementById('hero-greeting');
-    if (el) el.textContent = greeting;
-}
-
-// ============================================
-// EVENT LISTENERS
-// ============================================
+// Event Listeners
 function initEventListeners() {
-    // Online/Offline status
-    window.addEventListener('online', () => {
-        state.isOnline = true;
-        updateConnectionStatus();
-        toast('Conectat! Se sincronizează...', 'success');
-        loadData();
-    });
-    
-    window.addEventListener('offline', () => {
-        state.isOnline = false;
-        updateConnectionStatus();
-        toast('Ești offline. Datele se salvează local.', 'warning');
+    // Auth tabs
+    $$('.auth-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            $$('.auth-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const tabName = tab.dataset.tab;
+            $$('.auth-form').forEach(f => f.classList.remove('active'));
+            $(tabName + 'Form').classList.add('active');
+        });
     });
 
-    // Theme toggle
-    document.getElementById('theme-btn')?.addEventListener('click', toggleTheme);
-    
-    // Sync button
-    document.getElementById('sync-btn')?.addEventListener('click', async () => {
-        const btn = document.getElementById('sync-btn');
-        btn.classList.add('spinning');
-        await loadData();
-        btn.classList.remove('spinning');
-        toast('Sincronizat!', 'success');
+    // Login form
+    $('loginForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const email = $('loginEmail').value;
+        const pass = $('loginPassword').value;
+        try {
+            await auth.signInWithEmailAndPassword(email, pass);
+            toast('Autentificare reușită!', 'success');
+        } catch (err) {
+            toast(getAuthError(err.code), 'error');
+        }
+    });
+
+    // Register form
+    $('registerForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const name = $('registerName').value;
+        const email = $('registerEmail').value;
+        const pass = $('registerPassword').value;
+        try {
+            const { user } = await auth.createUserWithEmailAndPassword(email, pass);
+            await user.updateProfile({ displayName: name });
+            await db.collection('users').doc(user.uid).set({
+                name, email, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            toast('Cont creat cu succes!', 'success');
+        } catch (err) {
+            toast(getAuthError(err.code), 'error');
+        }
+    });
+
+    // Google auth
+    $('googleAuth').addEventListener('click', async () => {
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await auth.signInWithPopup(provider);
+            toast('Autentificare reușită!', 'success');
+        } catch (err) {
+            toast('Eroare la autentificare', 'error');
+        }
+    });
+
+    // Navigation
+    $$('.nav-item[data-view]').forEach(item => {
+        item.addEventListener('click', () => {
+            const view = item.dataset.view;
+            switchView(view);
+            $$('.nav-item').forEach(n => n.classList.remove('active'));
+            item.classList.add('active');
+        });
     });
 
     // Month navigation
-    document.getElementById('prev-month')?.addEventListener('click', () => changeMonth(-1));
-    document.getElementById('next-month')?.addEventListener('click', () => changeMonth(1));
+    $('prevMonth').addEventListener('click', () => changeMonth(-1));
+    $('nextMonth').addEventListener('click', () => changeMonth(1));
 
-    // Add transaction button
-    document.getElementById('add-btn')?.addEventListener('click', () => openTransactionModal());
-    document.getElementById('fab-btn')?.addEventListener('click', () => openTransactionModal());
-    
-    // Quick actions
-    document.querySelectorAll('.quick-action').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const action = btn.dataset.action;
-            if (action === 'expense' || action === 'income') {
-                state.type = action;
-                openTransactionModal();
-            } else if (action === 'scan') {
-                toast('Scanare bonuri - în curând!', 'info');
-            } else if (action === 'transfer') {
-                toast('Transfer între conturi - în curând!', 'info');
-            }
-        });
+    // Search
+    $('searchToggle').addEventListener('click', () => {
+        $('searchBar').classList.toggle('hidden');
+        if (!$('searchBar').classList.contains('hidden')) {
+            $('searchInput').focus();
+        }
     });
-
-    // Transaction modal
-    document.getElementById('modal-close')?.addEventListener('click', closeTransactionModal);
-    document.getElementById('cancel-btn')?.addEventListener('click', closeTransactionModal);
-    document.querySelector('#transaction-modal .modal-backdrop')?.addEventListener('click', closeTransactionModal);
-    document.getElementById('transaction-form')?.addEventListener('submit', handleTransactionSubmit);
-
-    // Type pills
-    document.querySelectorAll('.type-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-            state.type = pill.dataset.type;
-            document.querySelectorAll('.type-pill').forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-            updateCategorySelect();
-        });
+    $('searchClose').addEventListener('click', () => {
+        $('searchBar').classList.add('hidden');
+        $('searchInput').value = '';
+        $('searchResults').classList.add('hidden');
     });
-
-    // Category change
-    document.getElementById('category')?.addEventListener('change', updateSubcategorySelect);
+    $('searchInput').addEventListener('input', debounce(handleSearch, 300));
 
     // AI button
-    document.getElementById('ai-btn')?.addEventListener('click', openAIModal);
-    document.getElementById('ai-modal-close')?.addEventListener('click', closeAIModal);
-    document.querySelector('#ai-modal .modal-backdrop')?.addEventListener('click', closeAIModal);
+    $('aiBtn').addEventListener('click', () => openModal('aiModal'));
+    $('aiSend').addEventListener('click', sendAiMessage);
+    $('aiInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') sendAiMessage();
+    });
 
-    // Settings
-    document.getElementById('settings-btn')?.addEventListener('click', openSettingsModal);
-    document.getElementById('settings-close')?.addEventListener('click', closeSettingsModal);
-    document.querySelector('#settings-modal .modal-backdrop')?.addEventListener('click', closeSettingsModal);
-
-    // See all transactions
-    document.getElementById('see-all-transactions')?.addEventListener('click', openAllTransactionsModal);
-    document.getElementById('back-from-transactions')?.addEventListener('click', closeAllTransactionsModal);
-    document.querySelector('#all-transactions-modal .modal-backdrop')?.addEventListener('click', closeAllTransactionsModal);
-
-    // Chart tabs
-    document.querySelectorAll('.chart-tab').forEach(tab => {
+    // Transaction form
+    $('transForm').addEventListener('submit', handleTransactionSubmit);
+    $$('.type-tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            const chartType = tab.dataset.chart;
-            document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.chart-panel').forEach(p => p.classList.remove('active'));
+            $$('.type-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            document.getElementById(`${chartType}-panel`)?.classList.add('active');
+            $('transType').value = tab.dataset.type;
+            populateCategories(tab.dataset.type);
+        });
+    });
+    $('transCategory').addEventListener('change', populateSubcategories);
+    $('transRecurring').addEventListener('change', e => {
+        $('recurringOptions').classList.toggle('hidden', !e.target.checked);
+    });
+
+    // Goal form
+    $('goalForm').addEventListener('submit', handleGoalSubmit);
+    $$('.icon-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            $$('.icon-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            $('goalIcon').value = btn.dataset.icon;
         });
     });
 
-    // Bottom navigation
-    document.querySelectorAll('.nav-item[data-view]').forEach(item => {
-        item.addEventListener('click', () => {
-            const view = item.dataset.view;
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            // Handle view switching (simplified for now)
-            if (view === 'transactions') {
-                openAllTransactionsModal();
-            }
+    // Debt form
+    $('debtForm').addEventListener('submit', handleDebtSubmit);
+    $$('.debt-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            $$('.debt-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            $('debtType').value = tab.dataset.type;
+            $('personLabel').textContent = tab.dataset.type === 'owe' ? 'Cui datorezi?' : 'Cine îți datorează?';
         });
     });
 
-    // Filter chips
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            filterTransactions(chip.dataset.filter);
+    // Reminder form
+    $('reminderForm').addEventListener('submit', handleReminderSubmit);
+
+    // Filters
+    $$('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            $$('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.filter = btn.dataset.filter;
+            renderAllTransactions();
         });
     });
 
-    // Search transactions
-    document.getElementById('search-transactions')?.addEventListener('input', (e) => {
-        searchTransactions(e.target.value);
+    // Period selector
+    $$('.period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            $$('.period-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.period = parseInt(btn.dataset.period);
+            updateAnalytics();
+        });
     });
 
-    // Add recurring
-    document.getElementById('add-recurring-btn')?.addEventListener('click', () => {
-        toast('Plăți recurente - în curând!', 'info');
-    });
-
-    // Add goal
-    document.getElementById('add-goal-btn')?.addEventListener('click', () => {
-        toast('Obiective - în curând!', 'info');
-    });
+    // AI Analysis
+    $('runAiAnalysis').addEventListener('click', runFullAiAnalysis);
 
     // Refresh insights
-    document.getElementById('refresh-insights')?.addEventListener('click', refreshAIInsights);
-
-    // AI quick prompts
-    document.querySelectorAll('.quick-prompt').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const prompt = btn.dataset.prompt;
-            document.getElementById('ai-input').value = prompt;
-            sendAIMessage(prompt);
-        });
-    });
-
-    // AI send
-    document.getElementById('ai-send')?.addEventListener('click', () => {
-        const input = document.getElementById('ai-input');
-        if (input.value.trim()) {
-            sendAIMessage(input.value.trim());
-            input.value = '';
-        }
-    });
-
-    document.getElementById('ai-input')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const input = e.target;
-            if (input.value.trim()) {
-                sendAIMessage(input.value.trim());
-                input.value = '';
-            }
-        }
-    });
+    $('refreshInsights').addEventListener('click', generateInsights);
 
     // Settings
-    document.getElementById('gemini-api-key')?.addEventListener('change', (e) => {
-        state.geminiApiKey = e.target.value;
-        localStorage.setItem('geminiApiKey', e.target.value);
-        toast('API Key salvat!', 'success');
+    $('currencySelect').addEventListener('change', e => {
+        state.currency = e.target.value;
+        localStorage.setItem('currency', state.currency);
+        renderAll();
     });
+    $('currencySelect').value = state.currency;
 
-    document.getElementById('theme-select')?.addEventListener('change', (e) => {
-        state.theme = e.target.value;
-        localStorage.setItem('theme', e.target.value);
-        initTheme();
-    });
-
-    document.getElementById('export-data')?.addEventListener('click', exportData);
-    document.getElementById('clear-data')?.addEventListener('click', clearAllData);
+    // Reminder category
+    populateReminderCategories();
 }
 
-function updateConnectionStatus() {
-    const status = document.getElementById('connection-status');
-    if (status) {
-        status.classList.toggle('offline', !state.isOnline);
-    }
-}
-
-// ============================================
-// DATA LOADING
-// ============================================
-async function loadData() {
-    try {
-        // Load transactions
-        const transSnapshot = await db.collection('transactions')
-            .orderBy('date', 'desc')
-            .limit(500)
-            .get();
-        
-        state.transactions = transSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-
-        // Load budgets
-        const budgetSnapshot = await db.collection('budgets').get();
-        state.budgets = budgetSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-
-        // Load recurring
-        const recurringSnapshot = await db.collection('recurring').get();
-        state.recurring = recurringSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-
-        // Load goals
-        const goalsSnapshot = await db.collection('goals').get();
-        state.goals = goalsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-
-        // Save to localStorage as backup
-        localStorage.setItem('transactions', JSON.stringify(state.transactions));
-        localStorage.setItem('budgets', JSON.stringify(state.budgets));
-        
-        render();
-        updateCharts();
-        
-    } catch (error) {
-        console.error('Firebase load error:', error);
-        // Fallback to localStorage
-        state.transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-        state.budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-        render();
-        updateCharts();
-    }
-}
-
-// ============================================
-// THEME
-// ============================================
-function toggleTheme() {
-    state.theme = state.theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', state.theme);
-    initTheme();
-    updateCharts();
-}
-
-// ============================================
-// MONTH NAVIGATION
-// ============================================
-function changeMonth(delta) {
-    state.month += delta;
-    if (state.month > 11) { state.month = 0; state.year++; }
-    if (state.month < 0) { state.month = 11; state.year--; }
-    render();
-    updateCharts();
-}
-
-// ============================================
-// TRANSACTION MODAL
-// ============================================
-function openTransactionModal(transaction = null) {
-    const modal = document.getElementById('transaction-modal');
-    const form = document.getElementById('transaction-form');
-    
-    if (!modal || !form) return;
-    
-    form.reset();
-    state.editId = null;
-
-    if (transaction) {
-        state.editId = transaction.id;
-        document.getElementById('modal-title').textContent = 'Editează tranzacție';
-        document.getElementById('submit-btn').querySelector('span').textContent = 'Salvează';
-        
-        state.type = transaction.type === 'Venit' ? 'income' : 'expense';
-        document.querySelectorAll('.type-pill').forEach(p => {
-            p.classList.toggle('active', p.dataset.type === state.type);
-        });
-        
-        document.getElementById('amount').value = Math.abs(transaction.amount);
-        updateCategorySelect();
-        document.getElementById('category').value = transaction.category;
-        updateSubcategorySelect();
-        document.getElementById('subcategory').value = transaction.subcategory;
-        document.getElementById('description').value = transaction.description || '';
-        document.getElementById('date').value = transaction.date?.split('T')[0] || '';
-    } else {
-        document.getElementById('modal-title').textContent = 'Tranzacție nouă';
-        document.getElementById('submit-btn').querySelector('span').textContent = 'Adaugă';
-        
-        document.querySelectorAll('.type-pill').forEach(p => {
-            p.classList.toggle('active', p.dataset.type === state.type);
-        });
-        
-        updateCategorySelect();
-        document.getElementById('date').value = new Date().toISOString().split('T')[0];
-    }
-
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeTransactionModal() {
-    const modal = document.getElementById('transaction-modal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-}
-
-function updateCategorySelect() {
-    const select = document.getElementById('category');
-    if (!select) return;
-    
-    const cats = CATEGORIES[state.type];
-    select.innerHTML = '<option value="">Alege categorie</option>';
-    
-    Object.entries(cats).forEach(([name, data]) => {
-        select.innerHTML += `<option value="${name}">${data.icon} ${name}</option>`;
-    });
-    
-    updateSubcategorySelect();
-}
-
-function updateSubcategorySelect() {
-    const catSelect = document.getElementById('category');
-    const subSelect = document.getElementById('subcategory');
-    if (!catSelect || !subSelect) return;
-    
-    const category = catSelect.value;
-    const cats = CATEGORIES[state.type];
-    
-    subSelect.innerHTML = '<option value="">Alege subcategorie</option>';
-    
-    if (category && cats[category]) {
-        cats[category].subs.forEach(sub => {
-            subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
-        });
-    }
-}
-
-async function handleTransactionSubmit(e) {
-    e.preventDefault();
-    
-    const amount = parseFloat(document.getElementById('amount').value);
-    const category = document.getElementById('category').value;
-    const subcategory = document.getElementById('subcategory').value;
-    const description = document.getElementById('description').value;
-    const date = document.getElementById('date').value;
-    
-    if (!amount || !category || !subcategory || !date) {
-        toast('Completează toate câmpurile obligatorii', 'error');
-        return;
-    }
-    
-    const transaction = {
-        date: date,
-        type: state.type === 'income' ? 'Venit' : 'Cheltuială',
-        category: category,
-        subcategory: subcategory,
-        description: description,
-        amount: state.type === 'income' ? amount : -amount,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+// Auth error messages
+function getAuthError(code) {
+    const errors = {
+        'auth/email-already-in-use': 'Email-ul este deja folosit',
+        'auth/invalid-email': 'Email invalid',
+        'auth/weak-password': 'Parola trebuie să aibă minim 6 caractere',
+        'auth/user-not-found': 'Utilizator inexistent',
+        'auth/wrong-password': 'Parolă incorectă'
     };
-
-    try {
-        if (state.editId) {
-            await db.collection('transactions').doc(state.editId).update(transaction);
-            const idx = state.transactions.findIndex(t => t.id === state.editId);
-            if (idx !== -1) {
-                state.transactions[idx] = { id: state.editId, ...transaction };
-            }
-            toast('Tranzacție actualizată!', 'success');
-        } else {
-            const docRef = await db.collection('transactions').add(transaction);
-            state.transactions.unshift({ id: docRef.id, ...transaction });
-            toast('Tranzacție adăugată!', 'success');
-        }
-
-        localStorage.setItem('transactions', JSON.stringify(state.transactions));
-        closeTransactionModal();
-        render();
-        updateCharts();
-        
-    } catch (error) {
-        console.error('Save error:', error);
-        toast('Eroare la salvare', 'error');
-    }
+    return errors[code] || 'Eroare de autentificare';
 }
 
-async function deleteTransaction(id) {
-    if (!confirm('Ștergi această tranzacție?')) return;
+// Load all data
+async function loadAllData() {
+    if (!state.user) return;
+    const uid = state.user.uid;
     
     try {
-        await db.collection('transactions').doc(id).delete();
-        state.transactions = state.transactions.filter(t => t.id !== id);
-        localStorage.setItem('transactions', JSON.stringify(state.transactions));
-        render();
-        updateCharts();
-        toast('Tranzacție ștearsă!', 'success');
-    } catch (error) {
-        console.error('Delete error:', error);
-        toast('Eroare la ștergere', 'error');
+        // Transactions
+        const transSnap = await db.collection('users').doc(uid).collection('transactions')
+            .orderBy('date', 'desc').get();
+        state.transactions = transSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Goals
+        const goalsSnap = await db.collection('users').doc(uid).collection('goals').get();
+        state.goals = goalsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Reminders
+        const remindSnap = await db.collection('users').doc(uid).collection('reminders').get();
+        state.reminders = remindSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Debts
+        const debtsSnap = await db.collection('users').doc(uid).collection('debts').get();
+        state.debts = debtsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        renderAll();
+        checkReminders();
+    } catch (err) {
+        console.error('Error loading data:', err);
     }
 }
 
-// ============================================
-// RENDERING
-// ============================================
-function render() {
-    updateMonthDisplay();
+// Render all
+function renderAll() {
     updateStats();
-    updateBudgetProgress();
-    renderTransactions();
-    renderCategories();
-    renderRecurring();
-    renderGoals();
-    checkAlerts();
+    renderRecentTransactions();
+    renderGoalsPreview();
+    renderDebtsPreview();
+    renderRemindersPreview();
+    updateChart();
+    generateInsights();
 }
 
-function updateMonthDisplay() {
-    const monthEl = document.getElementById('current-month');
-    const rangeEl = document.getElementById('month-range');
-    
-    if (monthEl) {
-        monthEl.textContent = `${MONTHS[state.month]} ${state.year}`;
-    }
-    
-    if (rangeEl) {
-        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
-        rangeEl.textContent = `1 - ${daysInMonth} ${MONTHS_SHORT[state.month]}`;
-    }
-}
-
-function updateStats() {
-    const filtered = getFilteredTransactions();
-    
-    const income = filtered.filter(t => t.type === 'Venit').reduce((s, t) => s + Math.abs(t.amount), 0);
-    const expenses = filtered.filter(t => t.type === 'Cheltuială').reduce((s, t) => s + Math.abs(t.amount), 0);
-    const balance = income - expenses;
-    
-    // Update hero card
-    document.getElementById('hero-balance').textContent = formatMoney(balance);
-    document.getElementById('quick-income').textContent = formatMoney(income);
-    document.getElementById('quick-expense').textContent = formatMoney(expenses);
-    
-    // Calculate trend
-    const lastMonthData = getLastMonthData();
-    const lastBalance = lastMonthData.income - lastMonthData.expenses;
-    const trend = lastBalance !== 0 ? Math.round(((balance - lastBalance) / Math.abs(lastBalance)) * 100) : 0;
-    
-    const changeEl = document.getElementById('hero-balance-change');
-    if (changeEl) {
-        changeEl.className = 'hero-balance-change' + (trend < 0 ? ' negative' : '');
-        changeEl.innerHTML = `
-            <span class="change-icon">${trend >= 0 ? '↑' : '↓'}</span>
-            <span class="change-text">${trend >= 0 ? '+' : ''}${trend}% față de luna trecută</span>
-        `;
-    }
-    
-    // Stats cards
-    const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
-    const today = new Date();
-    const currentDay = (today.getMonth() === state.month && today.getFullYear() === state.year) 
-        ? today.getDate() : daysInMonth;
-    
-    const dailyAvg = currentDay > 0 ? expenses / currentDay : 0;
-    const prediction = dailyAvg * daysInMonth;
-    const daysLeft = daysInMonth - currentDay;
-    
-    document.getElementById('daily-avg').textContent = formatMoney(dailyAvg);
-    document.getElementById('prediction').textContent = formatMoney(prediction);
-    document.getElementById('days-left').textContent = daysLeft;
-    
-    const biggestExpense = filtered
-        .filter(t => t.type === 'Cheltuială')
-        .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
-    
-    document.getElementById('biggest-expense').textContent = biggestExpense 
-        ? formatMoney(Math.abs(biggestExpense.amount))
-        : '-';
-}
-
-function updateBudgetProgress() {
-    const filtered = getFilteredTransactions();
-    const expenses = filtered.filter(t => t.type === 'Cheltuială').reduce((s, t) => s + Math.abs(t.amount), 0);
-    const totalBudget = state.budgets.reduce((s, b) => s + (b.budget || 0), 0) || 10000;
-    const percent = Math.min(Math.round((expenses / totalBudget) * 100), 100);
-    
-    document.getElementById('budget-spent').textContent = formatNumber(expenses);
-    document.getElementById('budget-total').textContent = formatNumber(totalBudget);
-    
-    const progress = document.getElementById('budget-progress');
-    if (progress) {
-        progress.style.width = `${percent}%`;
-        progress.classList.remove('warning', 'danger');
-        if (percent >= 100) progress.classList.add('danger');
-        else if (percent >= 80) progress.classList.add('warning');
-    }
-}
-
-function getFilteredTransactions() {
+// Get month transactions
+function getMonthTransactions() {
     return state.transactions.filter(t => {
         const d = new Date(t.date);
         return d.getMonth() === state.month && d.getFullYear() === state.year;
     });
 }
 
-function getLastMonthData() {
-    const lastMonth = state.month === 0 ? 11 : state.month - 1;
-    const lastYear = state.month === 0 ? state.year - 1 : state.year;
+// Update stats
+function updateStats() {
+    const trans = getMonthTransactions();
+    let income = 0, expense = 0;
     
-    const filtered = state.transactions.filter(t => {
+    trans.forEach(t => {
+        if (t.type === 'income') income += t.amount;
+        else if (t.type === 'expense') expense += t.amount;
+        else if (t.type === 'correction') {
+            if (t.amount > 0) income += t.amount;
+            else expense += Math.abs(t.amount);
+        }
+    });
+
+    const balance = income - expense;
+    
+    $('totalIncome').textContent = fmt(income);
+    $('totalExpense').textContent = fmt(expense);
+    $('totalBalance').textContent = fmt(balance);
+    
+    // Calculate change from last month
+    const lastMonthTrans = state.transactions.filter(t => {
         const d = new Date(t.date);
-        return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
+        const lm = state.month === 0 ? 11 : state.month - 1;
+        const ly = state.month === 0 ? state.year - 1 : state.year;
+        return d.getMonth() === lm && d.getFullYear() === ly;
     });
     
-    return {
-        income: filtered.filter(t => t.type === 'Venit').reduce((s, t) => s + Math.abs(t.amount), 0),
-        expenses: filtered.filter(t => t.type === 'Cheltuială').reduce((s, t) => s + Math.abs(t.amount), 0)
-    };
+    let lastBalance = 0;
+    lastMonthTrans.forEach(t => {
+        if (t.type === 'income') lastBalance += t.amount;
+        else if (t.type === 'expense') lastBalance -= t.amount;
+    });
+    
+    const change = lastBalance !== 0 ? ((balance - lastBalance) / Math.abs(lastBalance) * 100).toFixed(0) : 0;
+    const changeEl = $('balanceChange');
+    changeEl.textContent = (change >= 0 ? '+' : '') + change + '%';
+    changeEl.className = 'balance-change ' + (change >= 0 ? 'positive' : 'negative');
+    
+    // Progress bar
+    const spentPercent = income > 0 ? Math.min((expense / income) * 100, 100) : 0;
+    $('spentProgress').style.width = spentPercent + '%';
+    $('spentPercent').textContent = spentPercent.toFixed(0) + '% din venituri cheltuit';
+    
+    // Quick stats
+    const today = new Date();
+    const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+    const daysPassed = state.month === today.getMonth() && state.year === today.getFullYear() 
+        ? today.getDate() : daysInMonth;
+    const daysLeft = daysInMonth - daysPassed;
+    
+    const dailyAvg = daysPassed > 0 ? expense / daysPassed : 0;
+    const prediction = dailyAvg * daysInMonth;
+    const savingsRate = income > 0 ? ((income - expense) / income * 100) : 0;
+    
+    $('dailyAvg').textContent = fmt(dailyAvg);
+    $('prediction').textContent = fmt(prediction);
+    $('savingsRate').textContent = savingsRate.toFixed(0) + '%';
+    $('daysLeft').textContent = daysLeft;
+    
+    // Update month display
+    $('currentMonth').textContent = months[state.month] + ' ' + state.year;
+    $('transMonth').textContent = months[state.month] + ' ' + state.year;
 }
 
-function renderTransactions() {
-    const container = document.getElementById('transactions-list');
-    if (!container) return;
+// Render recent transactions
+function renderRecentTransactions() {
+    const trans = getMonthTransactions().slice(0, 5);
+    const container = $('recentTrans');
     
-    const filtered = getFilteredTransactions().slice(0, 5);
-    
-    if (filtered.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📝</div>
-                <div class="empty-text">Nicio tranzacție</div>
-                <div class="empty-hint">Apasă + pentru a adăuga</div>
-            </div>
-        `;
+    if (trans.length === 0) {
+        container.innerHTML = `<div class="empty-state"><span class="empty-icon">📝</span><p>Nicio tranzacție încă</p></div>`;
         return;
     }
     
-    container.innerHTML = filtered.map(t => createTransactionHTML(t)).join('');
+    container.innerHTML = trans.map(t => transactionHTML(t)).join('');
 }
 
-function createTransactionHTML(t) {
-    const isIncome = t.type === 'Venit';
-    const cats = CATEGORIES[isIncome ? 'income' : 'expense'];
-    const icon = cats[t.category]?.icon || '📦';
-    const d = new Date(t.date);
-    const dateStr = `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
+// Render all transactions
+function renderAllTransactions() {
+    let trans = getMonthTransactions();
+    
+    if (state.filter !== 'all') {
+        trans = trans.filter(t => t.type === state.filter);
+    }
+    
+    const container = $('allTransactions');
+    
+    if (trans.length === 0) {
+        container.innerHTML = `<div class="empty-state"><span class="empty-icon">📝</span><p>Nicio tranzacție în această lună</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = trans.map(t => transactionHTML(t, true)).join('');
+}
+
+// Transaction HTML
+function transactionHTML(t, showActions = false) {
+    const cat = findCategory(t.type, t.category);
+    const icon = cat ? cat.icon : '📝';
+    const catName = cat ? cat.name : t.category;
+    const isIncome = t.type === 'income';
+    const isCorrection = t.type === 'correction';
+    const amountClass = isCorrection ? 'correction' : (isIncome ? 'income' : 'expense');
+    const amountPrefix = isIncome || (isCorrection && t.amount > 0) ? '+' : '-';
+    const amount = Math.abs(t.amount);
     
     return `
-        <div class="transaction-item ${isIncome ? 'income' : 'expense'}" 
-             onclick="openTransactionModal(state.transactions.find(x=>x.id==='${t.id}'))">
-            <div class="transaction-icon">${icon}</div>
-            <div class="transaction-info">
-                <div class="transaction-title">${t.subcategory || t.category}</div>
-                <div class="transaction-meta">${t.description || t.category} • ${dateStr}</div>
+        <div class="trans-item" data-id="${t.id}">
+            <div class="trans-icon">${icon}</div>
+            <div class="trans-info">
+                <div class="trans-category">${esc(catName)}</div>
+                <div class="trans-details">${t.subcategory ? esc(t.subcategory) : ''}${t.description ? ' • ' + esc(t.description) : ''}</div>
             </div>
-            <div class="transaction-amount">${isIncome ? '+' : ''}${formatMoney(t.amount)}</div>
-            <button class="transaction-delete" onclick="event.stopPropagation();deleteTransaction('${t.id}')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                </svg>
-            </button>
+            <div class="trans-right">
+                <div class="trans-amount ${amountClass}">${amountPrefix}${fmt(amount)}</div>
+                <div class="trans-date">${formatDate(t.date)}</div>
+            </div>
+            ${showActions ? `
+                <div class="trans-actions">
+                    <button class="trans-action" onclick="editTransaction('${t.id}')">✏️</button>
+                    <button class="trans-action delete" onclick="deleteTransaction('${t.id}')">🗑️</button>
+                </div>
+            ` : ''}
         </div>
     `;
 }
 
-function renderCategories() {
-    const container = document.getElementById('categories-grid');
-    if (!container) return;
-    
-    const filtered = getFilteredTransactions().filter(t => t.type === 'Cheltuială');
-    
-    const byCategory = {};
-    filtered.forEach(t => {
-        if (!byCategory[t.category]) byCategory[t.category] = 0;
-        byCategory[t.category] += Math.abs(t.amount);
-    });
-    
-    const sorted = Object.entries(byCategory)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 6);
-    
-    if (sorted.length === 0) {
-        container.innerHTML = '<div class="empty-state small"><span>Nicio cheltuială</span></div>';
-        return;
-    }
-    
-    container.innerHTML = sorted.map(([cat, amount]) => {
-        const icon = CATEGORIES.expense[cat]?.icon || '📦';
-        return `
-            <div class="category-chip">
-                <div class="category-chip-icon">${icon}</div>
-                <div class="category-chip-name">${cat}</div>
-                <div class="category-chip-amount">${formatMoney(amount)}</div>
-            </div>
-        `;
-    }).join('');
+// Find category
+function findCategory(type, catId) {
+    const cats = categories[type] || [];
+    return cats.find(c => c.id === catId || c.name === catId);
 }
 
-function renderRecurring() {
-    const container = document.getElementById('recurring-list');
-    const totalEl = document.getElementById('recurring-total');
-    if (!container) return;
+// Update chart
+function updateChart() {
+    const trans = getMonthTransactions().filter(t => t.type === 'expense');
+    const byCategory = {};
     
-    if (state.recurring.length === 0) {
-        container.innerHTML = '<div class="empty-state small"><span>Nicio plată recurentă</span></div>';
-        if (totalEl) totalEl.textContent = '0 RON';
-        return;
-    }
+    trans.forEach(t => {
+        const cat = findCategory('expense', t.category);
+        const name = cat ? cat.name : t.category;
+        byCategory[name] = (byCategory[name] || 0) + t.amount;
+    });
     
-    const total = state.recurring.reduce((s, r) => s + (r.amount || 0), 0);
-    if (totalEl) totalEl.textContent = formatMoney(total);
+    const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const labels = sorted.map(s => s[0]);
+    const data = sorted.map(s => s[1]);
+    const total = data.reduce((a, b) => a + b, 0);
     
-    container.innerHTML = state.recurring.slice(0, 3).map(r => `
-        <div class="recurring-item">
-            <div class="recurring-icon">${CATEGORIES.expense[r.category]?.icon || '📦'}</div>
-            <div class="recurring-info">
-                <div class="recurring-name">${r.name}</div>
-                <div class="recurring-date">În fiecare lună pe ${r.day}</div>
-            </div>
-            <div class="recurring-amount">${formatMoney(r.amount)}</div>
+    const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+    
+    $('chartCenter').querySelector('.chart-total').textContent = fmt(total);
+    
+    // Legend
+    $('chartLegend').innerHTML = labels.map((l, i) => `
+        <div class="legend-item">
+            <span class="legend-color" style="background:${colors[i]}"></span>
+            <span>${l}</span>
         </div>
     `).join('');
-}
-
-function renderGoals() {
-    const container = document.getElementById('goals-list');
-    if (!container) return;
     
-    if (state.goals.length === 0) {
-        container.innerHTML = '<div class="empty-state small"><span>Niciun obiectiv setat</span></div>';
-        return;
-    }
+    const ctx = $('expenseChart').getContext('2d');
     
-    container.innerHTML = state.goals.map(g => {
-        const percent = Math.round((g.saved / g.target) * 100);
-        const deadline = new Date(g.deadline);
-        const dateStr = `${deadline.getDate()} ${MONTHS_SHORT[deadline.getMonth()]} ${deadline.getFullYear()}`;
-        
-        return `
-            <div class="goal-card">
-                <div class="goal-header">
-                    <div class="goal-icon">${g.icon || '🎯'}</div>
-                    <div>
-                        <div class="goal-title">${g.name}</div>
-                        <div class="goal-deadline">Până pe ${dateStr}</div>
-                    </div>
-                </div>
-                <div class="goal-progress-bar">
-                    <div class="goal-progress-fill" style="width: ${Math.min(percent, 100)}%"></div>
-                </div>
-                <div class="goal-stats">
-                    <span>${formatMoney(g.saved)} economisiți</span>
-                    <span class="goal-amount">${percent}%</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function checkAlerts() {
-    const section = document.getElementById('alerts-section');
-    const container = document.getElementById('alerts-list');
-    if (!section || !container) return;
+    if (state.chart) state.chart.destroy();
     
-    const filtered = getFilteredTransactions().filter(t => t.type === 'Cheltuială');
-    const alerts = [];
-    
-    // Check budget alerts
-    const byCategory = {};
-    filtered.forEach(t => {
-        if (!byCategory[t.category]) byCategory[t.category] = 0;
-        byCategory[t.category] += Math.abs(t.amount);
-    });
-    
-    state.budgets.forEach(b => {
-        if (b.budget > 0) {
-            const spent = byCategory[b.category] || 0;
-            const percent = Math.round((spent / b.budget) * 100);
-            
-            if (percent >= 80) {
-                alerts.push({
-                    type: percent >= 100 ? 'danger' : 'warning',
-                    icon: CATEGORIES.expense[b.category]?.icon || '📦',
-                    title: b.category,
-                    description: `${percent}% din buget folosit`,
-                    percent: Math.min(percent, 100)
-                });
-            }
-        }
-    });
-    
-    if (alerts.length === 0) {
-        section.style.display = 'none';
-        return;
-    }
-    
-    section.style.display = 'block';
-    container.innerHTML = alerts.map(a => `
-        <div class="alert-item ${a.type}">
-            <div class="alert-icon">${a.icon}</div>
-            <div class="alert-info">
-                <div class="alert-title">${a.title}</div>
-                <div class="alert-description">${a.description}</div>
-                <div class="alert-progress">
-                    <div class="alert-progress-fill" style="width: ${a.percent}%"></div>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-// ============================================
-// CHARTS
-// ============================================
-function initCharts() {
-    initPieChart();
-    initLineChart();
-    initBarChart();
-}
-
-function initPieChart() {
-    const ctx = document.getElementById('pie-chart')?.getContext('2d');
-    if (!ctx) return;
-    
-    state.charts.pie = new Chart(ctx, {
+    state.chart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: [],
+            labels,
             datasets: [{
-                data: [],
-                backgroundColor: [],
+                data,
+                backgroundColor: colors,
                 borderWidth: 0
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
             cutout: '70%',
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: getChartTextColor(),
-                        font: { size: 11 },
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                }
-            }
+            plugins: { legend: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false
         }
     });
 }
 
-function initLineChart() {
-    const ctx = document.getElementById('line-chart')?.getContext('2d');
-    if (!ctx) return;
+// Generate AI insights
+async function generateInsights() {
+    const trans = getMonthTransactions();
+    const container = $('aiInsights');
     
-    state.charts.line = new Chart(ctx, {
+    if (trans.length < 3) {
+        container.innerHTML = `<div class="insight-card"><span class="insight-icon">💡</span><p>Adaugă cel puțin 3 tranzacții pentru a primi insights personalizate.</p></div>`;
+        return;
+    }
+    
+    let income = 0, expense = 0;
+    const byCategory = {};
+    
+    trans.forEach(t => {
+        if (t.type === 'income') income += t.amount;
+        else if (t.type === 'expense') {
+            expense += t.amount;
+            const cat = findCategory('expense', t.category);
+            const name = cat ? cat.name : t.category;
+            byCategory[name] = (byCategory[name] || 0) + t.amount;
+        }
+    });
+    
+    const insights = [];
+    
+    // Saving rate
+    const savingRate = income > 0 ? ((income - expense) / income * 100) : 0;
+    if (savingRate < 10) {
+        insights.push({ icon: '⚠️', text: `Economisești doar ${savingRate.toFixed(0)}% din venituri. Țintește minim 20%!` });
+    } else if (savingRate >= 20) {
+        insights.push({ icon: '🎉', text: `Excelent! Economisești ${savingRate.toFixed(0)}% din venituri. Continuă așa!` });
+    } else {
+        insights.push({ icon: '💰', text: `Economisești ${savingRate.toFixed(0)}% din venituri. Mai ai puțin până la 20%!` });
+    }
+    
+    // Top category
+    const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
+    if (sorted.length > 0) {
+        const [topCat, topAmount] = sorted[0];
+        const percent = expense > 0 ? (topAmount / expense * 100).toFixed(0) : 0;
+        insights.push({ icon: '📊', text: `${topCat} reprezintă ${percent}% din cheltuieli (${fmt(topAmount)})` });
+    }
+    
+    // Daily average
+    const today = new Date();
+    const daysPassed = state.month === today.getMonth() ? today.getDate() : 30;
+    const dailyAvg = expense / daysPassed;
+    insights.push({ icon: '📅', text: `Media zilnică de cheltuieli: ${fmt(dailyAvg)}` });
+    
+    // Prediction
+    const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+    const predicted = dailyAvg * daysInMonth;
+    if (predicted > income && income > 0) {
+        insights.push({ icon: '🚨', text: `La acest ritm vei cheltui ${fmt(predicted)}, mai mult decât venitul de ${fmt(income)}!` });
+    }
+    
+    container.innerHTML = insights.map(i => `
+        <div class="insight-card">
+            <span class="insight-icon">${i.icon}</span>
+            <p>${i.text}</p>
+        </div>
+    `).join('');
+}
+
+// Goals preview
+function renderGoalsPreview() {
+    const active = state.goals.filter(g => g.saved < g.target).slice(0, 2);
+    const container = $('goalsPreview');
+    
+    if (active.length === 0) {
+        container.innerHTML = `<div class="empty-state small"><span class="empty-icon">🎯</span><p>Niciun obiectiv activ</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = active.map(g => goalPreviewHTML(g)).join('');
+}
+
+function goalPreviewHTML(g) {
+    const percent = Math.min((g.saved / g.target) * 100, 100);
+    return `
+        <div class="goal-item">
+            <div class="goal-header">
+                <div class="goal-icon">${g.icon || '🎯'}</div>
+                <div class="goal-info">
+                    <div class="goal-name">${esc(g.name)}</div>
+                    <div class="goal-amounts">
+                        <span class="goal-saved">${fmt(g.saved)}</span>
+                        <span class="goal-target">/ ${fmt(g.target)}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="goal-progress">
+                <div class="goal-bar"><div class="goal-fill" style="width:${percent}%"></div></div>
+                <div class="goal-percent">${percent.toFixed(0)}%</div>
+            </div>
+        </div>
+    `;
+}
+
+// Debts preview
+function renderDebtsPreview() {
+    let totalOwe = 0, totalOwed = 0;
+    state.debts.forEach(d => {
+        if (d.type === 'owe') totalOwe += d.amount;
+        else totalOwed += d.amount;
+    });
+    
+    $('totalOwe').textContent = fmt(totalOwe);
+    $('totalOwed').textContent = fmt(totalOwed);
+}
+
+// Reminders preview
+function renderRemindersPreview() {
+    const today = new Date();
+    const upcoming = state.reminders
+        .filter(r => new Date(r.date) >= today)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 2);
+    
+    const container = $('remindersPreview');
+    
+    if (upcoming.length === 0) {
+        container.innerHTML = `<div class="empty-state small"><span class="empty-icon">⏰</span><p>Niciun reminder</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = upcoming.map(r => reminderHTML(r, false)).join('');
+}
+
+function reminderHTML(r, showActions = true) {
+    const today = new Date();
+    const rDate = new Date(r.date);
+    const isDue = rDate <= today;
+    
+    return `
+        <div class="reminder-item ${isDue ? 'due' : ''}" data-id="${r.id}">
+            <div class="reminder-icon">⏰</div>
+            <div class="reminder-info">
+                <div class="reminder-title">${esc(r.title)}</div>
+                <div class="reminder-date">${formatDate(r.date)}</div>
+                ${r.repeat !== 'once' ? `<span class="reminder-repeat">${getRepeatText(r.repeat)}</span>` : ''}
+            </div>
+            <div class="reminder-right">
+                ${r.amount ? `<div class="reminder-amount">${fmt(r.amount)}</div>` : ''}
+                ${showActions ? `
+                    <div class="reminder-actions">
+                        <button class="reminder-action" onclick="editReminder('${r.id}')">✏️</button>
+                        <button class="reminder-action" onclick="deleteReminder('${r.id}')">🗑️</button>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function getRepeatText(repeat) {
+    const texts = { weekly: 'Săptămânal', monthly: 'Lunar', yearly: 'Anual' };
+    return texts[repeat] || repeat;
+}
+
+// Switch view
+function switchView(view) {
+    $$('.view').forEach(v => v.classList.remove('active'));
+    $(view + 'View').classList.add('active');
+    
+    if (view === 'transactions') renderAllTransactions();
+    if (view === 'analytics') updateAnalytics();
+    if (view === 'goals') renderGoals();
+    if (view === 'debts') renderDebts();
+    if (view === 'reminders') renderReminders();
+}
+
+// Change month
+function changeMonth(delta) {
+    state.month += delta;
+    if (state.month > 11) { state.month = 0; state.year++; }
+    if (state.month < 0) { state.month = 11; state.year--; }
+    renderAll();
+    renderAllTransactions();
+}
+
+// Open modals
+function openTransModal(type = 'expense') {
+    state.editingId = null;
+    $('transId').value = '';
+    $('transForm').reset();
+    $('transModalTitle').textContent = 'Adaugă tranzacție';
+    $('transDate').value = new Date().toISOString().split('T')[0];
+    $('recurringOptions').classList.add('hidden');
+    
+    $$('.type-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.type === type);
+    });
+    $('transType').value = type;
+    populateCategories(type);
+    
+    openModal('transModal');
+}
+
+function openGoalModal() {
+    state.editingId = null;
+    $('goalId').value = '';
+    $('goalForm').reset();
+    $('goalModalTitle').textContent = 'Obiectiv nou';
+    $$('.icon-btn').forEach(b => b.classList.toggle('active', b.dataset.icon === '🎯'));
+    $('goalIcon').value = '🎯';
+    openModal('goalModal');
+}
+
+function openDebtModal() {
+    state.editingId = null;
+    $('debtId').value = '';
+    $('debtForm').reset();
+    $('debtModalTitle').textContent = 'Adaugă datorie';
+    $$('.debt-tab').forEach(t => t.classList.toggle('active', t.dataset.type === 'owe'));
+    $('debtType').value = 'owe';
+    $('personLabel').textContent = 'Cui datorezi?';
+    openModal('debtModal');
+}
+
+function openReminderModal() {
+    state.editingId = null;
+    $('reminderId').value = '';
+    $('reminderForm').reset();
+    $('reminderModalTitle').textContent = 'Reminder nou';
+    $('reminderDate').value = new Date().toISOString().split('T')[0];
+    openModal('reminderModal');
+}
+
+function openModal(id) {
+    $(id).classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+    $(id).classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Populate categories
+function populateCategories(type) {
+    const select = $('transCategory');
+    const cats = categories[type] || [];
+    select.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+    populateSubcategories();
+}
+
+function populateSubcategories() {
+    const type = $('transType').value;
+    const catId = $('transCategory').value;
+    const cat = categories[type]?.find(c => c.id === catId);
+    const select = $('transSubcategory');
+    
+    if (cat && cat.subs) {
+        select.innerHTML = '<option value="">Alege subcategorie...</option>' + 
+            cat.subs.map(s => `<option value="${s}">${s}</option>`).join('');
+    } else {
+        select.innerHTML = '<option value="">-</option>';
+    }
+}
+
+function populateReminderCategories() {
+    const select = $('reminderCategory');
+    const allCats = [...categories.expense, ...categories.income];
+    select.innerHTML = '<option value="">Alege...</option>' + 
+        allCats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+}
+
+// Handle transaction submit
+async function handleTransactionSubmit(e) {
+    e.preventDefault();
+    
+    const data = {
+        type: $('transType').value,
+        amount: parseFloat($('transAmount').value),
+        category: $('transCategory').value,
+        subcategory: $('transSubcategory').value,
+        description: $('transDescription').value,
+        date: $('transDate').value,
+        recurring: $('transRecurring').checked,
+        recurringFreq: $('transRecurring').checked ? $('recurringFreq').value : null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        const ref = db.collection('users').doc(state.user.uid).collection('transactions');
+        
+        if (state.editingId) {
+            await ref.doc(state.editingId).update(data);
+            const idx = state.transactions.findIndex(t => t.id === state.editingId);
+            if (idx >= 0) state.transactions[idx] = { ...state.transactions[idx], ...data };
+            toast('Tranzacție actualizată!', 'success');
+        } else {
+            const doc = await ref.add(data);
+            state.transactions.unshift({ id: doc.id, ...data });
+            toast('Tranzacție adăugată!', 'success');
+        }
+        
+        closeModal('transModal');
+        renderAll();
+        renderAllTransactions();
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
+    }
+}
+
+// Edit transaction
+function editTransaction(id) {
+    const t = state.transactions.find(tr => tr.id === id);
+    if (!t) return;
+    
+    state.editingId = id;
+    $('transId').value = id;
+    $('transModalTitle').textContent = 'Editează tranzacție';
+    
+    $$('.type-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.type === t.type);
+    });
+    $('transType').value = t.type;
+    populateCategories(t.type);
+    
+    $('transCategory').value = t.category;
+    populateSubcategories();
+    $('transSubcategory').value = t.subcategory || '';
+    $('transAmount').value = Math.abs(t.amount);
+    $('transDescription').value = t.description || '';
+    $('transDate').value = t.date;
+    $('transRecurring').checked = t.recurring || false;
+    $('recurringOptions').classList.toggle('hidden', !t.recurring);
+    if (t.recurring) $('recurringFreq').value = t.recurringFreq;
+    
+    openModal('transModal');
+}
+
+// Delete transaction
+async function deleteTransaction(id) {
+    if (!confirm('Ștergi această tranzacție?')) return;
+    
+    try {
+        await db.collection('users').doc(state.user.uid).collection('transactions').doc(id).delete();
+        state.transactions = state.transactions.filter(t => t.id !== id);
+        toast('Tranzacție ștearsă!', 'success');
+        renderAll();
+        renderAllTransactions();
+    } catch (err) {
+        toast('Eroare la ștergere', 'error');
+    }
+}
+
+// Handle goal submit
+async function handleGoalSubmit(e) {
+    e.preventDefault();
+    
+    const data = {
+        name: $('goalName').value,
+        target: parseFloat($('goalTarget').value),
+        saved: parseFloat($('goalSaved').value) || 0,
+        deadline: $('goalDeadline').value || null,
+        icon: $('goalIcon').value,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        const ref = db.collection('users').doc(state.user.uid).collection('goals');
+        
+        if (state.editingId) {
+            await ref.doc(state.editingId).update(data);
+            const idx = state.goals.findIndex(g => g.id === state.editingId);
+            if (idx >= 0) state.goals[idx] = { ...state.goals[idx], ...data };
+            toast('Obiectiv actualizat!', 'success');
+        } else {
+            const doc = await ref.add(data);
+            state.goals.push({ id: doc.id, ...data });
+            toast('Obiectiv adăugat!', 'success');
+        }
+        
+        closeModal('goalModal');
+        renderGoalsPreview();
+        renderGoals();
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
+    }
+}
+
+// Render goals
+function renderGoals() {
+    const active = state.goals.filter(g => g.saved < g.target);
+    const completed = state.goals.filter(g => g.saved >= g.target);
+    
+    $('activeGoals').textContent = active.length;
+    $('completedGoals').textContent = completed.length;
+    $('totalSaved').textContent = fmt(state.goals.reduce((a, g) => a + g.saved, 0));
+    
+    $('activeGoalsList').innerHTML = active.length ? active.map(g => goalFullHTML(g)).join('') : 
+        '<div class="empty-state small"><p>Niciun obiectiv activ</p></div>';
+    
+    $('completedGoalsList').innerHTML = completed.length ? completed.map(g => goalFullHTML(g, true)).join('') : 
+        '<div class="empty-state small"><p>Niciun obiectiv completat</p></div>';
+}
+
+function goalFullHTML(g, completed = false) {
+    const percent = Math.min((g.saved / g.target) * 100, 100);
+    return `
+        <div class="goal-item ${completed ? 'completed' : ''}" data-id="${g.id}">
+            <div class="goal-header">
+                <div class="goal-icon">${g.icon || '🎯'}</div>
+                <div class="goal-info">
+                    <div class="goal-name">${esc(g.name)}</div>
+                    ${g.deadline ? `<div class="goal-deadline">Termen: ${formatDate(g.deadline)}</div>` : ''}
+                </div>
+            </div>
+            <div class="goal-amounts">
+                <span class="goal-saved">${fmt(g.saved)}</span>
+                <span class="goal-target">/ ${fmt(g.target)}</span>
+            </div>
+            <div class="goal-progress">
+                <div class="goal-bar"><div class="goal-fill" style="width:${percent}%"></div></div>
+                <div class="goal-percent">${percent.toFixed(0)}%</div>
+            </div>
+            <div class="goal-actions">
+                ${!completed ? `<button class="goal-action primary" onclick="addToGoal('${g.id}')">+ Adaugă</button>` : ''}
+                <button class="goal-action" onclick="editGoal('${g.id}')">✏️ Editează</button>
+                <button class="goal-action" onclick="deleteGoal('${g.id}')">🗑️</button>
+            </div>
+        </div>
+    `;
+}
+
+// Add to goal
+async function addToGoal(id) {
+    const amount = prompt('Suma de adăugat:');
+    if (!amount || isNaN(amount)) return;
+    
+    const g = state.goals.find(goal => goal.id === id);
+    if (!g) return;
+    
+    const newSaved = g.saved + parseFloat(amount);
+    
+    try {
+        await db.collection('users').doc(state.user.uid).collection('goals').doc(id).update({ saved: newSaved });
+        g.saved = newSaved;
+        toast('Sumă adăugată!', 'success');
+        renderGoalsPreview();
+        renderGoals();
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+// Edit goal
+function editGoal(id) {
+    const g = state.goals.find(goal => goal.id === id);
+    if (!g) return;
+    
+    state.editingId = id;
+    $('goalId').value = id;
+    $('goalModalTitle').textContent = 'Editează obiectiv';
+    $('goalName').value = g.name;
+    $('goalTarget').value = g.target;
+    $('goalSaved').value = g.saved;
+    $('goalDeadline').value = g.deadline || '';
+    $('goalIcon').value = g.icon || '🎯';
+    $$('.icon-btn').forEach(b => b.classList.toggle('active', b.dataset.icon === (g.icon || '🎯')));
+    
+    openModal('goalModal');
+}
+
+// Delete goal
+async function deleteGoal(id) {
+    if (!confirm('Ștergi acest obiectiv?')) return;
+    
+    try {
+        await db.collection('users').doc(state.user.uid).collection('goals').doc(id).delete();
+        state.goals = state.goals.filter(g => g.id !== id);
+        toast('Obiectiv șters!', 'success');
+        renderGoalsPreview();
+        renderGoals();
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+// Handle debt submit
+async function handleDebtSubmit(e) {
+    e.preventDefault();
+    
+    const data = {
+        type: $('debtType').value,
+        person: $('debtPerson').value,
+        amount: parseFloat($('debtAmount').value),
+        reason: $('debtReason').value,
+        deadline: $('debtDeadline').value || null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        const ref = db.collection('users').doc(state.user.uid).collection('debts');
+        
+        if (state.editingId) {
+            await ref.doc(state.editingId).update(data);
+            const idx = state.debts.findIndex(d => d.id === state.editingId);
+            if (idx >= 0) state.debts[idx] = { ...state.debts[idx], ...data };
+            toast('Datorie actualizată!', 'success');
+        } else {
+            const doc = await ref.add(data);
+            state.debts.push({ id: doc.id, ...data });
+            toast('Datorie adăugată!', 'success');
+        }
+        
+        closeModal('debtModal');
+        renderDebtsPreview();
+        renderDebts();
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
+    }
+}
+
+// Render debts
+function renderDebts() {
+    const owe = state.debts.filter(d => d.type === 'owe');
+    const owed = state.debts.filter(d => d.type === 'owed');
+    
+    const totalOwe = owe.reduce((a, d) => a + d.amount, 0);
+    const totalOwed = owed.reduce((a, d) => a + d.amount, 0);
+    
+    $('totalToPayDebts').textContent = fmt(totalOwe);
+    $('totalToReceiveDebts').textContent = fmt(totalOwed);
+    
+    $('debtsOweList').innerHTML = owe.length ? owe.map(d => debtHTML(d)).join('') : 
+        '<div class="empty-state small"><p>Nicio datorie de plătit</p></div>';
+    
+    $('debtsOwedList').innerHTML = owed.length ? owed.map(d => debtHTML(d)).join('') : 
+        '<div class="empty-state small"><p>Nimeni nu-ți datorează</p></div>';
+}
+
+function debtHTML(d) {
+    const initial = d.person.charAt(0).toUpperCase();
+    return `
+        <div class="debt-item ${d.type}" data-id="${d.id}">
+            <div class="debt-avatar">${initial}</div>
+            <div class="debt-info">
+                <div class="debt-person">${esc(d.person)}</div>
+                ${d.reason ? `<div class="debt-reason">${esc(d.reason)}</div>` : ''}
+                ${d.deadline ? `<div class="debt-deadline-text">Termen: ${formatDate(d.deadline)}</div>` : ''}
+            </div>
+            <div class="debt-right">
+                <div class="debt-item-amount">${fmt(d.amount)}</div>
+                <div class="debt-item-actions">
+                    <button class="debt-action primary" onclick="markDebtPaid('${d.id}')">✓ Achitat</button>
+                    <button class="debt-action" onclick="editDebt('${d.id}')">✏️</button>
+                    <button class="debt-action danger" onclick="deleteDebt('${d.id}')">🗑️</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Mark debt as paid
+async function markDebtPaid(id) {
+    if (!confirm('Marchezi ca achitat?')) return;
+    
+    try {
+        await db.collection('users').doc(state.user.uid).collection('debts').doc(id).delete();
+        state.debts = state.debts.filter(d => d.id !== id);
+        toast('Datorie achitată!', 'success');
+        renderDebtsPreview();
+        renderDebts();
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+// Edit debt
+function editDebt(id) {
+    const d = state.debts.find(debt => debt.id === id);
+    if (!d) return;
+    
+    state.editingId = id;
+    $('debtId').value = id;
+    $('debtModalTitle').textContent = 'Editează datorie';
+    
+    $$('.debt-tab').forEach(t => t.classList.toggle('active', t.dataset.type === d.type));
+    $('debtType').value = d.type;
+    $('personLabel').textContent = d.type === 'owe' ? 'Cui datorezi?' : 'Cine îți datorează?';
+    $('debtPerson').value = d.person;
+    $('debtAmount').value = d.amount;
+    $('debtReason').value = d.reason || '';
+    $('debtDeadline').value = d.deadline || '';
+    
+    openModal('debtModal');
+}
+
+// Delete debt
+async function deleteDebt(id) {
+    if (!confirm('Ștergi această datorie?')) return;
+    
+    try {
+        await db.collection('users').doc(state.user.uid).collection('debts').doc(id).delete();
+        state.debts = state.debts.filter(d => d.id !== id);
+        toast('Datorie ștearsă!', 'success');
+        renderDebtsPreview();
+        renderDebts();
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+// Handle reminder submit
+async function handleReminderSubmit(e) {
+    e.preventDefault();
+    
+    const data = {
+        title: $('reminderTitle').value,
+        amount: parseFloat($('reminderAmount').value) || null,
+        date: $('reminderDate').value,
+        repeat: $('reminderRepeat').value,
+        category: $('reminderCategory').value || null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        const ref = db.collection('users').doc(state.user.uid).collection('reminders');
+        
+        if (state.editingId) {
+            await ref.doc(state.editingId).update(data);
+            const idx = state.reminders.findIndex(r => r.id === state.editingId);
+            if (idx >= 0) state.reminders[idx] = { ...state.reminders[idx], ...data };
+            toast('Reminder actualizat!', 'success');
+        } else {
+            const doc = await ref.add(data);
+            state.reminders.push({ id: doc.id, ...data });
+            toast('Reminder adăugat!', 'success');
+        }
+        
+        closeModal('reminderModal');
+        renderRemindersPreview();
+        renderReminders();
+        checkReminders();
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
+    }
+}
+
+// Render reminders
+function renderReminders() {
+    const today = new Date();
+    const upcoming = state.reminders
+        .filter(r => new Date(r.date) >= today)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    $('upcomingReminders').innerHTML = upcoming.length ? upcoming.map(r => reminderHTML(r)).join('') : 
+        '<div class="empty-state small"><p>Niciun reminder viitor</p></div>';
+    
+    $('allReminders').innerHTML = state.reminders.length ? state.reminders.map(r => reminderHTML(r)).join('') : 
+        '<div class="empty-state small"><p>Niciun reminder</p></div>';
+}
+
+// Edit reminder
+function editReminder(id) {
+    const r = state.reminders.find(rem => rem.id === id);
+    if (!r) return;
+    
+    state.editingId = id;
+    $('reminderId').value = id;
+    $('reminderModalTitle').textContent = 'Editează reminder';
+    $('reminderTitle').value = r.title;
+    $('reminderAmount').value = r.amount || '';
+    $('reminderDate').value = r.date;
+    $('reminderRepeat').value = r.repeat;
+    $('reminderCategory').value = r.category || '';
+    
+    openModal('reminderModal');
+}
+
+// Delete reminder
+async function deleteReminder(id) {
+    if (!confirm('Ștergi acest reminder?')) return;
+    
+    try {
+        await db.collection('users').doc(state.user.uid).collection('reminders').doc(id).delete();
+        state.reminders = state.reminders.filter(r => r.id !== id);
+        toast('Reminder șters!', 'success');
+        renderRemindersPreview();
+        renderReminders();
+        checkReminders();
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+// Check reminders
+function checkReminders() {
+    const today = new Date().toISOString().split('T')[0];
+    const due = state.reminders.filter(r => r.date <= today);
+    
+    const badge = document.querySelector('.notif-badge');
+    if (due.length > 0) {
+        badge.textContent = due.length;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+}
+
+// Analytics
+function updateAnalytics() {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - state.period);
+    
+    const trans = state.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d >= startDate && d <= endDate;
+    });
+    
+    let income = 0, expense = 0;
+    const byCategory = {};
+    const byDate = {};
+    
+    trans.forEach(t => {
+        if (t.type === 'income') income += t.amount;
+        else if (t.type === 'expense') {
+            expense += t.amount;
+            const cat = findCategory('expense', t.category);
+            const name = cat ? cat.name : t.category;
+            byCategory[name] = (byCategory[name] || 0) + t.amount;
+        }
+        
+        // By date for chart
+        const dateKey = t.date;
+        if (!byDate[dateKey]) byDate[dateKey] = { income: 0, expense: 0 };
+        if (t.type === 'income') byDate[dateKey].income += t.amount;
+        else if (t.type === 'expense') byDate[dateKey].expense += t.amount;
+    });
+    
+    $('analyticsIncome').textContent = fmt(income);
+    $('analyticsExpense').textContent = fmt(expense);
+    $('analyticsSavings').textContent = fmt(income - expense);
+    
+    // Trend chart
+    updateTrendChart(byDate);
+    
+    // Patterns
+    detectPatterns(trans);
+    
+    // Anomalies
+    detectAnomalies(trans);
+    
+    // Category breakdown
+    renderCategoryBreakdown(byCategory, expense);
+}
+
+function updateTrendChart(byDate) {
+    const dates = Object.keys(byDate).sort();
+    const incomeData = dates.map(d => byDate[d].income);
+    const expenseData = dates.map(d => byDate[d].expense);
+    
+    const ctx = $('trendChart').getContext('2d');
+    
+    if (state.trendChart) state.trendChart.destroy();
+    
+    state.trendChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: [],
+            labels: dates.map(d => formatDate(d)),
             datasets: [
                 {
-                    label: 'Cheltuieli',
-                    data: [],
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 2
-                },
-                {
                     label: 'Venituri',
-                    data: [],
+                    data: incomeData,
                     borderColor: '#10b981',
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     fill: true,
-                    tension: 0.4,
-                    borderWidth: 2
+                    tension: 0.4
+                },
+                {
+                    label: 'Cheltuieli',
+                    data: expenseData,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.4
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                x: {
-                    grid: { color: getChartGridColor() },
-                    ticks: { color: getChartTextColor() }
-                },
-                y: {
-                    grid: { color: getChartGridColor() },
-                    ticks: { color: getChartTextColor() }
-                }
-            },
             plugins: {
                 legend: {
-                    labels: { color: getChartTextColor() }
-                }
-            }
-        }
-    });
-}
-
-function initBarChart() {
-    const ctx = document.getElementById('bar-chart')?.getContext('2d');
-    if (!ctx) return;
-    
-    state.charts.bar = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Cheltuieli',
-                data: [],
-                backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: getChartTextColor() }
-                },
-                y: {
-                    grid: { color: getChartGridColor() },
-                    ticks: { color: getChartTextColor() }
+                    position: 'top',
+                    labels: { color: '#a0a0a0' }
                 }
             },
-            plugins: {
-                legend: { display: false }
+            scales: {
+                x: {
+                    ticks: { color: '#666' },
+                    grid: { color: '#222' }
+                },
+                y: {
+                    ticks: { color: '#666' },
+                    grid: { color: '#222' }
+                }
             }
         }
     });
 }
 
-function getChartTextColor() {
-    return state.theme === 'dark' ? '#9ca3af' : '#4b5563';
-}
-
-function getChartGridColor() {
-    return state.theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-}
-
-function updateCharts() {
-    updatePieChart();
-    updateLineChart();
-    updateBarChart();
-}
-
-function updatePieChart() {
-    if (!state.charts.pie) return;
+function detectPatterns(trans) {
+    const container = $('patterns');
+    const patterns = [];
     
-    const filtered = getFilteredTransactions().filter(t => t.type === 'Cheltuială');
+    if (trans.length < 5) {
+        container.innerHTML = '<div class="empty-state small"><p>Adaugă mai multe tranzacții pentru detectarea pattern-urilor</p></div>';
+        return;
+    }
+    
+    // Weekend spending
+    const weekendTrans = trans.filter(t => {
+        const d = new Date(t.date);
+        return (d.getDay() === 0 || d.getDay() === 6) && t.type === 'expense';
+    });
+    const weekendTotal = weekendTrans.reduce((a, t) => a + t.amount, 0);
+    const totalExpense = trans.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0);
+    const weekendPercent = totalExpense > 0 ? (weekendTotal / totalExpense * 100) : 0;
+    
+    if (weekendPercent > 40) {
+        patterns.push({ icon: '📅', text: `${weekendPercent.toFixed(0)}% din cheltuieli sunt în weekend. Ai grijă la cheltuielile impulsive!` });
+    }
+    
+    // Top category
     const byCategory = {};
-    
-    filtered.forEach(t => {
-        if (!byCategory[t.category]) byCategory[t.category] = 0;
-        byCategory[t.category] += Math.abs(t.amount);
+    trans.filter(t => t.type === 'expense').forEach(t => {
+        const cat = findCategory('expense', t.category);
+        const name = cat ? cat.name : t.category;
+        byCategory[name] = (byCategory[name] || 0) + t.amount;
     });
     
     const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
-    
-    state.charts.pie.data.labels = sorted.map(([cat]) => cat);
-    state.charts.pie.data.datasets[0].data = sorted.map(([, val]) => val);
-    state.charts.pie.data.datasets[0].backgroundColor = sorted.map(([cat]) => 
-        CATEGORIES.expense[cat]?.color || '#64748b'
-    );
-    state.charts.pie.options.plugins.legend.labels.color = getChartTextColor();
-    state.charts.pie.update();
-}
-
-function updateLineChart() {
-    if (!state.charts.line) return;
-    
-    const months = [];
-    const expenseData = [];
-    const incomeData = [];
-    
-    for (let i = 5; i >= 0; i--) {
-        let m = state.month - i;
-        let y = state.year;
-        if (m < 0) { m += 12; y--; }
-        
-        months.push(MONTHS_SHORT[m]);
-        
-        const monthTrans = state.transactions.filter(t => {
-            const d = new Date(t.date);
-            return d.getMonth() === m && d.getFullYear() === y;
-        });
-        
-        expenseData.push(monthTrans.filter(t => t.type === 'Cheltuială').reduce((s, t) => s + Math.abs(t.amount), 0));
-        incomeData.push(monthTrans.filter(t => t.type === 'Venit').reduce((s, t) => s + Math.abs(t.amount), 0));
+    if (sorted.length > 0) {
+        const [topCat, topAmount] = sorted[0];
+        const percent = (topAmount / totalExpense * 100).toFixed(0);
+        patterns.push({ icon: '📊', text: `"${topCat}" este categoria ta principală de cheltuieli (${percent}%)` });
     }
     
-    state.charts.line.data.labels = months;
-    state.charts.line.data.datasets[0].data = expenseData;
-    state.charts.line.data.datasets[1].data = incomeData;
-    state.charts.line.options.scales.x.grid.color = getChartGridColor();
-    state.charts.line.options.scales.x.ticks.color = getChartTextColor();
-    state.charts.line.options.scales.y.grid.color = getChartGridColor();
-    state.charts.line.options.scales.y.ticks.color = getChartTextColor();
-    state.charts.line.options.plugins.legend.labels.color = getChartTextColor();
-    state.charts.line.update();
-}
-
-function updateBarChart() {
-    if (!state.charts.bar) return;
-    
-    const filtered = getFilteredTransactions().filter(t => t.type === 'Cheltuială');
-    const byCategory = {};
-    
-    filtered.forEach(t => {
-        if (!byCategory[t.category]) byCategory[t.category] = 0;
-        byCategory[t.category] += Math.abs(t.amount);
+    // Recurring patterns
+    const recurring = {};
+    trans.forEach(t => {
+        const key = t.category + '-' + t.amount;
+        recurring[key] = (recurring[key] || 0) + 1;
     });
     
-    const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]).slice(0, 6);
-    
-    state.charts.bar.data.labels = sorted.map(([cat]) => cat);
-    state.charts.bar.data.datasets[0].data = sorted.map(([, val]) => val);
-    state.charts.bar.options.scales.x.ticks.color = getChartTextColor();
-    state.charts.bar.options.scales.y.grid.color = getChartGridColor();
-    state.charts.bar.options.scales.y.ticks.color = getChartTextColor();
-    state.charts.bar.update();
-}
-
-// ============================================
-// MODALS
-// ============================================
-function openAIModal() {
-    document.getElementById('ai-modal')?.classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeAIModal() {
-    document.getElementById('ai-modal')?.classList.remove('open');
-    document.body.style.overflow = '';
-}
-
-function openSettingsModal() {
-    document.getElementById('settings-modal')?.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    
-    // Load current settings
-    document.getElementById('gemini-api-key').value = state.geminiApiKey;
-    document.getElementById('theme-select').value = state.theme;
-}
-
-function closeSettingsModal() {
-    document.getElementById('settings-modal')?.classList.remove('open');
-    document.body.style.overflow = '';
-}
-
-function openAllTransactionsModal() {
-    document.getElementById('all-transactions-modal')?.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    renderAllTransactions();
-}
-
-function closeAllTransactionsModal() {
-    document.getElementById('all-transactions-modal')?.classList.remove('open');
-    document.body.style.overflow = '';
-}
-
-function renderAllTransactions(filter = 'all') {
-    const container = document.getElementById('all-transactions-list');
-    if (!container) return;
-    
-    let filtered = getFilteredTransactions();
-    
-    if (filter === 'expense') {
-        filtered = filtered.filter(t => t.type === 'Cheltuială');
-    } else if (filter === 'income') {
-        filtered = filtered.filter(t => t.type === 'Venit');
-    }
-    
-    if (filtered.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-text">Nicio tranzacție</div></div>';
-        return;
-    }
-    
-    container.innerHTML = filtered.map(t => createTransactionHTML(t)).join('');
-}
-
-function filterTransactions(filter) {
-    renderAllTransactions(filter);
-}
-
-function searchTransactions(query) {
-    const container = document.getElementById('all-transactions-list');
-    if (!container) return;
-    
-    const q = query.toLowerCase();
-    const filtered = getFilteredTransactions().filter(t => 
-        t.category?.toLowerCase().includes(q) ||
-        t.subcategory?.toLowerCase().includes(q) ||
-        t.description?.toLowerCase().includes(q)
-    );
-    
-    if (filtered.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Niciun rezultat</div></div>';
-        return;
-    }
-    
-    container.innerHTML = filtered.map(t => createTransactionHTML(t)).join('');
-}
-
-// ============================================
-// HELPERS
-// ============================================
-function formatMoney(amount) {
-    return new Intl.NumberFormat('ro-RO').format(Math.abs(amount)) + ' ' + state.currency;
-}
-
-function formatNumber(num) {
-    return new Intl.NumberFormat('ro-RO').format(num);
-}
-
-function toast(message, type = 'success') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    
-    const icons = {
-        success: '✅',
-        error: '❌',
-        warning: '⚠️',
-        info: 'ℹ️'
-    };
-    
-    const toastEl = document.createElement('div');
-    toastEl.className = `toast ${type}`;
-    toastEl.innerHTML = `
-        <span class="toast-icon">${icons[type]}</span>
-        <span class="toast-message">${message}</span>
-    `;
-    
-    container.appendChild(toastEl);
-    setTimeout(() => {
-        toastEl.style.opacity = '0';
-        toastEl.style.transform = 'translateY(-20px)';
-        setTimeout(() => toastEl.remove(), 300);
-    }, 3000);
-}
-
-function startAutoRefresh() {
-    // Refresh data every 5 minutes
-    setInterval(() => {
-        if (state.isOnline && !document.hidden) {
-            loadData();
+    Object.entries(recurring).forEach(([key, count]) => {
+        if (count >= 3) {
+            const [catId, amount] = key.split('-');
+            const cat = findCategory('expense', catId) || findCategory('income', catId);
+            const name = cat ? cat.name : catId;
+            patterns.push({ icon: '🔄', text: `Tranzacție recurentă detectată: ${name} - ${fmt(parseFloat(amount))} (de ${count} ori)` });
         }
-    }, 5 * 60 * 1000);
+    });
+    
+    container.innerHTML = patterns.length ? patterns.map(p => `
+        <div class="pattern-item">
+            <span class="pattern-icon">${p.icon}</span>
+            <span class="pattern-text">${p.text}</span>
+        </div>
+    `).join('') : '<div class="empty-state small"><p>Niciun pattern detectat</p></div>';
 }
 
-function exportData() {
+function detectAnomalies(trans) {
+    const container = $('anomalies');
+    const anomalies = [];
+    
+    const expenses = trans.filter(t => t.type === 'expense');
+    if (expenses.length < 5) {
+        container.innerHTML = '<div class="empty-state small"><p>Nicio abatere detectată</p></div>';
+        return;
+    }
+    
+    const amounts = expenses.map(t => t.amount);
+    const avg = amounts.reduce((a, b) => a + b, 0) / amounts.length;
+    const threshold = avg * 3;
+    
+    expenses.forEach(t => {
+        if (t.amount > threshold) {
+            const cat = findCategory('expense', t.category);
+            const name = cat ? cat.name : t.category;
+            anomalies.push({ 
+                icon: '⚠️', 
+                text: `Cheltuială neobișnuit de mare: ${name} - ${fmt(t.amount)} (${formatDate(t.date)})` 
+            });
+        }
+    });
+    
+    // Spending increase
+    const thisMonth = expenses.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === new Date().getMonth();
+    }).reduce((a, t) => a + t.amount, 0);
+    
+    const lastMonth = expenses.filter(t => {
+        const d = new Date(t.date);
+        const now = new Date();
+        return d.getMonth() === (now.getMonth() - 1 + 12) % 12;
+    }).reduce((a, t) => a + t.amount, 0);
+    
+    if (lastMonth > 0 && thisMonth > lastMonth * 1.5) {
+        const increase = ((thisMonth - lastMonth) / lastMonth * 100).toFixed(0);
+        anomalies.push({ icon: '📈', text: `Cheltuielile au crescut cu ${increase}% față de luna trecută!` });
+    }
+    
+    container.innerHTML = anomalies.length ? anomalies.map(a => `
+        <div class="anomaly-item">
+            <span class="anomaly-icon">${a.icon}</span>
+            <span class="anomaly-text">${a.text}</span>
+        </div>
+    `).join('') : '<div class="empty-state small"><p>Nicio abatere detectată - bravo!</p></div>';
+}
+
+function renderCategoryBreakdown(byCategory, total) {
+    const container = $('categoryBreakdown');
+    const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
+    
+    if (sorted.length === 0) {
+        container.innerHTML = '<div class="empty-state small"><p>Nicio categorie de afișat</p></div>';
+        return;
+    }
+    
+    container.innerHTML = sorted.map(([name, amount]) => {
+        const percent = total > 0 ? (amount / total * 100) : 0;
+        const cat = categories.expense.find(c => c.name === name);
+        const icon = cat ? cat.icon : '📦';
+        
+        return `
+            <div class="cat-item">
+                <div class="cat-header">
+                    <span class="cat-name">${icon} ${name}</span>
+                    <span class="cat-amount">${fmt(amount)}</span>
+                </div>
+                <div class="cat-bar"><div class="cat-fill" style="width:${percent}%"></div></div>
+                <div class="cat-percent">${percent.toFixed(1)}%</div>
+            </div>
+        `;
+    }).join('');
+}
+
+// AI Functions
+async function sendAiMessage() {
+    const input = $('aiInput');
+    const message = input.value.trim();
+    if (!message) return;
+    
+    input.value = '';
+    addAiMessage(message, 'user');
+    addAiTyping();
+    
+    try {
+        const response = await callGemini(message);
+        removeAiTyping();
+        addAiMessage(response, 'assistant');
+    } catch (err) {
+        removeAiTyping();
+        addAiMessage('Scuze, am întâmpinat o eroare. Încearcă din nou.', 'assistant');
+    }
+}
+
+function askAI(question) {
+    $('aiInput').value = question;
+    sendAiMessage();
+}
+
+function addAiMessage(text, role) {
+    const container = $('aiMessages');
+    const div = document.createElement('div');
+    div.className = `ai-message ${role}`;
+    div.innerHTML = `
+        <div class="ai-avatar">${role === 'user' ? '👤' : '🤖'}</div>
+        <div class="ai-bubble"><p>${text}</p></div>
+    `;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function addAiTyping() {
+    const container = $('aiMessages');
+    const div = document.createElement('div');
+    div.className = 'ai-message assistant';
+    div.id = 'aiTyping';
+    div.innerHTML = `
+        <div class="ai-avatar">🤖</div>
+        <div class="ai-bubble"><div class="ai-typing"><span></span><span></span><span></span></div></div>
+    `;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function removeAiTyping() {
+    const typing = $('aiTyping');
+    if (typing) typing.remove();
+}
+
+async function callGemini(message) {
+    const context = buildFinancialContext();
+    const prompt = `Ești un asistent financiar personal expert. Analizează datele financiare ale utilizatorului și răspunde la întrebări într-un mod prietenos și util.
+
+CONTEXT FINANCIAR AL UTILIZATORULUI:
+${context}
+
+ÎNTREBAREA UTILIZATORULUI: ${message}
+
+Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritate. Dacă dai sfaturi, fii specific și actionabil. Poți folosi <strong> pentru text important.`;
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${getGK()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+        })
+    });
+
+    const data = await response.json();
+    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+        return data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+    }
+    throw new Error('Invalid response');
+}
+
+function buildFinancialContext() {
+    const monthTrans = getMonthTransactions();
+    let income = 0, expense = 0;
+    const byCategory = {};
+    
+    monthTrans.forEach(t => {
+        if (t.type === 'income') income += t.amount;
+        else if (t.type === 'expense') {
+            expense += t.amount;
+            const cat = findCategory('expense', t.category);
+            const name = cat ? cat.name : t.category;
+            byCategory[name] = (byCategory[name] || 0) + t.amount;
+        }
+    });
+    
+    const sortedCats = Object.entries(byCategory).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const today = new Date();
+    const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+    const daysPassed = state.month === today.getMonth() ? today.getDate() : daysInMonth;
+    
+    let context = `Luna curentă: ${months[state.month]} ${state.year}
+Venituri totale: ${income} ${state.currency}
+Cheltuieli totale: ${expense} ${state.currency}
+Balanță: ${income - expense} ${state.currency}
+Rata de economisire: ${income > 0 ? ((income - expense) / income * 100).toFixed(1) : 0}%
+Media zilnică cheltuieli: ${(expense / daysPassed).toFixed(0)} ${state.currency}
+Predicție sfârșit de lună: ${(expense / daysPassed * daysInMonth).toFixed(0)} ${state.currency}
+
+Top 5 categorii de cheltuieli:
+${sortedCats.map(([name, amount]) => `- ${name}: ${amount} ${state.currency}`).join('\n')}
+
+Număr total tranzacții luna aceasta: ${monthTrans.length}`;
+
+    if (state.goals.length > 0) {
+        context += `\n\nObiective financiare:
+${state.goals.map(g => `- ${g.name}: ${g.saved}/${g.target} ${state.currency} (${(g.saved/g.target*100).toFixed(0)}%)`).join('\n')}`;
+    }
+    
+    if (state.debts.length > 0) {
+        const owe = state.debts.filter(d => d.type === 'owe').reduce((a, d) => a + d.amount, 0);
+        const owed = state.debts.filter(d => d.type === 'owed').reduce((a, d) => a + d.amount, 0);
+        context += `\n\nDatorii:
+- De plătit: ${owe} ${state.currency}
+- De recuperat: ${owed} ${state.currency}`;
+    }
+    
+    return context;
+}
+
+async function runFullAiAnalysis() {
+    const container = $('aiAnalysis');
+    container.innerHTML = '<p class="ai-placeholder">Se analizează datele...</p>';
+    
+    try {
+        const context = buildFinancialContext();
+        const prompt = `Ești un analist financiar expert. Analizează datele financiare de mai jos și oferă:
+1. O evaluare generală a sănătății financiare (scor 1-10)
+2. 3 puncte forte
+3. 3 arii de îmbunătățit
+4. 3 sfaturi concrete și acționabile
+5. Predicții pentru luna viitoare
+
+CONTEXT:
+${context}
+
+Răspunde în română, structurat și concis. Folosește emoji-uri pentru claritate.`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${getGK()}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
+            })
+        });
+
+        const data = await response.json();
+        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+            container.innerHTML = `<div class="ai-analysis-content">${data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</div>`;
+        } else {
+            throw new Error('Invalid response');
+        }
+    } catch (err) {
+        container.innerHTML = '<p class="ai-placeholder">Eroare la analiză. Încearcă din nou.</p>';
+    }
+}
+
+// Search
+function handleSearch() {
+    const query = $('searchInput').value.toLowerCase().trim();
+    const resultsContainer = $('searchResults');
+    
+    if (!query) {
+        resultsContainer.classList.add('hidden');
+        return;
+    }
+    
+    const results = state.transactions.filter(t => {
+        const cat = findCategory(t.type, t.category);
+        const catName = cat ? cat.name.toLowerCase() : t.category.toLowerCase();
+        return catName.includes(query) || 
+               (t.subcategory && t.subcategory.toLowerCase().includes(query)) ||
+               (t.description && t.description.toLowerCase().includes(query));
+    }).slice(0, 10);
+    
+    if (results.length === 0) {
+        resultsContainer.innerHTML = '<div class="empty-state small"><p>Niciun rezultat</p></div>';
+    } else {
+        resultsContainer.innerHTML = results.map(t => {
+            const cat = findCategory(t.type, t.category);
+            const icon = cat ? cat.icon : '📝';
+            const name = cat ? cat.name : t.category;
+            return `
+                <div class="search-result-item" onclick="goToTransaction('${t.id}')">
+                    <span style="margin-right:0.75rem">${icon}</span>
+                    <div style="flex:1">
+                        <div style="font-weight:500">${esc(name)}</div>
+                        <div style="font-size:0.8rem;color:var(--text3)">${formatDate(t.date)}</div>
+                    </div>
+                    <span class="trans-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</span>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    resultsContainer.classList.remove('hidden');
+}
+
+function goToTransaction(id) {
+    $('searchBar').classList.add('hidden');
+    $('searchInput').value = '';
+    $('searchResults').classList.add('hidden');
+    
+    switchView('transactions');
+    $$('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelector('.nav-item[data-view="transactions"]').classList.add('active');
+    
+    // Find and highlight the transaction
+    const t = state.transactions.find(tr => tr.id === id);
+    if (t) {
+        state.month = new Date(t.date).getMonth();
+        state.year = new Date(t.date).getFullYear();
+        state.filter = 'all';
+        $$('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+        renderAllTransactions();
+        updateStats();
+    }
+}
+
+// Profile
+function updateProfile() {
+    if (!state.user) return;
+    
+    const name = state.user.displayName || 'Utilizator';
+    const email = state.user.email;
+    const initial = name.charAt(0).toUpperCase();
+    
+    $('profileAvatar').textContent = initial;
+    $('profileName').textContent = name;
+    $('profileEmail').textContent = email;
+    
+    $('totalTransCount').textContent = state.transactions.length;
+    
+    const createdAt = state.user.metadata?.creationTime;
+    if (createdAt) {
+        const date = new Date(createdAt);
+        $('memberSince').textContent = months[date.getMonth()].slice(0, 3) + ' ' + date.getFullYear();
+    }
+    
+    // Calculate streak (simplified)
+    $('streakDays').textContent = calculateStreak();
+}
+
+function calculateStreak() {
+    if (state.transactions.length === 0) return 0;
+    
+    const dates = [...new Set(state.transactions.map(t => t.date))].sort().reverse();
+    let streak = 0;
+    let currentDate = new Date();
+    
+    for (const dateStr of dates) {
+        const date = new Date(dateStr);
+        const diffDays = Math.floor((currentDate - date) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays <= 1) {
+            streak++;
+            currentDate = date;
+        } else {
+            break;
+        }
+    }
+    
+    return streak;
+}
+
+// Export functions
+function exportJSON() {
     const data = {
         transactions: state.transactions,
-        budgets: state.budgets,
-        recurring: state.recurring,
         goals: state.goals,
+        reminders: state.reminders,
+        debts: state.debts,
         exportedAt: new Date().toISOString()
     };
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    downloadFile(JSON.stringify(data, null, 2), 'budget-pro-export.json', 'application/json');
+    toast('Export JSON generat!', 'success');
+}
+
+function exportCSV() {
+    const headers = ['Data', 'Tip', 'Categorie', 'Subcategorie', 'Sumă', 'Descriere'];
+    const rows = state.transactions.map(t => {
+        const cat = findCategory(t.type, t.category);
+        return [
+            t.date,
+            t.type,
+            cat ? cat.name : t.category,
+            t.subcategory || '',
+            t.amount,
+            t.description || ''
+        ].map(v => `"${v}"`).join(',');
+    });
+    
+    const csv = [headers.join(','), ...rows].join('\n');
+    downloadFile(csv, 'budget-pro-tranzactii.csv', 'text/csv');
+    toast('Export CSV generat!', 'success');
+}
+
+function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `budget-pro-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-    
-    toast('Date exportate!', 'success');
 }
 
-function clearAllData() {
-    if (!confirm('Ești sigur că vrei să ștergi toate datele? Această acțiune nu poate fi anulată.')) return;
+// Clear all data
+async function clearAllData() {
+    if (!confirm('Ești sigur că vrei să ștergi TOATE datele? Această acțiune este ireversibilă!')) return;
+    if (!confirm('Confirmă din nou: ȘTERGE toate datele?')) return;
     
-    localStorage.clear();
-    state.transactions = [];
-    state.budgets = [];
-    state.recurring = [];
-    state.goals = [];
-    render();
-    updateCharts();
-    toast('Toate datele au fost șterse', 'success');
-}
-
-// AI Functions placeholder
-async function sendAIMessage(message) {
-    const messagesContainer = document.getElementById('ai-messages');
-    if (!messagesContainer) return;
-    
-    // Add user message
-    messagesContainer.innerHTML += `
-        <div class="ai-message user">
-            <div class="message-avatar">👤</div>
-            <div class="message-content"><p>${message}</p></div>
-        </div>
-    `;
-    
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    
-    // Simulate AI response (will be replaced with real Gemini API)
-    setTimeout(() => {
-        const response = generateLocalResponse(message);
-        messagesContainer.innerHTML += `
-            <div class="ai-message bot">
-                <div class="message-avatar">🤖</div>
-                <div class="message-content"><p>${response}</p></div>
-            </div>
-        `;
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, 1000);
-}
-
-function generateLocalResponse(message) {
-    const filtered = getFilteredTransactions();
-    const expenses = filtered.filter(t => t.type === 'Cheltuială').reduce((s, t) => s + Math.abs(t.amount), 0);
-    const income = filtered.filter(t => t.type === 'Venit').reduce((s, t) => s + Math.abs(t.amount), 0);
-    
-    if (message.toLowerCase().includes('cheltuieli')) {
-        return `Luna aceasta ai cheltuit ${formatMoney(expenses)}. Categoria cu cele mai mari cheltuieli poate fi văzută în graficul de categorii.`;
-    }
-    
-    if (message.toLowerCase().includes('economisi')) {
-        const balance = income - expenses;
-        if (balance > 0) {
-            return `Felicitări! Luna aceasta ai economisit ${formatMoney(balance)}. Continuă așa! 💪`;
-        } else {
-            return `Luna aceasta ai cheltuit mai mult decât ai câștigat cu ${formatMoney(Math.abs(balance))}. Încearcă să reduci cheltuielile neesențiale.`;
-        }
-    }
-    
-    if (message.toLowerCase().includes('trend') || message.toLowerCase().includes('analiză')) {
-        return `Analizând datele tale, venituri: ${formatMoney(income)}, cheltuieli: ${formatMoney(expenses)}. Balanța: ${formatMoney(income - expenses)}.`;
-    }
-    
-    return `Am înțeles întrebarea ta. Pentru analize detaliate, configurează API-ul Gemini în Setări. Între timp, pot să-ți ofer informații de bază despre cheltuielile și veniturile tale.`;
-}
-
-function refreshAIInsights() {
-    const btn = document.getElementById('refresh-insights');
-    const content = document.getElementById('ai-insights-content');
-    
-    if (btn) btn.classList.add('spinning');
-    
-    setTimeout(() => {
-        const filtered = getFilteredTransactions();
-        const expenses = filtered.filter(t => t.type === 'Cheltuială');
-        const total = expenses.reduce((s, t) => s + Math.abs(t.amount), 0);
+    try {
+        const uid = state.user.uid;
+        const batch = db.batch();
         
-        const byCategory = {};
-        expenses.forEach(t => {
-            if (!byCategory[t.category]) byCategory[t.category] = 0;
-            byCategory[t.category] += Math.abs(t.amount);
-        });
-        
-        const topCategory = Object.entries(byCategory).sort((a, b) => b[1] - a[1])[0];
-        
-        const insights = [];
-        
-        if (topCategory) {
-            insights.push({
-                icon: '📊',
-                text: `Cea mai mare categorie de cheltuieli: ${topCategory[0]} (${formatMoney(topCategory[1])})`
-            });
+        const collections = ['transactions', 'goals', 'reminders', 'debts'];
+        for (const col of collections) {
+            const snap = await db.collection('users').doc(uid).collection(col).get();
+            snap.docs.forEach(doc => batch.delete(doc.ref));
         }
         
-        const dailyAvg = total / new Date().getDate();
-        insights.push({
-            icon: '💡',
-            text: `Cheltuiești în medie ${formatMoney(dailyAvg)} pe zi`
-        });
+        await batch.commit();
         
-        if (content) {
-            content.innerHTML = insights.map(i => `
-                <div class="ai-insight-card">
-                    <div class="insight-icon">${i.icon}</div>
-                    <div class="insight-text">${i.text}</div>
-                </div>
-            `).join('');
-        }
+        state.transactions = [];
+        state.goals = [];
+        state.reminders = [];
+        state.debts = [];
         
-        if (btn) btn.classList.remove('spinning');
-    }, 1000);
+        renderAll();
+        toast('Toate datele au fost șterse!', 'success');
+    } catch (err) {
+        toast('Eroare la ștergere', 'error');
+    }
+}
+
+// Logout
+function logout() {
+    auth.signOut();
+    toast('Deconectat cu succes!', 'success');
+}
+
+// Utility functions
+function fmt(n) {
+    return new Intl.NumberFormat('ro-RO', { 
+        style: 'decimal', 
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0 
+    }).format(n) + ' ' + state.currency;
+}
+
+function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+}
+
+function esc(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function toast(message, type = 'info') {
+    const container = $('toastContainer');
+    const div = document.createElement('div');
+    div.className = `toast ${type}`;
+    
+    const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+    div.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+    
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
+}
+
+function debounce(fn, delay) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), delay);
+    };
 }
 
 // Make functions global
-window.state = state;
-window.openTransactionModal = openTransactionModal;
+window.openTransModal = openTransModal;
+window.openGoalModal = openGoalModal;
+window.openDebtModal = openDebtModal;
+window.openReminderModal = openReminderModal;
+window.closeModal = closeModal;
+window.switchView = switchView;
+window.changeMonth = changeMonth;
+window.editTransaction = editTransaction;
 window.deleteTransaction = deleteTransaction;
-window.CATEGORIES = CATEGORIES;
-window.formatMoney = formatMoney;
-window.toast = toast;
+window.addToGoal = addToGoal;
+window.editGoal = editGoal;
+window.deleteGoal = deleteGoal;
+window.markDebtPaid = markDebtPaid;
+window.editDebt = editDebt;
+window.deleteDebt = deleteDebt;
+window.editReminder = editReminder;
+window.deleteReminder = deleteReminder;
+window.askAI = askAI;
+window.exportJSON = exportJSON;
+window.exportCSV = exportCSV;
+window.clearAllData = clearAllData;
+window.logout = logout;
+window.goToTransaction = goToTransaction;

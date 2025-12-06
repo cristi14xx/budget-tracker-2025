@@ -2,588 +2,865 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#0a0f1a">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Budget Pro Ultra</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="Budget Pro - Aplicația ta premium pentru gestionarea finanțelor personale cu AI">
-    
-    <title>Budget Pro</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <!-- Styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app" id="app">
-        <!-- Loading Screen -->
-        <div class="loading-screen" id="loading-screen">
-            <div class="loading-logo">💰</div>
-            <div class="loading-text">Budget Pro</div>
-            <div class="loading-bar"><div class="loading-progress"></div></div>
+    <!-- Splash Screen -->
+    <div id="splash" class="splash">
+        <div class="splash-content">
+            <div class="splash-icon">💎</div>
+            <div class="splash-title">Budget Pro</div>
+            <div class="splash-subtitle">Ultra</div>
+            <div class="splash-loader"></div>
         </div>
+    </div>
 
+    <!-- Auth Screen -->
+    <div id="authScreen" class="screen auth-screen">
+        <div class="auth-bg"></div>
+        <div class="auth-container">
+            <div class="auth-logo">💎</div>
+            <h1 class="auth-title">Budget Pro <span>Ultra</span></h1>
+            <p class="auth-subtitle">Controlul total al finanțelor tale</p>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Autentificare</button>
+                <button class="auth-tab" data-tab="register">Cont nou</button>
+            </div>
+            
+            <form id="loginForm" class="auth-form active">
+                <div class="input-group">
+                    <span class="input-icon">📧</span>
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="loginPassword" placeholder="Parolă" required>
+                </div>
+                <button type="submit" class="btn-primary">Intră în cont</button>
+            </form>
+            
+            <form id="registerForm" class="auth-form">
+                <div class="input-group">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="registerName" placeholder="Nume complet" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-icon">📧</span>
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="registerPassword" placeholder="Parolă (min. 6 caractere)" required minlength="6">
+                </div>
+                <button type="submit" class="btn-primary">Creează cont</button>
+            </form>
+            
+            <div class="auth-divider"><span>sau</span></div>
+            
+            <button id="googleAuth" class="btn-google">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Continuă cu Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="appScreen" class="screen app-screen hidden">
         <!-- Header -->
         <header class="header">
             <div class="header-left">
-                <div class="logo">
-                    <span class="logo-icon">💰</span>
-                    <span class="logo-text">Budget Pro</span>
-                </div>
+                <span class="header-logo">💎</span>
+                <span class="header-title">Budget Pro</span>
             </div>
             <div class="header-right">
-                <button class="header-btn" id="ai-btn" title="Asistent AI">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/>
-                        <circle cx="8" cy="14" r="1.5"/>
-                        <circle cx="16" cy="14" r="1.5"/>
-                        <path d="M9 18h6"/>
-                    </svg>
-                </button>
-                <button class="header-btn" id="sync-btn" title="Sincronizează">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
-                        <path d="M21 3v5h-5"/>
-                    </svg>
-                </button>
-                <button class="header-btn" id="theme-btn" title="Schimbă tema">
-                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"/>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
-                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
-                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-                    </svg>
-                </button>
-                <button class="header-btn" id="settings-btn" title="Setări">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
-                </button>
+                <button id="searchToggle" class="header-btn">🔍</button>
+                <button id="aiBtn" class="header-btn ai-btn">✨</button>
+                <button id="notifBtn" class="header-btn">🔔<span class="notif-badge hidden">0</span></button>
             </div>
         </header>
 
-        <!-- Connection Status -->
-        <div class="connection-status" id="connection-status">
-            <span class="status-dot"></span>
-            <span class="status-text">Offline</span>
+        <!-- Search Bar -->
+        <div id="searchBar" class="search-bar hidden">
+            <div class="search-input-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Caută tranzacții, categorii...">
+                <button id="searchClose" class="search-close">✕</button>
+            </div>
+            <div id="searchResults" class="search-results hidden"></div>
         </div>
 
-        <!-- Main Content -->
+        <!-- Views Container -->
         <main class="main-content">
-            <!-- Quick Summary Card -->
-            <section class="hero-card">
-                <div class="hero-greeting" id="hero-greeting">Bună dimineața! 👋</div>
-                <div class="hero-balance">
-                    <div class="hero-balance-label">Balanța ta</div>
-                    <div class="hero-balance-value" id="hero-balance">0 RON</div>
-                    <div class="hero-balance-change" id="hero-balance-change">
-                        <span class="change-icon">↑</span>
-                        <span class="change-text">+0% față de luna trecută</span>
-                    </div>
+            <!-- Home View -->
+            <section id="homeView" class="view active">
+                <!-- Month Navigator -->
+                <div class="month-nav">
+                    <button id="prevMonth" class="month-btn">❮</button>
+                    <span id="currentMonth">Decembrie 2025</span>
+                    <button id="nextMonth" class="month-btn">❯</button>
                 </div>
-                <div class="hero-quick-stats">
-                    <div class="quick-stat income">
-                        <div class="quick-stat-icon">↓</div>
-                        <div class="quick-stat-info">
-                            <div class="quick-stat-label">Venituri</div>
-                            <div class="quick-stat-value" id="quick-income">0 RON</div>
+
+                <!-- Balance Card -->
+                <div class="balance-card">
+                    <div class="balance-header">
+                        <span class="balance-label">Balanța curentă</span>
+                        <span id="balanceChange" class="balance-change positive">+0%</span>
+                    </div>
+                    <div id="totalBalance" class="balance-amount">0 RON</div>
+                    <div class="balance-stats">
+                        <div class="stat">
+                            <span class="stat-icon income">↑</span>
+                            <div class="stat-info">
+                                <span class="stat-label">Venituri</span>
+                                <span id="totalIncome" class="stat-value income">0 RON</span>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-icon expense">↓</span>
+                            <div class="stat-info">
+                                <span class="stat-label">Cheltuieli</span>
+                                <span id="totalExpense" class="stat-value expense">0 RON</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="quick-stat expense">
-                        <div class="quick-stat-icon">↑</div>
-                        <div class="quick-stat-info">
-                            <div class="quick-stat-label">Cheltuieli</div>
-                            <div class="quick-stat-value" id="quick-expense">0 RON</div>
+                    <div class="balance-progress">
+                        <div class="progress-bar">
+                            <div id="spentProgress" class="progress-fill"></div>
                         </div>
+                        <span id="spentPercent" class="progress-label">0% din venituri cheltuit</span>
                     </div>
                 </div>
-            </section>
 
-            <!-- Month Selector -->
-            <section class="month-nav">
-                <button class="month-arrow" id="prev-month">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <path d="M15 18l-6-6 6-6"/>
-                    </svg>
-                </button>
-                <div class="month-display">
-                    <div class="month-name" id="current-month">Decembrie 2025</div>
-                    <div class="month-range" id="month-range">1 - 31 Dec</div>
-                </div>
-                <button class="month-arrow" id="next-month">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <path d="M9 18l6-6-6-6"/>
-                    </svg>
-                </button>
-            </section>
-
-            <!-- Budget Progress -->
-            <section class="budget-overview">
-                <div class="budget-header">
-                    <div class="budget-title">📊 Progres buget</div>
-                    <div class="budget-amount">
-                        <span id="budget-spent">0</span> / <span id="budget-total">10,000</span> RON
+                <!-- Quick Stats -->
+                <div class="quick-stats">
+                    <div class="qstat">
+                        <span class="qstat-icon">📊</span>
+                        <span class="qstat-label">Media/zi</span>
+                        <span id="dailyAvg" class="qstat-value">0 RON</span>
+                    </div>
+                    <div class="qstat">
+                        <span class="qstat-icon">🎯</span>
+                        <span class="qstat-label">Predicție</span>
+                        <span id="prediction" class="qstat-value">0 RON</span>
+                    </div>
+                    <div class="qstat">
+                        <span class="qstat-icon">💰</span>
+                        <span class="qstat-label">Economii</span>
+                        <span id="savingsRate" class="qstat-value">0%</span>
+                    </div>
+                    <div class="qstat">
+                        <span class="qstat-icon">📅</span>
+                        <span class="qstat-label">Zile rămase</span>
+                        <span id="daysLeft" class="qstat-value">0</span>
                     </div>
                 </div>
-                <div class="budget-progress-bar">
-                    <div class="budget-progress-fill" id="budget-progress" style="width: 0%"></div>
-                    <div class="budget-progress-marker" style="left: 80%"></div>
-                </div>
-                <div class="budget-labels">
-                    <span class="budget-label-start">0%</span>
-                    <span class="budget-label-warning">80%</span>
-                    <span class="budget-label-end">100%</span>
-                </div>
-            </section>
 
-            <!-- AI Insights -->
-            <section class="ai-insights" id="ai-insights">
-                <div class="ai-insights-header">
-                    <div class="ai-badge">
-                        <span class="ai-icon">✨</span>
-                        <span>Insights AI</span>
-                    </div>
-                    <button class="ai-refresh-btn" id="refresh-insights" title="Refresh insights">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
-                        </svg>
+                <!-- Quick Actions -->
+                <div class="section-header">
+                    <h2>Acțiuni rapide</h2>
+                </div>
+                <div class="quick-actions">
+                    <button class="action-btn expense" onclick="openTransModal('expense')">
+                        <span class="action-icon">💸</span>
+                        <span>Cheltuială</span>
+                    </button>
+                    <button class="action-btn income" onclick="openTransModal('income')">
+                        <span class="action-icon">💵</span>
+                        <span>Venit</span>
+                    </button>
+                    <button class="action-btn correction" onclick="openTransModal('correction')">
+                        <span class="action-icon">⚖️</span>
+                        <span>Corecție</span>
+                    </button>
+                    <button class="action-btn transfer" onclick="openDebtModal()">
+                        <span class="action-icon">🤝</span>
+                        <span>Datorie</span>
                     </button>
                 </div>
-                <div class="ai-insights-content" id="ai-insights-content">
-                    <div class="ai-insight-card">
-                        <div class="insight-icon">💡</div>
-                        <div class="insight-text">Analizez datele tale financiare...</div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- Quick Actions -->
-            <section class="quick-actions">
-                <button class="quick-action" data-action="expense">
-                    <div class="action-icon expense">📉</div>
-                    <span>Cheltuială</span>
-                </button>
-                <button class="quick-action" data-action="income">
-                    <div class="action-icon income">📈</div>
-                    <span>Venit</span>
-                </button>
-                <button class="quick-action" data-action="transfer">
-                    <div class="action-icon transfer">🔄</div>
-                    <span>Transfer</span>
-                </button>
-                <button class="quick-action" data-action="scan">
-                    <div class="action-icon scan">📷</div>
-                    <span>Scanează</span>
-                </button>
-            </section>
-
-            <!-- Stats Cards -->
-            <section class="stats-section">
+                <!-- AI Insights -->
                 <div class="section-header">
-                    <h2 class="section-title">📈 Statistici</h2>
+                    <h2>🤖 Insights AI</h2>
+                    <button id="refreshInsights" class="refresh-btn">↻</button>
                 </div>
-                <div class="stats-grid">
-                    <div class="stat-card glass">
-                        <div class="stat-header">
-                            <span class="stat-emoji">📊</span>
-                            <span class="stat-trend up" id="daily-trend">↑</span>
-                        </div>
-                        <div class="stat-value" id="daily-avg">0 RON</div>
-                        <div class="stat-label">Media zilnică</div>
-                    </div>
-                    <div class="stat-card glass">
-                        <div class="stat-header">
-                            <span class="stat-emoji">🎯</span>
-                            <span class="stat-trend" id="prediction-trend">-</span>
-                        </div>
-                        <div class="stat-value" id="prediction">0 RON</div>
-                        <div class="stat-label">Predicție lunar</div>
-                    </div>
-                    <div class="stat-card glass">
-                        <div class="stat-header">
-                            <span class="stat-emoji">💸</span>
-                        </div>
-                        <div class="stat-value" id="biggest-expense">-</div>
-                        <div class="stat-label">Cea mai mare</div>
-                    </div>
-                    <div class="stat-card glass">
-                        <div class="stat-header">
-                            <span class="stat-emoji">📅</span>
-                        </div>
-                        <div class="stat-value" id="days-left">0</div>
-                        <div class="stat-label">Zile rămase</div>
+                <div id="aiInsights" class="insights-carousel">
+                    <div class="insight-card">
+                        <span class="insight-icon">💡</span>
+                        <p>Adaugă tranzacții pentru a primi insights personalizate de la AI.</p>
                     </div>
                 </div>
-            </section>
 
-            <!-- Charts -->
-            <section class="charts-section">
+                <!-- Chart -->
                 <div class="section-header">
-                    <h2 class="section-title">📊 Vizualizări</h2>
-                    <div class="chart-tabs">
-                        <button class="chart-tab active" data-chart="pie">Categorii</button>
-                        <button class="chart-tab" data-chart="line">Trend</button>
-                        <button class="chart-tab" data-chart="bar">Comparație</button>
-                    </div>
+                    <h2>📊 Distribuție cheltuieli</h2>
                 </div>
                 <div class="chart-container">
-                    <div class="chart-panel active" id="pie-panel">
-                        <canvas id="pie-chart"></canvas>
-                    </div>
-                    <div class="chart-panel" id="line-panel">
-                        <canvas id="line-chart"></canvas>
-                    </div>
-                    <div class="chart-panel" id="bar-panel">
-                        <canvas id="bar-chart"></canvas>
+                    <canvas id="expenseChart"></canvas>
+                    <div id="chartCenter" class="chart-center">
+                        <span class="chart-total">0 RON</span>
+                        <span class="chart-label">Total</span>
                     </div>
                 </div>
-            </section>
+                <div id="chartLegend" class="chart-legend"></div>
 
-            <!-- Recurring Payments -->
-            <section class="recurring-section">
+                <!-- Recent Transactions -->
                 <div class="section-header">
-                    <h2 class="section-title">🔄 Plăți recurente</h2>
-                    <button class="section-add-btn" id="add-recurring-btn">+</button>
+                    <h2>Tranzacții recente</h2>
+                    <button onclick="switchView('transactions')" class="see-all">Vezi toate →</button>
                 </div>
-                <div class="recurring-list" id="recurring-list">
-                    <div class="empty-state small">
-                        <span>Nicio plată recurentă</span>
-                    </div>
-                </div>
-                <div class="recurring-summary">
-                    <span>Total lunar:</span>
-                    <span class="recurring-total" id="recurring-total">0 RON</span>
-                </div>
-            </section>
-
-            <!-- Goals -->
-            <section class="goals-section">
-                <div class="section-header">
-                    <h2 class="section-title">🎯 Obiective</h2>
-                    <button class="section-add-btn" id="add-goal-btn">+</button>
-                </div>
-                <div class="goals-carousel" id="goals-list">
-                    <div class="empty-state small">
-                        <span>Niciun obiectiv setat</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Recent Transactions -->
-            <section class="transactions-section">
-                <div class="section-header">
-                    <h2 class="section-title">💳 Tranzacții recente</h2>
-                    <button class="see-all-btn" id="see-all-transactions">Vezi toate</button>
-                </div>
-                <div class="transactions-list" id="transactions-list">
+                <div id="recentTrans" class="transactions-list">
                     <div class="empty-state">
-                        <div class="empty-icon">📝</div>
-                        <div class="empty-text">Nicio tranzacție</div>
-                        <div class="empty-hint">Apasă + pentru a adăuga</div>
+                        <span class="empty-icon">📝</span>
+                        <p>Nicio tranzacție încă</p>
+                    </div>
+                </div>
+
+                <!-- Goals Preview -->
+                <div class="section-header">
+                    <h2>🎯 Obiective</h2>
+                    <button onclick="switchView('goals')" class="see-all">Vezi toate →</button>
+                </div>
+                <div id="goalsPreview" class="goals-preview">
+                    <div class="empty-state small">
+                        <span class="empty-icon">🎯</span>
+                        <p>Niciun obiectiv</p>
+                    </div>
+                </div>
+
+                <!-- Debts Summary -->
+                <div class="section-header">
+                    <h2>🤝 Datorii</h2>
+                    <button onclick="switchView('debts')" class="see-all">Vezi toate →</button>
+                </div>
+                <div id="debtsPreview" class="debts-preview">
+                    <div class="debt-summary">
+                        <div class="debt-card owe">
+                            <span class="debt-label">De plătit</span>
+                            <span id="totalOwe" class="debt-amount">0 RON</span>
+                        </div>
+                        <div class="debt-card owed">
+                            <span class="debt-label">De recuperat</span>
+                            <span id="totalOwed" class="debt-amount">0 RON</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reminders Preview -->
+                <div class="section-header">
+                    <h2>⏰ Remindere</h2>
+                    <button onclick="switchView('reminders')" class="see-all">Vezi toate →</button>
+                </div>
+                <div id="remindersPreview" class="reminders-preview">
+                    <div class="empty-state small">
+                        <span class="empty-icon">⏰</span>
+                        <p>Niciun reminder</p>
                     </div>
                 </div>
             </section>
 
-            <!-- Categories Overview -->
-            <section class="categories-section">
-                <div class="section-header">
-                    <h2 class="section-title">📂 Categorii</h2>
-                    <button class="see-all-btn" id="see-all-categories">Detalii</button>
+            <!-- Transactions View -->
+            <section id="transactionsView" class="view">
+                <div class="view-header">
+                    <h1>💳 Tranzacții</h1>
                 </div>
-                <div class="categories-grid" id="categories-grid"></div>
+                
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <button class="filter-btn active" data-filter="all">Toate</button>
+                    <button class="filter-btn" data-filter="expense">Cheltuieli</button>
+                    <button class="filter-btn" data-filter="income">Venituri</button>
+                    <button class="filter-btn" data-filter="correction">Corecții</button>
+                </div>
+
+                <!-- Month Nav -->
+                <div class="month-nav compact">
+                    <button class="month-btn" onclick="changeMonth(-1)">❮</button>
+                    <span id="transMonth">Decembrie 2025</span>
+                    <button class="month-btn" onclick="changeMonth(1)">❯</button>
+                </div>
+
+                <!-- Transactions List -->
+                <div id="allTransactions" class="transactions-list full">
+                    <div class="empty-state">
+                        <span class="empty-icon">📝</span>
+                        <p>Nicio tranzacție în această lună</p>
+                    </div>
+                </div>
             </section>
 
-            <!-- Budget Alerts -->
-            <section class="alerts-section" id="alerts-section" style="display:none">
-                <div class="section-header">
-                    <h2 class="section-title">⚠️ Alerte buget</h2>
+            <!-- Analytics View -->
+            <section id="analyticsView" class="view">
+                <div class="view-header">
+                    <h1>📈 Analiză & Trenduri</h1>
                 </div>
-                <div class="alerts-list" id="alerts-list"></div>
+
+                <!-- Period Selector -->
+                <div class="period-selector">
+                    <button class="period-btn" data-period="7">7 zile</button>
+                    <button class="period-btn active" data-period="30">30 zile</button>
+                    <button class="period-btn" data-period="90">3 luni</button>
+                    <button class="period-btn" data-period="365">1 an</button>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="analytics-summary">
+                    <div class="summary-card income">
+                        <span class="summary-icon">💵</span>
+                        <div class="summary-info">
+                            <span class="summary-label">Total venituri</span>
+                            <span id="analyticsIncome" class="summary-value">0 RON</span>
+                        </div>
+                    </div>
+                    <div class="summary-card expense">
+                        <span class="summary-icon">💸</span>
+                        <div class="summary-info">
+                            <span class="summary-label">Total cheltuieli</span>
+                            <span id="analyticsExpense" class="summary-value">0 RON</span>
+                        </div>
+                    </div>
+                    <div class="summary-card savings">
+                        <span class="summary-icon">💰</span>
+                        <div class="summary-info">
+                            <span class="summary-label">Economii nete</span>
+                            <span id="analyticsSavings" class="summary-value">0 RON</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trend Chart -->
+                <div class="section-header">
+                    <h2>📊 Evoluție</h2>
+                </div>
+                <div class="trend-chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+
+                <!-- AI Analysis -->
+                <div class="section-header">
+                    <h2>🤖 Analiză AI</h2>
+                    <button id="runAiAnalysis" class="ai-analyze-btn">Analizează</button>
+                </div>
+                <div id="aiAnalysis" class="ai-analysis">
+                    <p class="ai-placeholder">Apasă "Analizează" pentru o analiză completă bazată pe AI a datelor tale financiare.</p>
+                </div>
+
+                <!-- Patterns -->
+                <div class="section-header">
+                    <h2>🔍 Pattern-uri detectate</h2>
+                </div>
+                <div id="patterns" class="patterns-list">
+                    <div class="empty-state small">
+                        <p>Adaugă mai multe tranzacții pentru detectarea pattern-urilor</p>
+                    </div>
+                </div>
+
+                <!-- Anomalies -->
+                <div class="section-header">
+                    <h2>⚠️ Abateri neobișnuite</h2>
+                </div>
+                <div id="anomalies" class="anomalies-list">
+                    <div class="empty-state small">
+                        <p>Nicio abatere detectată</p>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="section-header">
+                    <h2>📋 Detalii pe categorii</h2>
+                </div>
+                <div id="categoryBreakdown" class="category-breakdown"></div>
+            </section>
+
+            <!-- Goals View -->
+            <section id="goalsView" class="view">
+                <div class="view-header">
+                    <h1>🎯 Obiective</h1>
+                    <button onclick="openGoalModal()" class="add-btn">+ Nou</button>
+                </div>
+
+                <!-- Goals Stats -->
+                <div class="goals-stats">
+                    <div class="gstat">
+                        <span id="activeGoals" class="gstat-value">0</span>
+                        <span class="gstat-label">Active</span>
+                    </div>
+                    <div class="gstat">
+                        <span id="completedGoals" class="gstat-value">0</span>
+                        <span class="gstat-label">Complete</span>
+                    </div>
+                    <div class="gstat">
+                        <span id="totalSaved" class="gstat-value">0 RON</span>
+                        <span class="gstat-label">Economisit</span>
+                    </div>
+                </div>
+
+                <!-- Active Goals -->
+                <div class="section-header">
+                    <h2>În progres</h2>
+                </div>
+                <div id="activeGoalsList" class="goals-list"></div>
+
+                <!-- Completed Goals -->
+                <div class="section-header">
+                    <h2>Completate</h2>
+                </div>
+                <div id="completedGoalsList" class="goals-list"></div>
+            </section>
+
+            <!-- Debts View -->
+            <section id="debtsView" class="view">
+                <div class="view-header">
+                    <h1>🤝 Datorii</h1>
+                    <button onclick="openDebtModal()" class="add-btn">+ Nou</button>
+                </div>
+
+                <!-- Debts Summary -->
+                <div class="debts-overview">
+                    <div class="debt-overview-card owe">
+                        <span class="debt-overview-icon">📤</span>
+                        <div class="debt-overview-info">
+                            <span class="debt-overview-label">Total de plătit</span>
+                            <span id="totalToPayDebts" class="debt-overview-value">0 RON</span>
+                        </div>
+                    </div>
+                    <div class="debt-overview-card owed">
+                        <span class="debt-overview-icon">📥</span>
+                        <div class="debt-overview-info">
+                            <span class="debt-overview-label">Total de recuperat</span>
+                            <span id="totalToReceiveDebts" class="debt-overview-value">0 RON</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Debts I Owe -->
+                <div class="section-header">
+                    <h2>💸 De plătit</h2>
+                </div>
+                <div id="debtsOweList" class="debts-list"></div>
+
+                <!-- Debts Owed to Me -->
+                <div class="section-header">
+                    <h2>💵 De recuperat</h2>
+                </div>
+                <div id="debtsOwedList" class="debts-list"></div>
+            </section>
+
+            <!-- Reminders View -->
+            <section id="remindersView" class="view">
+                <div class="view-header">
+                    <h1>⏰ Remindere</h1>
+                    <button onclick="openReminderModal()" class="add-btn">+ Nou</button>
+                </div>
+
+                <!-- Upcoming -->
+                <div class="section-header">
+                    <h2>Următoare</h2>
+                </div>
+                <div id="upcomingReminders" class="reminders-list"></div>
+
+                <!-- All Reminders -->
+                <div class="section-header">
+                    <h2>Toate</h2>
+                </div>
+                <div id="allReminders" class="reminders-list"></div>
+            </section>
+
+            <!-- Profile View -->
+            <section id="profileView" class="view">
+                <div class="view-header">
+                    <h1>👤 Profil</h1>
+                </div>
+
+                <!-- Profile Card -->
+                <div class="profile-card">
+                    <div id="profileAvatar" class="profile-avatar">U</div>
+                    <div class="profile-info">
+                        <span id="profileName" class="profile-name">Utilizator</span>
+                        <span id="profileEmail" class="profile-email">email@example.com</span>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="profile-stats">
+                    <div class="pstat">
+                        <span id="totalTransCount" class="pstat-value">0</span>
+                        <span class="pstat-label">Tranzacții</span>
+                    </div>
+                    <div class="pstat">
+                        <span id="memberSince" class="pstat-value">-</span>
+                        <span class="pstat-label">Membru din</span>
+                    </div>
+                    <div class="pstat">
+                        <span id="streakDays" class="pstat-value">0</span>
+                        <span class="pstat-label">Zile streak</span>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="settings-section">
+                    <h3>⚙️ Setări</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-icon">💱</span>
+                            <span class="setting-label">Monedă</span>
+                        </div>
+                        <select id="currencySelect" class="setting-select">
+                            <option value="RON">RON</option>
+                            <option value="EUR">EUR</option>
+                            <option value="USD">USD</option>
+                            <option value="GBP">GBP</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-icon">🔔</span>
+                            <span class="setting-label">Notificări</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="notifToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-icon">🌙</span>
+                            <span class="setting-label">Mod întunecat</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="darkToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Export -->
+                <div class="settings-section">
+                    <h3>📤 Export date</h3>
+                    <div class="export-buttons">
+                        <button onclick="exportJSON()" class="export-btn">📄 Export JSON</button>
+                        <button onclick="exportCSV()" class="export-btn">📊 Export CSV</button>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="settings-section danger">
+                    <h3>⚠️ Zona periculoasă</h3>
+                    <button onclick="clearAllData()" class="danger-btn">🗑️ Șterge toate datele</button>
+                    <button onclick="logout()" class="logout-btn">🚪 Deconectare</button>
+                </div>
             </section>
         </main>
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-view="home">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                    <polyline points="9,22 9,12 15,12 15,22"/>
-                </svg>
-                <span>Acasă</span>
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Acasă</span>
             </button>
             <button class="nav-item" data-view="transactions">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
-                </svg>
-                <span>Tranzacții</span>
+                <span class="nav-icon">💳</span>
+                <span class="nav-label">Tranzacții</span>
             </button>
-            <button class="nav-item add-nav" id="add-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M12 5v14M5 12h14"/>
-                </svg>
+            <button class="nav-item add-nav" onclick="openTransModal('expense')">
+                <span class="nav-icon-add">+</span>
             </button>
             <button class="nav-item" data-view="analytics">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 20V10M12 20V4M6 20v-6"/>
-                </svg>
-                <span>Analiză</span>
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">Analiză</span>
             </button>
-            <button class="nav-item" data-view="more">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-                </svg>
-                <span>Mai mult</span>
+            <button class="nav-item" data-view="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Profil</span>
             </button>
         </nav>
-
-        <!-- FAB (Floating Action Button) -->
-        <button class="fab" id="fab-btn" style="display:none">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M12 5v14M5 12h14"/>
-            </svg>
-        </button>
     </div>
 
     <!-- Transaction Modal -->
-    <div class="modal" id="transaction-modal">
-        <div class="modal-backdrop"></div>
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
+    <div id="transModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('transModal')"></div>
+        <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="modal-title">Tranzacție nouă</h3>
-                <button class="modal-close" id="modal-close">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6L6 18M6 6l12 12"/>
-                    </svg>
-                </button>
+                <h2 id="transModalTitle">Adaugă tranzacție</h2>
+                <button class="modal-close" onclick="closeModal('transModal')">✕</button>
             </div>
-            <form id="transaction-form" class="modal-form">
-                <div class="type-pills">
-                    <button type="button" class="type-pill expense active" data-type="expense">
-                        <span class="pill-icon">📉</span>
-                        <span>Cheltuială</span>
-                    </button>
-                    <button type="button" class="type-pill income" data-type="income">
-                        <span class="pill-icon">📈</span>
-                        <span>Venit</span>
-                    </button>
-                </div>
+            
+            <div class="trans-type-tabs">
+                <button class="type-tab active" data-type="expense">💸 Cheltuială</button>
+                <button class="type-tab" data-type="income">💵 Venit</button>
+                <button class="type-tab" data-type="correction">⚖️ Corecție</button>
+            </div>
 
-                <div class="amount-input-wrapper">
-                    <span class="currency-symbol">RON</span>
-                    <input type="number" id="amount" class="amount-input" placeholder="0.00" step="0.01" required inputmode="decimal">
-                </div>
+            <form id="transForm" class="modal-form">
+                <input type="hidden" id="transId">
+                <input type="hidden" id="transType" value="expense">
 
-                <div class="form-row">
-                    <div class="form-field">
-                        <label>Categorie</label>
-                        <select id="category" required>
-                            <option value="">Alege categorie</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label>Subcategorie</label>
-                        <select id="subcategory" required>
-                            <option value="">Alege subcategorie</option>
-                        </select>
+                <div class="form-group">
+                    <label>Sumă</label>
+                    <div class="amount-input">
+                        <span id="amountCurrency" class="currency">RON</span>
+                        <input type="number" id="transAmount" placeholder="0.00" step="0.01" required>
                     </div>
                 </div>
 
-                <div class="form-field">
+                <div class="form-group">
+                    <label>Categorie</label>
+                    <select id="transCategory" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Subcategorie</label>
+                    <select id="transSubcategory"></select>
+                </div>
+
+                <div class="form-group">
                     <label>Descriere (opțional)</label>
-                    <input type="text" id="description" placeholder="ex: Kaufland, salariu..." autocomplete="off">
+                    <input type="text" id="transDescription" placeholder="Detalii...">
                 </div>
 
-                <div class="form-field">
+                <div class="form-group">
                     <label>Data</label>
-                    <input type="date" id="date" required>
+                    <input type="date" id="transDate" required>
                 </div>
 
-                <div class="form-field">
+                <div class="form-group recurring-group">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="is-recurring">
-                        <span class="checkbox-text">Tranzacție recurentă</span>
+                        <input type="checkbox" id="transRecurring">
+                        <span>Tranzacție recurentă</span>
                     </label>
                 </div>
 
-                <div class="modal-actions">
-                    <button type="button" class="btn-secondary" id="cancel-btn">Anulează</button>
-                    <button type="submit" class="btn-primary" id="submit-btn">
-                        <span>Adaugă</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                    </button>
+                <div id="recurringOptions" class="recurring-options hidden">
+                    <div class="form-group">
+                        <label>Repetă</label>
+                        <select id="recurringFreq">
+                            <option value="daily">Zilnic</option>
+                            <option value="weekly">Săptămânal</option>
+                            <option value="monthly" selected>Lunar</option>
+                            <option value="yearly">Anual</option>
+                        </select>
+                    </div>
                 </div>
+
+                <button type="submit" class="btn-submit">Salvează</button>
             </form>
         </div>
     </div>
 
     <!-- AI Chat Modal -->
-    <div class="modal" id="ai-modal">
-        <div class="modal-backdrop"></div>
-        <div class="modal-sheet ai-chat-sheet">
-            <div class="modal-handle"></div>
-            <div class="ai-chat-header">
-                <div class="ai-avatar">
-                    <span>🤖</span>
-                </div>
-                <div class="ai-info">
-                    <h3>Asistent Financiar AI</h3>
-                    <span class="ai-status">Powered by Gemini</span>
-                </div>
-                <button class="modal-close" id="ai-modal-close">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6L6 18M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="ai-chat-messages" id="ai-messages">
-                <div class="ai-message bot">
-                    <div class="message-avatar">🤖</div>
-                    <div class="message-content">
-                        <p>Bună! Sunt asistentul tău financiar. Pot să te ajut cu:</p>
-                        <ul>
-                            <li>Analiză cheltuieli</li>
-                            <li>Sfaturi de economisire</li>
-                            <li>Răspunsuri la întrebări despre buget</li>
-                        </ul>
-                        <p>Cu ce te pot ajuta azi?</p>
-                    </div>
-                </div>
-            </div>
-            <div class="ai-quick-prompts">
-                <button class="quick-prompt" data-prompt="Care sunt cele mai mari cheltuieli ale mele luna asta?">💰 Top cheltuieli</button>
-                <button class="quick-prompt" data-prompt="Cum pot economisi mai mulți bani?">💡 Sfaturi economii</button>
-                <button class="quick-prompt" data-prompt="Analizează tendințele mele de cheltuieli">📊 Analiză trend</button>
-            </div>
-            <div class="ai-chat-input">
-                <input type="text" id="ai-input" placeholder="Scrie un mesaj..." autocomplete="off">
-                <button class="ai-send-btn" id="ai-send">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="ai-privacy-notice">
-                🔒 Datele tale rămân private și nu sunt trimise în exterior
-            </div>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div class="modal" id="settings-modal">
-        <div class="modal-backdrop"></div>
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
+    <div id="aiModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('aiModal')"></div>
+        <div class="modal-content ai-modal">
             <div class="modal-header">
-                <h3 class="modal-title">⚙️ Setări</h3>
-                <button class="modal-close" id="settings-close">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6L6 18M6 6l12 12"/>
-                    </svg>
-                </button>
+                <h2>✨ Asistent AI</h2>
+                <button class="modal-close" onclick="closeModal('aiModal')">✕</button>
             </div>
-            <div class="settings-content">
-                <div class="settings-section">
-                    <h4>Aspect</h4>
-                    <div class="setting-item">
-                        <span>Temă</span>
-                        <select id="theme-select">
-                            <option value="dark">Întunecată</option>
-                            <option value="light">Luminoasă</option>
-                            <option value="auto">Automat</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <span>Monedă</span>
-                        <select id="currency-select">
-                            <option value="RON">RON (Lei)</option>
-                            <option value="EUR">EUR (Euro)</option>
-                            <option value="USD">USD (Dolar)</option>
-                        </select>
+
+            <div id="aiMessages" class="ai-messages">
+                <div class="ai-message assistant">
+                    <div class="ai-avatar">🤖</div>
+                    <div class="ai-bubble">
+                        <p>Bună! Sunt asistentul tău financiar AI. Întreabă-mă orice despre finanțele tale!</p>
+                        <p class="ai-hint">Exemple: "Analizează cheltuielile mele", "Cum pot economisi mai mult?", "Care e predicția pentru luna asta?"</p>
                     </div>
                 </div>
-                <div class="settings-section">
-                    <h4>Notificări</h4>
-                    <div class="setting-item">
-                        <span>Alerte buget</span>
-                        <label class="toggle">
-                            <input type="checkbox" id="alert-toggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-item">
-                        <span>Reminder zilnic</span>
-                        <label class="toggle">
-                            <input type="checkbox" id="reminder-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="settings-section">
-                    <h4>AI Assistant</h4>
-                    <div class="setting-item">
-                        <span>API Key Gemini</span>
-                        <input type="password" id="gemini-api-key" placeholder="Introdu API key...">
-                    </div>
-                    <p class="setting-hint">Obține gratuit de la <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
-                </div>
-                <div class="settings-section">
-                    <h4>Date</h4>
-                    <button class="setting-btn danger" id="export-data">📤 Exportă date</button>
-                    <button class="setting-btn danger" id="clear-data">🗑️ Șterge toate datele</button>
-                </div>
+            </div>
+
+            <div class="ai-quick-actions">
+                <button class="ai-quick" onclick="askAI('Fă o analiză completă a finanțelor mele')">📊 Analiză completă</button>
+                <button class="ai-quick" onclick="askAI('Ce pattern-uri de cheltuieli am?')">🔍 Pattern-uri</button>
+                <button class="ai-quick" onclick="askAI('Dă-mi sfaturi de economisire personalizate')">💡 Sfaturi</button>
+                <button class="ai-quick" onclick="askAI('Care e predicția pentru această lună?')">🎯 Predicție</button>
+                <button class="ai-quick" onclick="askAI('Sunt abateri neobișnuite în cheltuielile mele?')">⚠️ Abateri</button>
+                <button class="ai-quick" onclick="askAI('Creează un plan de buget pentru mine')">📋 Plan buget</button>
+            </div>
+
+            <div class="ai-input-wrap">
+                <input type="text" id="aiInput" placeholder="Întreabă orice despre finanțele tale...">
+                <button id="aiSend" class="ai-send">➤</button>
             </div>
         </div>
     </div>
 
-    <!-- All Transactions Modal -->
-    <div class="modal fullscreen" id="all-transactions-modal">
-        <div class="modal-backdrop"></div>
-        <div class="modal-sheet fullscreen">
-            <div class="modal-header sticky">
-                <button class="back-btn" id="back-from-transactions">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                </button>
-                <h3 class="modal-title">Toate tranzacțiile</h3>
-                <div class="header-spacer"></div>
+    <!-- Goal Modal -->
+    <div id="goalModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('goalModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="goalModalTitle">Obiectiv nou</h2>
+                <button class="modal-close" onclick="closeModal('goalModal')">✕</button>
             </div>
-            <div class="filter-bar">
-                <button class="filter-chip active" data-filter="all">Toate</button>
-                <button class="filter-chip" data-filter="expense">Cheltuieli</button>
-                <button class="filter-chip" data-filter="income">Venituri</button>
+
+            <form id="goalForm" class="modal-form">
+                <input type="hidden" id="goalId">
+
+                <div class="form-group">
+                    <label>Nume obiectiv</label>
+                    <input type="text" id="goalName" placeholder="ex: Vacanță în Grecia" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Sumă țintă</label>
+                    <div class="amount-input">
+                        <span class="currency">RON</span>
+                        <input type="number" id="goalTarget" placeholder="0.00" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Sumă economisită</label>
+                    <div class="amount-input">
+                        <span class="currency">RON</span>
+                        <input type="number" id="goalSaved" placeholder="0.00" step="0.01" value="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Deadline (opțional)</label>
+                    <input type="date" id="goalDeadline">
+                </div>
+
+                <div class="form-group">
+                    <label>Icon</label>
+                    <div class="icon-picker">
+                        <button type="button" class="icon-btn active" data-icon="🎯">🎯</button>
+                        <button type="button" class="icon-btn" data-icon="🏖️">🏖️</button>
+                        <button type="button" class="icon-btn" data-icon="🚗">🚗</button>
+                        <button type="button" class="icon-btn" data-icon="🏠">🏠</button>
+                        <button type="button" class="icon-btn" data-icon="💻">💻</button>
+                        <button type="button" class="icon-btn" data-icon="📱">📱</button>
+                        <button type="button" class="icon-btn" data-icon="👶">👶</button>
+                        <button type="button" class="icon-btn" data-icon="💍">💍</button>
+                        <button type="button" class="icon-btn" data-icon="🎓">🎓</button>
+                        <button type="button" class="icon-btn" data-icon="💰">💰</button>
+                        <button type="button" class="icon-btn" data-icon="🎁">🎁</button>
+                        <button type="button" class="icon-btn" data-icon="✈️">✈️</button>
+                    </div>
+                    <input type="hidden" id="goalIcon" value="🎯">
+                </div>
+
+                <button type="submit" class="btn-submit">Salvează</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Debt Modal -->
+    <div id="debtModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('debtModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="debtModalTitle">Adaugă datorie</h2>
+                <button class="modal-close" onclick="closeModal('debtModal')">✕</button>
             </div>
-            <div class="search-bar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-                </svg>
-                <input type="text" id="search-transactions" placeholder="Caută tranzacții...">
+
+            <div class="debt-type-tabs">
+                <button class="debt-tab active" data-type="owe">💸 De plătit</button>
+                <button class="debt-tab" data-type="owed">💵 De recuperat</button>
             </div>
-            <div class="all-transactions-list" id="all-transactions-list"></div>
+
+            <form id="debtForm" class="modal-form">
+                <input type="hidden" id="debtId">
+                <input type="hidden" id="debtType" value="owe">
+
+                <div class="form-group">
+                    <label id="personLabel">Cui datorezi?</label>
+                    <input type="text" id="debtPerson" placeholder="Nume persoană" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Sumă</label>
+                    <div class="amount-input">
+                        <span class="currency">RON</span>
+                        <input type="number" id="debtAmount" placeholder="0.00" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Motiv (opțional)</label>
+                    <input type="text" id="debtReason" placeholder="Pentru ce?">
+                </div>
+
+                <div class="form-group">
+                    <label>Deadline (opțional)</label>
+                    <input type="date" id="debtDeadline">
+                </div>
+
+                <button type="submit" class="btn-submit">Salvează</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reminder Modal -->
+    <div id="reminderModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('reminderModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="reminderModalTitle">Reminder nou</h2>
+                <button class="modal-close" onclick="closeModal('reminderModal')">✕</button>
+            </div>
+
+            <form id="reminderForm" class="modal-form">
+                <input type="hidden" id="reminderId">
+
+                <div class="form-group">
+                    <label>Titlu</label>
+                    <input type="text" id="reminderTitle" placeholder="ex: Plată chirie" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Sumă (opțional)</label>
+                    <div class="amount-input">
+                        <span class="currency">RON</span>
+                        <input type="number" id="reminderAmount" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" id="reminderDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Repetă</label>
+                    <select id="reminderRepeat">
+                        <option value="once">O singură dată</option>
+                        <option value="weekly">Săptămânal</option>
+                        <option value="monthly">Lunar</option>
+                        <option value="yearly">Anual</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Categorie (opțional)</label>
+                    <select id="reminderCategory">
+                        <option value="">Alege...</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">Salvează</button>
+            </form>
         </div>
     </div>
 
     <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
+    <div id="toastContainer" class="toast-container"></div>
 
     <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
-    <script src="ai-assistant.js"></script>
 </body>
 </html>

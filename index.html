@@ -92,7 +92,7 @@
         <div id="searchBar" class="search-bar hidden">
             <div class="search-input-wrap">
                 <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" placeholder="Caută tranzacții, categorii...">
+                <input type="text" id="searchInput" placeholder="Caută tranzacții, categorii, tags...">
                 <button id="searchClose" class="search-close">✕</button>
             </div>
             <div id="searchResults" class="search-results hidden"></div>
@@ -157,16 +157,32 @@
                         <span class="qstat-label">Economii</span>
                         <span id="savingsRate" class="qstat-value">0%</span>
                     </div>
-                    <div class="qstat">
-                        <span class="qstat-icon">📅</span>
-                        <span class="qstat-label">Zile rămase</span>
-                        <span id="daysLeft" class="qstat-value">0</span>
+                    <div class="qstat streak">
+                        <span class="qstat-icon">🔥</span>
+                        <span class="qstat-label">Streak</span>
+                        <span id="streakCount" class="qstat-value">0</span>
+                    </div>
+                </div>
+
+                <!-- Health Score Card -->
+                <div class="health-score-card">
+                    <div class="health-info">
+                        <span class="health-label">💪 Scor Sănătate Financiară</span>
+                        <span id="healthScoreLabel" class="health-label-status">Calculează...</span>
+                    </div>
+                    <div class="health-display">
+                        <span id="healthScore" class="health-score">--</span>
+                        <span class="health-max">/100</span>
+                    </div>
+                    <div class="health-bar">
+                        <div id="healthFill" class="health-fill" style="width: 0%"></div>
                     </div>
                 </div>
 
                 <!-- Quick Actions -->
                 <div class="section-header">
                     <h2>Acțiuni rapide</h2>
+                    <button onclick="startVoiceInput()" class="voice-btn" title="Adaugă cu vocea">🎤</button>
                 </div>
                 <div class="quick-actions">
                     <button class="action-btn expense" onclick="openTransModal('expense')">
@@ -181,9 +197,9 @@
                         <span class="action-icon">⚖️</span>
                         <span>Corecție</span>
                     </button>
-                    <button class="action-btn transfer" onclick="openDebtModal()">
-                        <span class="action-icon">🤝</span>
-                        <span>Datorie</span>
+                    <button class="action-btn transfer" onclick="openSplitModal()">
+                        <span class="action-icon">✂️</span>
+                        <span>Split Bill</span>
                     </button>
                 </div>
 
@@ -195,7 +211,31 @@
                 <div id="aiInsights" class="insights-carousel">
                     <div class="insight-card">
                         <span class="insight-icon">💡</span>
-                        <p>Adaugă tranzacții pentru a primi insights personalizate de la AI.</p>
+                        <p>Adaugă tranzacții pentru insights personalizate de la AI.</p>
+                    </div>
+                </div>
+
+                <!-- Accounts Preview -->
+                <div class="section-header">
+                    <h2>💳 Conturi</h2>
+                    <button onclick="openAccountModal()" class="see-all">+ Adaugă</button>
+                </div>
+                <div id="accountsPreview" class="accounts-preview">
+                    <div class="empty-state small">
+                        <span class="empty-icon">💳</span>
+                        <p>Niciun cont adăugat</p>
+                    </div>
+                </div>
+
+                <!-- Budgets Preview -->
+                <div class="section-header">
+                    <h2>📊 Bugete</h2>
+                    <button onclick="openBudgetModal()" class="see-all">+ Setează</button>
+                </div>
+                <div id="budgetsPreview" class="budgets-preview">
+                    <div class="empty-state small">
+                        <span class="empty-icon">📊</span>
+                        <p>Niciun buget setat</p>
                     </div>
                 </div>
 
@@ -265,6 +305,15 @@
                         <p>Niciun reminder</p>
                     </div>
                 </div>
+
+                <!-- Net Worth -->
+                <div class="section-header">
+                    <h2>💎 Patrimoniu Net</h2>
+                </div>
+                <div class="net-worth-card">
+                    <span class="net-worth-label">Total</span>
+                    <span id="netWorth" class="net-worth-value">0 RON</span>
+                </div>
             </section>
 
             <!-- Transactions View -->
@@ -273,7 +322,6 @@
                     <h1>💳 Tranzacții</h1>
                 </div>
                 
-                <!-- Filters -->
                 <div class="filters-bar">
                     <button class="filter-btn active" data-filter="all">Toate</button>
                     <button class="filter-btn" data-filter="expense">Cheltuieli</button>
@@ -281,14 +329,12 @@
                     <button class="filter-btn" data-filter="correction">Corecții</button>
                 </div>
 
-                <!-- Month Nav -->
                 <div class="month-nav compact">
                     <button class="month-btn" onclick="changeMonth(-1)">❮</button>
                     <span id="transMonth">Decembrie 2025</span>
                     <button class="month-btn" onclick="changeMonth(1)">❯</button>
                 </div>
 
-                <!-- Transactions List -->
                 <div id="allTransactions" class="transactions-list full">
                     <div class="empty-state">
                         <span class="empty-icon">📝</span>
@@ -303,7 +349,6 @@
                     <h1>📈 Analiză & Trenduri</h1>
                 </div>
 
-                <!-- Period Selector -->
                 <div class="period-selector">
                     <button class="period-btn" data-period="7">7 zile</button>
                     <button class="period-btn active" data-period="30">30 zile</button>
@@ -311,7 +356,6 @@
                     <button class="period-btn" data-period="365">1 an</button>
                 </div>
 
-                <!-- Summary Cards -->
                 <div class="analytics-summary">
                     <div class="summary-card income">
                         <span class="summary-icon">💵</span>
@@ -336,7 +380,6 @@
                     </div>
                 </div>
 
-                <!-- Trend Chart -->
                 <div class="section-header">
                     <h2>📊 Evoluție</h2>
                 </div>
@@ -344,36 +387,28 @@
                     <canvas id="trendChart"></canvas>
                 </div>
 
-                <!-- AI Analysis -->
                 <div class="section-header">
                     <h2>🤖 Analiză AI</h2>
                     <button id="runAiAnalysis" class="ai-analyze-btn">Analizează</button>
                 </div>
                 <div id="aiAnalysis" class="ai-analysis">
-                    <p class="ai-placeholder">Apasă "Analizează" pentru o analiză completă bazată pe AI a datelor tale financiare.</p>
+                    <p class="ai-placeholder">Apasă "Analizează" pentru o analiză completă.</p>
                 </div>
 
-                <!-- Patterns -->
                 <div class="section-header">
                     <h2>🔍 Pattern-uri detectate</h2>
                 </div>
                 <div id="patterns" class="patterns-list">
-                    <div class="empty-state small">
-                        <p>Adaugă mai multe tranzacții pentru detectarea pattern-urilor</p>
-                    </div>
+                    <div class="empty-state small"><p>Adaugă mai multe tranzacții</p></div>
                 </div>
 
-                <!-- Anomalies -->
                 <div class="section-header">
                     <h2>⚠️ Abateri neobișnuite</h2>
                 </div>
                 <div id="anomalies" class="anomalies-list">
-                    <div class="empty-state small">
-                        <p>Nicio abatere detectată</p>
-                    </div>
+                    <div class="empty-state small"><p>Nicio abatere detectată</p></div>
                 </div>
 
-                <!-- Category Breakdown -->
                 <div class="section-header">
                     <h2>📋 Detalii pe categorii</h2>
                 </div>
@@ -387,7 +422,6 @@
                     <button onclick="openGoalModal()" class="add-btn">+ Nou</button>
                 </div>
 
-                <!-- Goals Stats -->
                 <div class="goals-stats">
                     <div class="gstat">
                         <span id="activeGoals" class="gstat-value">0</span>
@@ -403,16 +437,10 @@
                     </div>
                 </div>
 
-                <!-- Active Goals -->
-                <div class="section-header">
-                    <h2>În progres</h2>
-                </div>
+                <div class="section-header"><h2>În progres</h2></div>
                 <div id="activeGoalsList" class="goals-list"></div>
 
-                <!-- Completed Goals -->
-                <div class="section-header">
-                    <h2>Completate</h2>
-                </div>
+                <div class="section-header"><h2>Completate</h2></div>
                 <div id="completedGoalsList" class="goals-list"></div>
             </section>
 
@@ -423,7 +451,6 @@
                     <button onclick="openDebtModal()" class="add-btn">+ Nou</button>
                 </div>
 
-                <!-- Debts Summary -->
                 <div class="debts-overview">
                     <div class="debt-overview-card owe">
                         <span class="debt-overview-icon">📤</span>
@@ -441,16 +468,10 @@
                     </div>
                 </div>
 
-                <!-- Debts I Owe -->
-                <div class="section-header">
-                    <h2>💸 De plătit</h2>
-                </div>
+                <div class="section-header"><h2>💸 De plătit</h2></div>
                 <div id="debtsOweList" class="debts-list"></div>
 
-                <!-- Debts Owed to Me -->
-                <div class="section-header">
-                    <h2>💵 De recuperat</h2>
-                </div>
+                <div class="section-header"><h2>💵 De recuperat</h2></div>
                 <div id="debtsOwedList" class="debts-list"></div>
             </section>
 
@@ -461,16 +482,10 @@
                     <button onclick="openReminderModal()" class="add-btn">+ Nou</button>
                 </div>
 
-                <!-- Upcoming -->
-                <div class="section-header">
-                    <h2>Următoare</h2>
-                </div>
+                <div class="section-header"><h2>Următoare</h2></div>
                 <div id="upcomingReminders" class="reminders-list"></div>
 
-                <!-- All Reminders -->
-                <div class="section-header">
-                    <h2>Toate</h2>
-                </div>
+                <div class="section-header"><h2>Toate</h2></div>
                 <div id="allReminders" class="reminders-list"></div>
             </section>
 
@@ -480,7 +495,6 @@
                     <h1>👤 Profil</h1>
                 </div>
 
-                <!-- Profile Card -->
                 <div class="profile-card">
                     <div id="profileAvatar" class="profile-avatar">U</div>
                     <div class="profile-info">
@@ -489,7 +503,6 @@
                     </div>
                 </div>
 
-                <!-- Stats -->
                 <div class="profile-stats">
                     <div class="pstat">
                         <span id="totalTransCount" class="pstat-value">0</span>
@@ -505,7 +518,6 @@
                     </div>
                 </div>
 
-                <!-- Settings -->
                 <div class="settings-section">
                     <h3>⚙️ Setări</h3>
                     
@@ -521,31 +533,8 @@
                             <option value="GBP">GBP</option>
                         </select>
                     </div>
-
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <span class="setting-icon">🔔</span>
-                            <span class="setting-label">Notificări</span>
-                        </div>
-                        <label class="toggle">
-                            <input type="checkbox" id="notifToggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <span class="setting-icon">🌙</span>
-                            <span class="setting-label">Mod întunecat</span>
-                        </div>
-                        <label class="toggle">
-                            <input type="checkbox" id="darkToggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
                 </div>
 
-                <!-- Export -->
                 <div class="settings-section">
                     <h3>📤 Export date</h3>
                     <div class="export-buttons">
@@ -554,7 +543,6 @@
                     </div>
                 </div>
 
-                <!-- Danger Zone -->
                 <div class="settings-section danger">
                     <h3>⚠️ Zona periculoasă</h3>
                     <button onclick="clearAllData()" class="danger-btn">🗑️ Șterge toate datele</button>
@@ -609,7 +597,7 @@
                 <div class="form-group">
                     <label>Sumă</label>
                     <div class="amount-input">
-                        <span id="amountCurrency" class="currency">RON</span>
+                        <span class="currency">RON</span>
                         <input type="number" id="transAmount" placeholder="0.00" step="0.01" required>
                     </div>
                 </div>
@@ -627,6 +615,11 @@
                 <div class="form-group">
                     <label>Descriere (opțional)</label>
                     <input type="text" id="transDescription" placeholder="Detalii...">
+                </div>
+
+                <div class="form-group">
+                    <label>Tags (separate cu virgulă)</label>
+                    <input type="text" id="transTags" placeholder="ex: urgent, luna, cadou">
                 </div>
 
                 <div class="form-group">
@@ -672,22 +665,21 @@
                     <div class="ai-avatar">🤖</div>
                     <div class="ai-bubble">
                         <p>Bună! Sunt asistentul tău financiar AI. Întreabă-mă orice despre finanțele tale!</p>
-                        <p class="ai-hint">Exemple: "Analizează cheltuielile mele", "Cum pot economisi mai mult?", "Care e predicția pentru luna asta?"</p>
+                        <p class="ai-hint">Exemple: "Analizează cheltuielile", "Cum economisesc?", "Predicție luna asta?"</p>
                     </div>
                 </div>
             </div>
 
             <div class="ai-quick-actions">
-                <button class="ai-quick" onclick="askAI('Fă o analiză completă a finanțelor mele')">📊 Analiză completă</button>
+                <button class="ai-quick" onclick="askAI('Fă o analiză completă a finanțelor mele')">📊 Analiză</button>
                 <button class="ai-quick" onclick="askAI('Ce pattern-uri de cheltuieli am?')">🔍 Pattern-uri</button>
-                <button class="ai-quick" onclick="askAI('Dă-mi sfaturi de economisire personalizate')">💡 Sfaturi</button>
+                <button class="ai-quick" onclick="askAI('Dă-mi sfaturi de economisire')">💡 Sfaturi</button>
                 <button class="ai-quick" onclick="askAI('Care e predicția pentru această lună?')">🎯 Predicție</button>
-                <button class="ai-quick" onclick="askAI('Sunt abateri neobișnuite în cheltuielile mele?')">⚠️ Abateri</button>
                 <button class="ai-quick" onclick="askAI('Creează un plan de buget pentru mine')">📋 Plan buget</button>
             </div>
 
             <div class="ai-input-wrap">
-                <input type="text" id="aiInput" placeholder="Întreabă orice despre finanțele tale...">
+                <input type="text" id="aiInput" placeholder="Întreabă orice...">
                 <button id="aiSend" class="ai-send">➤</button>
             </div>
         </div>
@@ -740,12 +732,10 @@
                         <button type="button" class="icon-btn" data-icon="🏠">🏠</button>
                         <button type="button" class="icon-btn" data-icon="💻">💻</button>
                         <button type="button" class="icon-btn" data-icon="📱">📱</button>
-                        <button type="button" class="icon-btn" data-icon="👶">👶</button>
                         <button type="button" class="icon-btn" data-icon="💍">💍</button>
-                        <button type="button" class="icon-btn" data-icon="🎓">🎓</button>
+                        <button type="button" class="icon-btn" data-icon="✈️">✈️</button>
                         <button type="button" class="icon-btn" data-icon="💰">💰</button>
                         <button type="button" class="icon-btn" data-icon="🎁">🎁</button>
-                        <button type="button" class="icon-btn" data-icon="✈️">✈️</button>
                     </div>
                     <input type="hidden" id="goalIcon" value="🎯">
                 </div>
@@ -853,8 +843,142 @@
         </div>
     </div>
 
+    <!-- Account Modal -->
+    <div id="accountModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('accountModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="accountModalTitle">Cont nou</h2>
+                <button class="modal-close" onclick="closeModal('accountModal')">✕</button>
+            </div>
+
+            <form id="accountForm" class="modal-form">
+                <input type="hidden" id="accountId">
+
+                <div class="form-group">
+                    <label>Nume cont</label>
+                    <input type="text" id="accountName" placeholder="ex: ING Principal" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Tip cont</label>
+                    <select id="accountType">
+                        <option value="checking">Cont curent</option>
+                        <option value="savings">Cont economii</option>
+                        <option value="cash">Numerar</option>
+                        <option value="credit">Card credit</option>
+                        <option value="investment">Investiții</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Sold curent</label>
+                    <div class="amount-input">
+                        <span class="currency">RON</span>
+                        <input type="number" id="accountBalance" placeholder="0.00" step="0.01" value="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Culoare</label>
+                    <input type="color" id="accountColor" value="#8b5cf6" class="color-input">
+                </div>
+
+                <button type="submit" class="btn-submit">Salvează</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Budget Modal -->
+    <div id="budgetModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('budgetModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="budgetModalTitle">Setează buget</h2>
+                <button class="modal-close" onclick="closeModal('budgetModal')">✕</button>
+            </div>
+
+            <form id="budgetForm" class="modal-form">
+                <input type="hidden" id="budgetId">
+
+                <div class="form-group">
+                    <label>Categorie</label>
+                    <select id="budgetCategory" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Limită lunară</label>
+                    <div class="amount-input">
+                        <span class="currency">RON</span>
+                        <input type="number" id="budgetLimit" placeholder="0.00" step="0.01" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Salvează</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Split Bill Modal -->
+    <div id="splitModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('splitModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✂️ Split Bill</h2>
+                <button class="modal-close" onclick="closeModal('splitModal')">✕</button>
+            </div>
+
+            <form id="splitForm" class="modal-form" onsubmit="handleSplitSubmit(event)">
+                <input type="hidden" id="splitId">
+
+                <div class="form-group">
+                    <label>Suma totală</label>
+                    <div class="amount-input">
+                        <span class="currency">RON</span>
+                        <input type="number" id="splitAmount" placeholder="0.00" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Persoane (separate cu virgulă)</label>
+                    <input type="text" id="splitPeople" placeholder="Maria, Ion, Ana" required>
+                    <small class="form-hint">Tu ești inclus automat</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Descriere (opțional)</label>
+                    <input type="text" id="splitDescription" placeholder="ex: Cina la restaurant">
+                </div>
+
+                <div class="split-preview">
+                    <span class="split-info">💡 Suma va fi împărțită egal între toți participanții</span>
+                </div>
+
+                <button type="submit" class="btn-submit">Împarte & Creează datorii</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div id="toastContainer" class="toast-container"></div>
+
+    <!-- PWA Install Prompt -->
+    <div id="installPrompt" class="install-prompt hidden">
+        <div class="install-content">
+            <span class="install-icon">💎</span>
+            <div class="install-text">
+                <strong>Instalează Budget Pro</strong>
+                <p>Adaugă pe ecranul principal pentru acces rapid</p>
+            </div>
+            <button id="installBtn" class="install-btn">Instalează</button>
+            <button id="installDismiss" class="install-dismiss">✕</button>
+        </div>
+    </div>
+
+    <!-- Offline Indicator -->
+    <div id="offlineIndicator" class="offline-indicator hidden">
+        <span>📴 Ești offline</span>
+    </div>
 
     <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
@@ -862,5 +986,76 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
+    
+    <!-- PWA Service Worker & Install -->
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+                    .catch(err => console.log('❌ SW registration failed:', err));
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installPrompt = document.getElementById('installPrompt');
+        const installBtn = document.getElementById('installBtn');
+        const installDismiss = document.getElementById('installDismiss');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install prompt after 30 seconds
+            setTimeout(() => {
+                if (deferredPrompt && !localStorage.getItem('pwaInstallDismissed')) {
+                    installPrompt.classList.remove('hidden');
+                }
+            }, 30000);
+        });
+
+        installBtn?.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            console.log('Install outcome:', outcome);
+            deferredPrompt = null;
+            installPrompt.classList.add('hidden');
+        });
+
+        installDismiss?.addEventListener('click', () => {
+            installPrompt.classList.add('hidden');
+            localStorage.setItem('pwaInstallDismissed', 'true');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('🎉 PWA installed!');
+            installPrompt.classList.add('hidden');
+            deferredPrompt = null;
+        });
+
+        // Offline detection
+        const offlineIndicator = document.getElementById('offlineIndicator');
+        
+        window.addEventListener('online', () => {
+            offlineIndicator.classList.add('hidden');
+            document.body.classList.remove('offline');
+        });
+        
+        window.addEventListener('offline', () => {
+            offlineIndicator.classList.remove('hidden');
+            document.body.classList.add('offline');
+        });
+
+        // Check initial state
+        if (!navigator.onLine) {
+            offlineIndicator.classList.remove('hidden');
+            document.body.classList.add('offline');
+        }
+    </script>
 </body>
 </html>

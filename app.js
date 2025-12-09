@@ -1,4 +1,4 @@
-// Budget Pro Ultra - Complete Application
+// Budget Pro Ultra - Enhanced Edition
 // Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyB1WmFllcL533zhqG4ARD6Wx35YUksLmW4",
@@ -14,44 +14,62 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 db.enablePersistence().catch(() => {});
 
-// Gemini API Key (encoded)
+// API Configuration - Change this to your Vercel URL after deploy
+const API_BASE = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000' 
+    : '';  // Same domain when deployed to Vercel
 
-const getGK = () => 'AIzaSyBq-1ai3ZCeK5hmuVVZbq7eC_TeFxqopnQ';
+// Fallback to direct API if Vercel not set up (with your key)
+const GEMINI_KEY = 'AIzaSyBq-1ai3ZCeK5hmuVVZbq7eC_TeFxqopnQ';
 
 // Categories with subcategories
 const categories = {
     expense: [
-        { id: 'food', name: 'Mâncare', icon: '🍔', subs: ['Supermarket', 'Restaurant', 'Livrare', 'Cafea', 'Fast-food', 'Piață', 'Patiserie'] },
-        { id: 'transport', name: 'Transport', icon: '🚗', subs: ['Benzină', 'Motorină', 'Uber/Bolt', 'Transport public', 'Parcare', 'Service auto', 'Asigurare auto', 'Rovignetă', 'ITP'] },
-        { id: 'housing', name: 'Locuință', icon: '🏠', subs: ['Chirie', 'Rată credit', 'Întreținere', 'Reparații', 'Mobilă', 'Curățenie', 'Decorațiuni', 'Grădinărit'] },
-        { id: 'utilities', name: 'Utilități', icon: '💡', subs: ['Electricitate', 'Gaz', 'Apă', 'Internet', 'Telefon', 'TV/Streaming', 'Gunoi'] },
-        { id: 'health', name: 'Sănătate', icon: '💊', subs: ['Medicamente', 'Doctor', 'Analize', 'Dentist', 'Ochelari/Lentile', 'Sală fitness', 'Suplimente', 'Tratamente'] },
-        { id: 'shopping', name: 'Cumpărături', icon: '🛍️', subs: ['Haine', 'Încălțăminte', 'Cosmetice', 'Electronice', 'Articole casă', 'Cadouri', 'Accesorii', 'Bijuterii'] },
-        { id: 'entertainment', name: 'Divertisment', icon: '🎬', subs: ['Cinema', 'Concerte', 'Jocuri', 'Hobby', 'Sport', 'Vacanțe', 'Excursii', 'Festivaluri', 'Bilete'] },
-        { id: 'education', name: 'Educație', icon: '📚', subs: ['Cărți', 'Cursuri', 'Școală/Facultate', 'Meditații', 'Certificări', 'Conferințe'] },
-        { id: 'subscriptions', name: 'Abonamente', icon: '📱', subs: ['Netflix', 'Spotify', 'YouTube', 'HBO', 'Disney+', 'Software', 'Reviste', 'Aplicații', 'Gaming'] },
-        { id: 'family', name: 'Familie', icon: '👨‍👩‍👧', subs: ['Copii', 'Animale', 'Cadouri familie', 'Activități'] },
-        { id: 'personal', name: 'Personal', icon: '💆', subs: ['Frizerie', 'Salon', 'Spa', 'Masaj', 'Îngrijire personală'] },
-        { id: 'taxes', name: 'Taxe & Impozite', icon: '🏛️', subs: ['Impozit', 'CAS/CASS', 'Taxe locale', 'Amenzi', 'Notariat'] },
-        { id: 'insurance', name: 'Asigurări', icon: '🛡️', subs: ['Viață', 'Sănătate', 'Locuință', 'Călătorie'] },
-        { id: 'donations', name: 'Donații', icon: '❤️', subs: ['Caritate', 'Biserică', 'Crowdfunding'] },
-        { id: 'other_expense', name: 'Altele', icon: '📦', subs: ['Diverse', 'Neprevăzute', 'Comisioane'] }
+        { id: 'food', name: 'Mâncare', icon: '🍔', color: '#ef4444', subs: ['Supermarket', 'Restaurant', 'Livrare', 'Cafea', 'Fast-food', 'Piață', 'Patiserie'] },
+        { id: 'transport', name: 'Transport', icon: '🚗', color: '#f59e0b', subs: ['Benzină', 'Motorină', 'Uber/Bolt', 'Transport public', 'Parcare', 'Service auto', 'Asigurare auto', 'Rovignetă', 'ITP'] },
+        { id: 'housing', name: 'Locuință', icon: '🏠', color: '#8b5cf6', subs: ['Chirie', 'Rată credit', 'Întreținere', 'Reparații', 'Mobilă', 'Curățenie', 'Decorațiuni'] },
+        { id: 'utilities', name: 'Utilități', icon: '💡', color: '#3b82f6', subs: ['Electricitate', 'Gaz', 'Apă', 'Internet', 'Telefon', 'TV/Streaming', 'Gunoi'] },
+        { id: 'health', name: 'Sănătate', icon: '💊', color: '#10b981', subs: ['Medicamente', 'Doctor', 'Analize', 'Dentist', 'Ochelari', 'Sală fitness', 'Suplimente'] },
+        { id: 'shopping', name: 'Cumpărături', icon: '🛍️', color: '#ec4899', subs: ['Haine', 'Încălțăminte', 'Cosmetice', 'Electronice', 'Casă', 'Cadouri', 'Accesorii'] },
+        { id: 'entertainment', name: 'Divertisment', icon: '🎬', color: '#06b6d4', subs: ['Cinema', 'Concerte', 'Jocuri', 'Hobby', 'Sport', 'Vacanțe', 'Excursii'] },
+        { id: 'education', name: 'Educație', icon: '📚', color: '#84cc16', subs: ['Cărți', 'Cursuri', 'Școală', 'Meditații', 'Certificări'] },
+        { id: 'subscriptions', name: 'Abonamente', icon: '📱', color: '#a855f7', subs: ['Netflix', 'Spotify', 'YouTube', 'HBO', 'Disney+', 'Software', 'Gaming'] },
+        { id: 'family', name: 'Familie', icon: '👨‍👩‍👧', color: '#f97316', subs: ['Copii', 'Animale', 'Cadouri', 'Activități'] },
+        { id: 'personal', name: 'Personal', icon: '💆', color: '#14b8a6', subs: ['Frizerie', 'Salon', 'Spa', 'Îngrijire'] },
+        { id: 'taxes', name: 'Taxe', icon: '🏛️', color: '#64748b', subs: ['Impozit', 'CAS/CASS', 'Taxe locale', 'Amenzi'] },
+        { id: 'insurance', name: 'Asigurări', icon: '🛡️', color: '#0ea5e9', subs: ['Viață', 'Sănătate', 'Locuință', 'Călătorie'] },
+        { id: 'other_expense', name: 'Altele', icon: '📦', color: '#78716c', subs: ['Diverse', 'Neprevăzute', 'Comisioane'] }
     ],
     income: [
-        { id: 'salary', name: 'Salariu', icon: '💼', subs: ['Salariu net', 'Bonusuri', 'Prime', 'Ore suplimentare', 'Concediu plătit'] },
-        { id: 'freelance', name: 'Freelance', icon: '💻', subs: ['Proiecte', 'Consultanță', 'Colaborări'] },
-        { id: 'investments', name: 'Investiții', icon: '📈', subs: ['Dividende', 'Dobânzi', 'Crypto', 'Acțiuni', 'Fonduri'] },
-        { id: 'rental', name: 'Chirii', icon: '🏢', subs: ['Apartament', 'Cameră', 'Spațiu comercial', 'Airbnb'] },
-        { id: 'sales', name: 'Vânzări', icon: '🏷️', subs: ['Online', 'Fizic', 'Second-hand'] },
-        { id: 'gifts_income', name: 'Cadouri', icon: '🎁', subs: ['Bani primiți', 'Moștenire'] },
-        { id: 'refunds', name: 'Rambursări', icon: '↩️', subs: ['Retururi', 'Decontări', 'Restituiri'] },
-        { id: 'pension', name: 'Pensie', icon: '👴', subs: ['Pensie stat', 'Pensie privată'] },
-        { id: 'other_income', name: 'Alte venituri', icon: '💰', subs: ['Diverse', 'Câștiguri', 'Premii'] }
+        { id: 'salary', name: 'Salariu', icon: '💼', color: '#10b981', subs: ['Salariu net', 'Bonusuri', 'Prime', 'Ore suplimentare'] },
+        { id: 'freelance', name: 'Freelance', icon: '💻', color: '#06b6d4', subs: ['Proiecte', 'Consultanță', 'Colaborări'] },
+        { id: 'investments', name: 'Investiții', icon: '📈', color: '#8b5cf6', subs: ['Dividende', 'Dobânzi', 'Crypto', 'Acțiuni'] },
+        { id: 'rental', name: 'Chirii', icon: '🏢', color: '#f59e0b', subs: ['Apartament', 'Cameră', 'Airbnb'] },
+        { id: 'sales', name: 'Vânzări', icon: '🏷️', color: '#ec4899', subs: ['Online', 'Fizic', 'Second-hand'] },
+        { id: 'gifts_income', name: 'Cadouri', icon: '🎁', color: '#ef4444', subs: ['Bani primiți', 'Moștenire'] },
+        { id: 'refunds', name: 'Rambursări', icon: '↩️', color: '#3b82f6', subs: ['Retururi', 'Decontări'] },
+        { id: 'other_income', name: 'Alte venituri', icon: '💰', color: '#84cc16', subs: ['Diverse', 'Câștiguri', 'Premii'] }
     ],
     correction: [
-        { id: 'correction', name: 'Corecție sold', icon: '⚖️', subs: ['Ajustare numerar', 'Diferență bancă', 'Corecție eroare', 'Sincronizare sold'] }
+        { id: 'correction', name: 'Corecție sold', icon: '⚖️', color: '#6366f1', subs: ['Ajustare numerar', 'Diferență bancă', 'Corecție eroare'] }
     ]
 };
+
+// Achievements definitions
+const achievementsDef = [
+    { id: 'first_trans', name: 'Prima tranzacție', icon: '🎯', desc: 'Ai adăugat prima tranzacție', condition: (s) => s.transactions.length >= 1 },
+    { id: 'trans_10', name: 'Starter', icon: '📝', desc: '10 tranzacții înregistrate', condition: (s) => s.transactions.length >= 10 },
+    { id: 'trans_50', name: 'Consistent', icon: '📊', desc: '50 tranzacții înregistrate', condition: (s) => s.transactions.length >= 50 },
+    { id: 'trans_100', name: 'Pro Tracker', icon: '🏆', desc: '100 tranzacții înregistrate', condition: (s) => s.transactions.length >= 100 },
+    { id: 'streak_7', name: 'Săptămână perfectă', icon: '🔥', desc: '7 zile consecutive de tracking', condition: (s) => s.streak >= 7 },
+    { id: 'streak_30', name: 'Lună de foc', icon: '💪', desc: '30 zile consecutive', condition: (s) => s.streak >= 30 },
+    { id: 'saver_20', name: 'Economist', icon: '💰', desc: 'Ai economisit 20% din venituri', condition: (s) => s.savingsRate >= 20 },
+    { id: 'saver_50', name: 'Super Saver', icon: '🌟', desc: 'Ai economisit 50% din venituri', condition: (s) => s.savingsRate >= 50 },
+    { id: 'goal_complete', name: 'Goal Getter', icon: '🎯', desc: 'Ai completat un obiectiv', condition: (s) => s.goals.some(g => g.saved >= g.target) },
+    { id: 'budget_master', name: 'Budget Master', icon: '👑', desc: 'Ai rămas în buget o lună întreagă', condition: (s) => s.budgetKept },
+    { id: 'debt_free', name: 'Debt Free', icon: '🆓', desc: 'Zero datorii de plătit', condition: (s) => s.debts.filter(d => d.type === 'owe').length === 0 },
+    { id: 'ai_user', name: 'AI Explorer', icon: '🤖', desc: 'Ai folosit asistentul AI', condition: (s) => s.aiUsed }
+];
 
 // State
 let state = {
@@ -60,6 +78,11 @@ let state = {
     goals: [],
     reminders: [],
     debts: [],
+    accounts: [],
+    budgets: [],
+    achievements: [],
+    challenges: [],
+    splits: [],
     month: new Date().getMonth(),
     year: new Date().getFullYear(),
     currency: localStorage.getItem('currency') || 'RON',
@@ -67,8 +90,27 @@ let state = {
     period: 30,
     editingId: null,
     chart: null,
-    trendChart: null
+    trendChart: null,
+    streak: 0,
+    savingsRate: 0,
+    budgetKept: false,
+    aiUsed: false,
+    netWorth: 0,
+    healthScore: 0,
+    weeklyReport: null
 };
+
+// Savings Challenges
+const challengeTemplates = [
+    { id: '52week', name: 'Provocarea 52 săptămâni', icon: '📅', desc: 'Economisește crescător fiecare săptămână', duration: 52, type: 'weekly', calculateAmount: (week) => week * 10 },
+    { id: 'noSpend', name: 'Weekend fără cheltuieli', icon: '🚫', desc: 'Un weekend fără cheltuieli', duration: 2, type: 'days', target: 0 },
+    { id: 'coffee', name: 'Fără cafea de afară', icon: '☕', desc: '30 zile fără cafea cumpărată', duration: 30, type: 'days', category: 'food' },
+    { id: 'lunch', name: 'Prânz de acasă', icon: '🍱', desc: 'O lună cu prânz pregătit acasă', duration: 30, type: 'days', category: 'food' },
+    { id: 'round', name: 'Rotunjește și economisește', icon: '🔄', desc: 'Rotunjește cheltuielile și pune diferența deoparte', duration: 30, type: 'days', target: 500 },
+    { id: '1percent', name: 'Regula 1%', icon: '📈', desc: 'Economisește 1% din venit zilnic', duration: 30, type: 'daily' },
+    { id: 'impulse', name: 'Zero cumpărături impulsive', icon: '🛑', desc: '14 zile fără cumpărături neplanificate', duration: 14, type: 'days' },
+    { id: 'envelope', name: 'Metoda plicurilor', icon: '✉️', desc: 'Buget fix pe categorii', duration: 30, type: 'monthly' }
+];
 
 // Month names
 const months = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
@@ -81,7 +123,7 @@ const $$ = sel => document.querySelectorAll(sel);
 document.addEventListener('DOMContentLoaded', () => {
     initAuth();
     initEventListeners();
-    setTimeout(() => $('splash').classList.add('hidden'), 1500);
+    setTimeout(() => $('splash')?.classList.add('hidden'), 1500);
 });
 
 // Auth
@@ -175,32 +217,32 @@ function initEventListeners() {
     });
 
     // Month navigation
-    $('prevMonth').addEventListener('click', () => changeMonth(-1));
-    $('nextMonth').addEventListener('click', () => changeMonth(1));
+    $('prevMonth')?.addEventListener('click', () => changeMonth(-1));
+    $('nextMonth')?.addEventListener('click', () => changeMonth(1));
 
     // Search
-    $('searchToggle').addEventListener('click', () => {
+    $('searchToggle')?.addEventListener('click', () => {
         $('searchBar').classList.toggle('hidden');
         if (!$('searchBar').classList.contains('hidden')) {
             $('searchInput').focus();
         }
     });
-    $('searchClose').addEventListener('click', () => {
+    $('searchClose')?.addEventListener('click', () => {
         $('searchBar').classList.add('hidden');
         $('searchInput').value = '';
         $('searchResults').classList.add('hidden');
     });
-    $('searchInput').addEventListener('input', debounce(handleSearch, 300));
+    $('searchInput')?.addEventListener('input', debounce(handleSearch, 300));
 
     // AI button
-    $('aiBtn').addEventListener('click', () => openModal('aiModal'));
-    $('aiSend').addEventListener('click', sendAiMessage);
-    $('aiInput').addEventListener('keypress', e => {
+    $('aiBtn')?.addEventListener('click', () => openModal('aiModal'));
+    $('aiSend')?.addEventListener('click', sendAiMessage);
+    $('aiInput')?.addEventListener('keypress', e => {
         if (e.key === 'Enter') sendAiMessage();
     });
 
     // Transaction form
-    $('transForm').addEventListener('submit', handleTransactionSubmit);
+    $('transForm')?.addEventListener('submit', handleTransactionSubmit);
     $$('.type-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             $$('.type-tab').forEach(t => t.classList.remove('active'));
@@ -209,13 +251,13 @@ function initEventListeners() {
             populateCategories(tab.dataset.type);
         });
     });
-    $('transCategory').addEventListener('change', populateSubcategories);
-    $('transRecurring').addEventListener('change', e => {
+    $('transCategory')?.addEventListener('change', populateSubcategories);
+    $('transRecurring')?.addEventListener('change', e => {
         $('recurringOptions').classList.toggle('hidden', !e.target.checked);
     });
 
     // Goal form
-    $('goalForm').addEventListener('submit', handleGoalSubmit);
+    $('goalForm')?.addEventListener('submit', handleGoalSubmit);
     $$('.icon-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             $$('.icon-btn').forEach(b => b.classList.remove('active'));
@@ -225,7 +267,7 @@ function initEventListeners() {
     });
 
     // Debt form
-    $('debtForm').addEventListener('submit', handleDebtSubmit);
+    $('debtForm')?.addEventListener('submit', handleDebtSubmit);
     $$('.debt-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             $$('.debt-tab').forEach(t => t.classList.remove('active'));
@@ -236,7 +278,13 @@ function initEventListeners() {
     });
 
     // Reminder form
-    $('reminderForm').addEventListener('submit', handleReminderSubmit);
+    $('reminderForm')?.addEventListener('submit', handleReminderSubmit);
+
+    // Account form
+    $('accountForm')?.addEventListener('submit', handleAccountSubmit);
+
+    // Budget form
+    $('budgetForm')?.addEventListener('submit', handleBudgetSubmit);
 
     // Filters
     $$('.filter-btn').forEach(btn => {
@@ -259,18 +307,18 @@ function initEventListeners() {
     });
 
     // AI Analysis
-    $('runAiAnalysis').addEventListener('click', runFullAiAnalysis);
+    $('runAiAnalysis')?.addEventListener('click', runFullAiAnalysis);
 
     // Refresh insights
-    $('refreshInsights').addEventListener('click', generateInsights);
+    $('refreshInsights')?.addEventListener('click', generateInsights);
 
     // Settings
-    $('currencySelect').addEventListener('change', e => {
+    $('currencySelect')?.addEventListener('change', e => {
         state.currency = e.target.value;
         localStorage.setItem('currency', state.currency);
         renderAll();
     });
-    $('currencySelect').value = state.currency;
+    if ($('currencySelect')) $('currencySelect').value = state.currency;
 
     // Reminder category
     populateReminderCategories();
@@ -311,10 +359,80 @@ async function loadAllData() {
         const debtsSnap = await db.collection('users').doc(uid).collection('debts').get();
         state.debts = debtsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+        // Accounts
+        const accSnap = await db.collection('users').doc(uid).collection('accounts').get();
+        state.accounts = accSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Budgets
+        const budSnap = await db.collection('users').doc(uid).collection('budgets').get();
+        state.budgets = budSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Calculate streak
+        calculateStreak();
+        
+        // Check achievements
+        checkAchievements();
+
         renderAll();
         checkReminders();
     } catch (err) {
         console.error('Error loading data:', err);
+    }
+}
+
+// Calculate streak
+function calculateStreak() {
+    if (state.transactions.length === 0) {
+        state.streak = 0;
+        return;
+    }
+    
+    const dates = [...new Set(state.transactions.map(t => t.date))].sort().reverse();
+    let streak = 0;
+    let currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    
+    for (const dateStr of dates) {
+        const date = new Date(dateStr);
+        date.setHours(0, 0, 0, 0);
+        const diffDays = Math.floor((currentDate - date) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays <= 1) {
+            streak++;
+            currentDate = date;
+        } else {
+            break;
+        }
+    }
+    
+    state.streak = streak;
+}
+
+// Check achievements
+function checkAchievements() {
+    const newAchievements = [];
+    
+    achievementsDef.forEach(ach => {
+        if (!state.achievements.includes(ach.id) && ach.condition(state)) {
+            newAchievements.push(ach);
+            state.achievements.push(ach.id);
+        }
+    });
+    
+    if (newAchievements.length > 0) {
+        // Save achievements
+        if (state.user) {
+            db.collection('users').doc(state.user.uid).update({
+                achievements: state.achievements
+            }).catch(() => {});
+        }
+        
+        // Show toast for new achievements
+        newAchievements.forEach(ach => {
+            setTimeout(() => {
+                toast(`🏆 Achievement: ${ach.name}!`, 'success');
+            }, 500);
+        });
     }
 }
 
@@ -325,8 +443,11 @@ function renderAll() {
     renderGoalsPreview();
     renderDebtsPreview();
     renderRemindersPreview();
+    renderAccountsPreview();
+    renderBudgetsPreview();
     updateChart();
     generateInsights();
+    updateNetWorth();
 }
 
 // Get month transactions
@@ -352,10 +473,11 @@ function updateStats() {
     });
 
     const balance = income - expense;
+    state.savingsRate = income > 0 ? ((income - expense) / income * 100) : 0;
     
-    $('totalIncome').textContent = fmt(income);
-    $('totalExpense').textContent = fmt(expense);
-    $('totalBalance').textContent = fmt(balance);
+    if ($('totalIncome')) $('totalIncome').textContent = fmt(income);
+    if ($('totalExpense')) $('totalExpense').textContent = fmt(expense);
+    if ($('totalBalance')) $('totalBalance').textContent = fmt(balance);
     
     // Calculate change from last month
     const lastMonthTrans = state.transactions.filter(t => {
@@ -373,13 +495,15 @@ function updateStats() {
     
     const change = lastBalance !== 0 ? ((balance - lastBalance) / Math.abs(lastBalance) * 100).toFixed(0) : 0;
     const changeEl = $('balanceChange');
-    changeEl.textContent = (change >= 0 ? '+' : '') + change + '%';
-    changeEl.className = 'balance-change ' + (change >= 0 ? 'positive' : 'negative');
+    if (changeEl) {
+        changeEl.textContent = (change >= 0 ? '+' : '') + change + '%';
+        changeEl.className = 'balance-change ' + (change >= 0 ? 'positive' : 'negative');
+    }
     
     // Progress bar
     const spentPercent = income > 0 ? Math.min((expense / income) * 100, 100) : 0;
-    $('spentProgress').style.width = spentPercent + '%';
-    $('spentPercent').textContent = spentPercent.toFixed(0) + '% din venituri cheltuit';
+    if ($('spentProgress')) $('spentProgress').style.width = spentPercent + '%';
+    if ($('spentPercent')) $('spentPercent').textContent = spentPercent.toFixed(0) + '% din venituri cheltuit';
     
     // Quick stats
     const today = new Date();
@@ -390,22 +514,124 @@ function updateStats() {
     
     const dailyAvg = daysPassed > 0 ? expense / daysPassed : 0;
     const prediction = dailyAvg * daysInMonth;
-    const savingsRate = income > 0 ? ((income - expense) / income * 100) : 0;
     
-    $('dailyAvg').textContent = fmt(dailyAvg);
-    $('prediction').textContent = fmt(prediction);
-    $('savingsRate').textContent = savingsRate.toFixed(0) + '%';
-    $('daysLeft').textContent = daysLeft;
+    if ($('dailyAvg')) $('dailyAvg').textContent = fmt(dailyAvg);
+    if ($('prediction')) $('prediction').textContent = fmt(prediction);
+    if ($('savingsRate')) $('savingsRate').textContent = state.savingsRate.toFixed(0) + '%';
+    if ($('daysLeft')) $('daysLeft').textContent = daysLeft;
+    if ($('streakCount')) $('streakCount').textContent = state.streak;
     
     // Update month display
-    $('currentMonth').textContent = months[state.month] + ' ' + state.year;
-    $('transMonth').textContent = months[state.month] + ' ' + state.year;
+    if ($('currentMonth')) $('currentMonth').textContent = months[state.month] + ' ' + state.year;
+    if ($('transMonth')) $('transMonth').textContent = months[state.month] + ' ' + state.year;
+
+    // Check budgets
+    checkBudgetAlerts();
+}
+
+// Update Net Worth
+function updateNetWorth() {
+    let netWorth = 0;
+    
+    // Add account balances
+    state.accounts.forEach(acc => {
+        netWorth += acc.balance || 0;
+    });
+    
+    // Subtract debts owed
+    state.debts.forEach(d => {
+        if (d.type === 'owe') netWorth -= d.amount;
+        else netWorth += d.amount;
+    });
+    
+    state.netWorth = netWorth;
+    if ($('netWorth')) $('netWorth').textContent = fmt(netWorth);
+}
+
+// Render accounts preview
+function renderAccountsPreview() {
+    const container = $('accountsPreview');
+    if (!container) return;
+    
+    if (state.accounts.length === 0) {
+        container.innerHTML = `<div class="empty-state small"><span class="empty-icon">💳</span><p>Niciun cont adăugat</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = state.accounts.slice(0, 3).map(acc => `
+        <div class="account-card" style="border-left: 3px solid ${acc.color || '#8b5cf6'}">
+            <div class="account-icon">${acc.icon || '💳'}</div>
+            <div class="account-info">
+                <div class="account-name">${esc(acc.name)}</div>
+                <div class="account-type">${acc.type || 'Cont'}</div>
+            </div>
+            <div class="account-balance">${fmt(acc.balance || 0)}</div>
+        </div>
+    `).join('');
+}
+
+// Render budgets preview
+function renderBudgetsPreview() {
+    const container = $('budgetsPreview');
+    if (!container) return;
+    
+    if (state.budgets.length === 0) {
+        container.innerHTML = `<div class="empty-state small"><span class="empty-icon">📊</span><p>Niciun buget setat</p></div>`;
+        return;
+    }
+    
+    const monthTrans = getMonthTransactions();
+    
+    container.innerHTML = state.budgets.slice(0, 3).map(budget => {
+        const spent = monthTrans
+            .filter(t => t.type === 'expense' && t.category === budget.category)
+            .reduce((sum, t) => sum + t.amount, 0);
+        const percent = budget.limit > 0 ? Math.min((spent / budget.limit) * 100, 100) : 0;
+        const isOver = spent > budget.limit;
+        const cat = findCategory('expense', budget.category);
+        
+        return `
+            <div class="budget-card ${isOver ? 'over' : ''}">
+                <div class="budget-header">
+                    <span class="budget-cat">${cat?.icon || '📦'} ${cat?.name || budget.category}</span>
+                    <span class="budget-amounts">${fmt(spent)} / ${fmt(budget.limit)}</span>
+                </div>
+                <div class="budget-bar">
+                    <div class="budget-fill ${isOver ? 'over' : ''}" style="width: ${percent}%"></div>
+                </div>
+                <div class="budget-status">${isOver ? '⚠️ Depășit!' : `${(100 - percent).toFixed(0)}% rămas`}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Check budget alerts
+function checkBudgetAlerts() {
+    const monthTrans = getMonthTransactions();
+    
+    state.budgets.forEach(budget => {
+        const spent = monthTrans
+            .filter(t => t.type === 'expense' && t.category === budget.category)
+            .reduce((sum, t) => sum + t.amount, 0);
+        
+        const percent = budget.limit > 0 ? (spent / budget.limit) * 100 : 0;
+        const cat = findCategory('expense', budget.category);
+        
+        if (percent >= 100 && !budget.alertedOver) {
+            toast(`⚠️ Ai depășit bugetul pentru ${cat?.name || budget.category}!`, 'warning');
+            budget.alertedOver = true;
+        } else if (percent >= 80 && percent < 100 && !budget.alerted80) {
+            toast(`📊 Ai folosit 80% din bugetul pentru ${cat?.name || budget.category}`, 'info');
+            budget.alerted80 = true;
+        }
+    });
 }
 
 // Render recent transactions
 function renderRecentTransactions() {
     const trans = getMonthTransactions().slice(0, 5);
     const container = $('recentTrans');
+    if (!container) return;
     
     if (trans.length === 0) {
         container.innerHTML = `<div class="empty-state"><span class="empty-icon">📝</span><p>Nicio tranzacție încă</p></div>`;
@@ -424,6 +650,7 @@ function renderAllTransactions() {
     }
     
     const container = $('allTransactions');
+    if (!container) return;
     
     if (trans.length === 0) {
         container.innerHTML = `<div class="empty-state"><span class="empty-icon">📝</span><p>Nicio tranzacție în această lună</p></div>`;
@@ -443,13 +670,15 @@ function transactionHTML(t, showActions = false) {
     const amountClass = isCorrection ? 'correction' : (isIncome ? 'income' : 'expense');
     const amountPrefix = isIncome || (isCorrection && t.amount > 0) ? '+' : '-';
     const amount = Math.abs(t.amount);
+    const tags = t.tags ? t.tags.map(tag => `<span class="trans-tag">${tag}</span>`).join('') : '';
     
     return `
         <div class="trans-item" data-id="${t.id}">
-            <div class="trans-icon">${icon}</div>
+            <div class="trans-icon" style="background: ${cat?.color || '#8b5cf6'}20">${icon}</div>
             <div class="trans-info">
                 <div class="trans-category">${esc(catName)}</div>
                 <div class="trans-details">${t.subcategory ? esc(t.subcategory) : ''}${t.description ? ' • ' + esc(t.description) : ''}</div>
+                ${tags ? `<div class="trans-tags">${tags}</div>` : ''}
             </div>
             <div class="trans-right">
                 <div class="trans-amount ${amountClass}">${amountPrefix}${fmt(amount)}</div>
@@ -489,17 +718,24 @@ function updateChart() {
     
     const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
     
-    $('chartCenter').querySelector('.chart-total').textContent = fmt(total);
+    const chartCenter = $('chartCenter');
+    if (chartCenter) chartCenter.querySelector('.chart-total').textContent = fmt(total);
     
     // Legend
-    $('chartLegend').innerHTML = labels.map((l, i) => `
-        <div class="legend-item">
-            <span class="legend-color" style="background:${colors[i]}"></span>
-            <span>${l}</span>
-        </div>
-    `).join('');
+    const legend = $('chartLegend');
+    if (legend) {
+        legend.innerHTML = labels.map((l, i) => `
+            <div class="legend-item">
+                <span class="legend-color" style="background:${colors[i]}"></span>
+                <span>${l}</span>
+            </div>
+        `).join('');
+    }
     
-    const ctx = $('expenseChart').getContext('2d');
+    const canvas = $('expenseChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
     
     if (state.chart) state.chart.destroy();
     
@@ -526,6 +762,7 @@ function updateChart() {
 async function generateInsights() {
     const trans = getMonthTransactions();
     const container = $('aiInsights');
+    if (!container) return;
     
     if (trans.length < 3) {
         container.innerHTML = `<div class="insight-card"><span class="insight-icon">💡</span><p>Adaugă cel puțin 3 tranzacții pentru a primi insights personalizate.</p></div>`;
@@ -547,39 +784,49 @@ async function generateInsights() {
     
     const insights = [];
     
-    // Saving rate
+    // Saving rate insight
     const savingRate = income > 0 ? ((income - expense) / income * 100) : 0;
     if (savingRate < 10) {
-        insights.push({ icon: '⚠️', text: `Economisești doar ${savingRate.toFixed(0)}% din venituri. Țintește minim 20%!` });
+        insights.push({ icon: '⚠️', text: `Economisești doar ${savingRate.toFixed(0)}% din venituri. Țintește minim 20%!`, type: 'warning' });
     } else if (savingRate >= 20) {
-        insights.push({ icon: '🎉', text: `Excelent! Economisești ${savingRate.toFixed(0)}% din venituri. Continuă așa!` });
+        insights.push({ icon: '🎉', text: `Excelent! Economisești ${savingRate.toFixed(0)}% din venituri. Continuă așa!`, type: 'success' });
     } else {
-        insights.push({ icon: '💰', text: `Economisești ${savingRate.toFixed(0)}% din venituri. Mai ai puțin până la 20%!` });
+        insights.push({ icon: '💰', text: `Economisești ${savingRate.toFixed(0)}% din venituri. Mai ai puțin până la 20%!`, type: 'info' });
     }
     
-    // Top category
+    // Top category insight
     const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
     if (sorted.length > 0) {
         const [topCat, topAmount] = sorted[0];
         const percent = expense > 0 ? (topAmount / expense * 100).toFixed(0) : 0;
-        insights.push({ icon: '📊', text: `${topCat} reprezintă ${percent}% din cheltuieli (${fmt(topAmount)})` });
+        insights.push({ icon: '📊', text: `${topCat} reprezintă ${percent}% din cheltuieli (${fmt(topAmount)})`, type: 'info' });
+    }
+    
+    // Streak insight
+    if (state.streak >= 7) {
+        insights.push({ icon: '🔥', text: `Streak de ${state.streak} zile! Ești pe drumul cel bun!`, type: 'success' });
+    }
+    
+    // Net worth insight
+    if (state.netWorth > 0) {
+        insights.push({ icon: '💎', text: `Patrimoniul tău net: ${fmt(state.netWorth)}`, type: 'info' });
     }
     
     // Daily average
     const today = new Date();
     const daysPassed = state.month === today.getMonth() ? today.getDate() : 30;
     const dailyAvg = expense / daysPassed;
-    insights.push({ icon: '📅', text: `Media zilnică de cheltuieli: ${fmt(dailyAvg)}` });
+    insights.push({ icon: '📅', text: `Media zilnică de cheltuieli: ${fmt(dailyAvg)}`, type: 'info' });
     
-    // Prediction
+    // Prediction warning
     const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
     const predicted = dailyAvg * daysInMonth;
     if (predicted > income && income > 0) {
-        insights.push({ icon: '🚨', text: `La acest ritm vei cheltui ${fmt(predicted)}, mai mult decât venitul de ${fmt(income)}!` });
+        insights.push({ icon: '🚨', text: `La acest ritm vei cheltui ${fmt(predicted)}, mai mult decât venitul!`, type: 'warning' });
     }
     
     container.innerHTML = insights.map(i => `
-        <div class="insight-card">
+        <div class="insight-card ${i.type}">
             <span class="insight-icon">${i.icon}</span>
             <p>${i.text}</p>
         </div>
@@ -590,6 +837,7 @@ async function generateInsights() {
 function renderGoalsPreview() {
     const active = state.goals.filter(g => g.saved < g.target).slice(0, 2);
     const container = $('goalsPreview');
+    if (!container) return;
     
     if (active.length === 0) {
         container.innerHTML = `<div class="empty-state small"><span class="empty-icon">🎯</span><p>Niciun obiectiv activ</p></div>`;
@@ -629,8 +877,8 @@ function renderDebtsPreview() {
         else totalOwed += d.amount;
     });
     
-    $('totalOwe').textContent = fmt(totalOwe);
-    $('totalOwed').textContent = fmt(totalOwed);
+    if ($('totalOwe')) $('totalOwe').textContent = fmt(totalOwe);
+    if ($('totalOwed')) $('totalOwed').textContent = fmt(totalOwed);
 }
 
 // Reminders preview
@@ -642,6 +890,7 @@ function renderRemindersPreview() {
         .slice(0, 2);
     
     const container = $('remindersPreview');
+    if (!container) return;
     
     if (upcoming.length === 0) {
         container.innerHTML = `<div class="empty-state small"><span class="empty-icon">⏰</span><p>Niciun reminder</p></div>`;
@@ -685,13 +934,15 @@ function getRepeatText(repeat) {
 // Switch view
 function switchView(view) {
     $$('.view').forEach(v => v.classList.remove('active'));
-    $(view + 'View').classList.add('active');
+    const viewEl = $(view + 'View');
+    if (viewEl) viewEl.classList.add('active');
     
     if (view === 'transactions') renderAllTransactions();
     if (view === 'analytics') updateAnalytics();
     if (view === 'goals') renderGoals();
     if (view === 'debts') renderDebts();
     if (view === 'reminders') renderReminders();
+    if (view === 'accounts') renderAccounts();
 }
 
 // Change month
@@ -706,16 +957,16 @@ function changeMonth(delta) {
 // Open modals
 function openTransModal(type = 'expense') {
     state.editingId = null;
-    $('transId').value = '';
-    $('transForm').reset();
-    $('transModalTitle').textContent = 'Adaugă tranzacție';
-    $('transDate').value = new Date().toISOString().split('T')[0];
-    $('recurringOptions').classList.add('hidden');
+    if ($('transId')) $('transId').value = '';
+    if ($('transForm')) $('transForm').reset();
+    if ($('transModalTitle')) $('transModalTitle').textContent = 'Adaugă tranzacție';
+    if ($('transDate')) $('transDate').value = new Date().toISOString().split('T')[0];
+    if ($('recurringOptions')) $('recurringOptions').classList.add('hidden');
     
     $$('.type-tab').forEach(t => {
         t.classList.toggle('active', t.dataset.type === type);
     });
-    $('transType').value = type;
+    if ($('transType')) $('transType').value = type;
     populateCategories(type);
     
     openModal('transModal');
@@ -723,57 +974,82 @@ function openTransModal(type = 'expense') {
 
 function openGoalModal() {
     state.editingId = null;
-    $('goalId').value = '';
-    $('goalForm').reset();
-    $('goalModalTitle').textContent = 'Obiectiv nou';
+    if ($('goalId')) $('goalId').value = '';
+    if ($('goalForm')) $('goalForm').reset();
+    if ($('goalModalTitle')) $('goalModalTitle').textContent = 'Obiectiv nou';
     $$('.icon-btn').forEach(b => b.classList.toggle('active', b.dataset.icon === '🎯'));
-    $('goalIcon').value = '🎯';
+    if ($('goalIcon')) $('goalIcon').value = '🎯';
     openModal('goalModal');
 }
 
 function openDebtModal() {
     state.editingId = null;
-    $('debtId').value = '';
-    $('debtForm').reset();
-    $('debtModalTitle').textContent = 'Adaugă datorie';
+    if ($('debtId')) $('debtId').value = '';
+    if ($('debtForm')) $('debtForm').reset();
+    if ($('debtModalTitle')) $('debtModalTitle').textContent = 'Adaugă datorie';
     $$('.debt-tab').forEach(t => t.classList.toggle('active', t.dataset.type === 'owe'));
-    $('debtType').value = 'owe';
-    $('personLabel').textContent = 'Cui datorezi?';
+    if ($('debtType')) $('debtType').value = 'owe';
+    if ($('personLabel')) $('personLabel').textContent = 'Cui datorezi?';
     openModal('debtModal');
 }
 
 function openReminderModal() {
     state.editingId = null;
-    $('reminderId').value = '';
-    $('reminderForm').reset();
-    $('reminderModalTitle').textContent = 'Reminder nou';
-    $('reminderDate').value = new Date().toISOString().split('T')[0];
+    if ($('reminderId')) $('reminderId').value = '';
+    if ($('reminderForm')) $('reminderForm').reset();
+    if ($('reminderModalTitle')) $('reminderModalTitle').textContent = 'Reminder nou';
+    if ($('reminderDate')) $('reminderDate').value = new Date().toISOString().split('T')[0];
     openModal('reminderModal');
 }
 
+function openAccountModal() {
+    state.editingId = null;
+    if ($('accountId')) $('accountId').value = '';
+    if ($('accountForm')) $('accountForm').reset();
+    if ($('accountModalTitle')) $('accountModalTitle').textContent = 'Cont nou';
+    openModal('accountModal');
+}
+
+function openBudgetModal() {
+    state.editingId = null;
+    if ($('budgetId')) $('budgetId').value = '';
+    if ($('budgetForm')) $('budgetForm').reset();
+    if ($('budgetModalTitle')) $('budgetModalTitle').textContent = 'Buget nou';
+    populateBudgetCategories();
+    openModal('budgetModal');
+}
+
 function openModal(id) {
-    $(id).classList.add('active');
-    document.body.style.overflow = 'hidden';
+    const modal = $(id);
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeModal(id) {
-    $(id).classList.remove('active');
-    document.body.style.overflow = '';
+    const modal = $(id);
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
 }
 
 // Populate categories
 function populateCategories(type) {
     const select = $('transCategory');
+    if (!select) return;
     const cats = categories[type] || [];
     select.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
     populateSubcategories();
 }
 
 function populateSubcategories() {
-    const type = $('transType').value;
-    const catId = $('transCategory').value;
+    const type = $('transType')?.value;
+    const catId = $('transCategory')?.value;
     const cat = categories[type]?.find(c => c.id === catId);
     const select = $('transSubcategory');
+    if (!select) return;
     
     if (cat && cat.subs) {
         select.innerHTML = '<option value="">Alege subcategorie...</option>' + 
@@ -785,24 +1061,37 @@ function populateSubcategories() {
 
 function populateReminderCategories() {
     const select = $('reminderCategory');
+    if (!select) return;
     const allCats = [...categories.expense, ...categories.income];
     select.innerHTML = '<option value="">Alege...</option>' + 
         allCats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+}
+
+function populateBudgetCategories() {
+    const select = $('budgetCategory');
+    if (!select) return;
+    select.innerHTML = '<option value="">Alege categorie...</option>' + 
+        categories.expense.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
 }
 
 // Handle transaction submit
 async function handleTransactionSubmit(e) {
     e.preventDefault();
     
+    const tagsInput = $('transTags')?.value || '';
+    const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t);
+    
     const data = {
         type: $('transType').value,
         amount: parseFloat($('transAmount').value),
         category: $('transCategory').value,
-        subcategory: $('transSubcategory').value,
-        description: $('transDescription').value,
+        subcategory: $('transSubcategory')?.value || '',
+        description: $('transDescription')?.value || '',
         date: $('transDate').value,
-        recurring: $('transRecurring').checked,
-        recurringFreq: $('transRecurring').checked ? $('recurringFreq').value : null,
+        tags: tags,
+        account: $('transAccount')?.value || '',
+        recurring: $('transRecurring')?.checked || false,
+        recurringFreq: $('transRecurring')?.checked ? $('recurringFreq')?.value : null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
@@ -821,6 +1110,8 @@ async function handleTransactionSubmit(e) {
         }
         
         closeModal('transModal');
+        calculateStreak();
+        checkAchievements();
         renderAll();
         renderAllTransactions();
     } catch (err) {
@@ -834,24 +1125,25 @@ function editTransaction(id) {
     if (!t) return;
     
     state.editingId = id;
-    $('transId').value = id;
-    $('transModalTitle').textContent = 'Editează tranzacție';
+    if ($('transId')) $('transId').value = id;
+    if ($('transModalTitle')) $('transModalTitle').textContent = 'Editează tranzacție';
     
     $$('.type-tab').forEach(tab => {
         tab.classList.toggle('active', tab.dataset.type === t.type);
     });
-    $('transType').value = t.type;
+    if ($('transType')) $('transType').value = t.type;
     populateCategories(t.type);
     
-    $('transCategory').value = t.category;
+    if ($('transCategory')) $('transCategory').value = t.category;
     populateSubcategories();
-    $('transSubcategory').value = t.subcategory || '';
-    $('transAmount').value = Math.abs(t.amount);
-    $('transDescription').value = t.description || '';
-    $('transDate').value = t.date;
-    $('transRecurring').checked = t.recurring || false;
-    $('recurringOptions').classList.toggle('hidden', !t.recurring);
-    if (t.recurring) $('recurringFreq').value = t.recurringFreq;
+    if ($('transSubcategory')) $('transSubcategory').value = t.subcategory || '';
+    if ($('transAmount')) $('transAmount').value = Math.abs(t.amount);
+    if ($('transDescription')) $('transDescription').value = t.description || '';
+    if ($('transDate')) $('transDate').value = t.date;
+    if ($('transTags')) $('transTags').value = (t.tags || []).join(', ');
+    if ($('transRecurring')) $('transRecurring').checked = t.recurring || false;
+    if ($('recurringOptions')) $('recurringOptions').classList.toggle('hidden', !t.recurring);
+    if (t.recurring && $('recurringFreq')) $('recurringFreq').value = t.recurringFreq;
     
     openModal('transModal');
 }
@@ -878,9 +1170,9 @@ async function handleGoalSubmit(e) {
     const data = {
         name: $('goalName').value,
         target: parseFloat($('goalTarget').value),
-        saved: parseFloat($('goalSaved').value) || 0,
-        deadline: $('goalDeadline').value || null,
-        icon: $('goalIcon').value,
+        saved: parseFloat($('goalSaved')?.value) || 0,
+        deadline: $('goalDeadline')?.value || null,
+        icon: $('goalIcon')?.value || '🎯',
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
@@ -899,6 +1191,7 @@ async function handleGoalSubmit(e) {
         }
         
         closeModal('goalModal');
+        checkAchievements();
         renderGoalsPreview();
         renderGoals();
     } catch (err) {
@@ -911,15 +1204,21 @@ function renderGoals() {
     const active = state.goals.filter(g => g.saved < g.target);
     const completed = state.goals.filter(g => g.saved >= g.target);
     
-    $('activeGoals').textContent = active.length;
-    $('completedGoals').textContent = completed.length;
-    $('totalSaved').textContent = fmt(state.goals.reduce((a, g) => a + g.saved, 0));
+    if ($('activeGoals')) $('activeGoals').textContent = active.length;
+    if ($('completedGoals')) $('completedGoals').textContent = completed.length;
+    if ($('totalSaved')) $('totalSaved').textContent = fmt(state.goals.reduce((a, g) => a + g.saved, 0));
     
-    $('activeGoalsList').innerHTML = active.length ? active.map(g => goalFullHTML(g)).join('') : 
-        '<div class="empty-state small"><p>Niciun obiectiv activ</p></div>';
+    const activeList = $('activeGoalsList');
+    if (activeList) {
+        activeList.innerHTML = active.length ? active.map(g => goalFullHTML(g)).join('') : 
+            '<div class="empty-state small"><p>Niciun obiectiv activ</p></div>';
+    }
     
-    $('completedGoalsList').innerHTML = completed.length ? completed.map(g => goalFullHTML(g, true)).join('') : 
-        '<div class="empty-state small"><p>Niciun obiectiv completat</p></div>';
+    const completedList = $('completedGoalsList');
+    if (completedList) {
+        completedList.innerHTML = completed.length ? completed.map(g => goalFullHTML(g, true)).join('') : 
+            '<div class="empty-state small"><p>Niciun obiectiv completat</p></div>';
+    }
 }
 
 function goalFullHTML(g, completed = false) {
@@ -964,6 +1263,7 @@ async function addToGoal(id) {
         await db.collection('users').doc(state.user.uid).collection('goals').doc(id).update({ saved: newSaved });
         g.saved = newSaved;
         toast('Sumă adăugată!', 'success');
+        checkAchievements();
         renderGoalsPreview();
         renderGoals();
     } catch (err) {
@@ -977,13 +1277,13 @@ function editGoal(id) {
     if (!g) return;
     
     state.editingId = id;
-    $('goalId').value = id;
-    $('goalModalTitle').textContent = 'Editează obiectiv';
-    $('goalName').value = g.name;
-    $('goalTarget').value = g.target;
-    $('goalSaved').value = g.saved;
-    $('goalDeadline').value = g.deadline || '';
-    $('goalIcon').value = g.icon || '🎯';
+    if ($('goalId')) $('goalId').value = id;
+    if ($('goalModalTitle')) $('goalModalTitle').textContent = 'Editează obiectiv';
+    if ($('goalName')) $('goalName').value = g.name;
+    if ($('goalTarget')) $('goalTarget').value = g.target;
+    if ($('goalSaved')) $('goalSaved').value = g.saved;
+    if ($('goalDeadline')) $('goalDeadline').value = g.deadline || '';
+    if ($('goalIcon')) $('goalIcon').value = g.icon || '🎯';
     $$('.icon-btn').forEach(b => b.classList.toggle('active', b.dataset.icon === (g.icon || '🎯')));
     
     openModal('goalModal');
@@ -1012,8 +1312,8 @@ async function handleDebtSubmit(e) {
         type: $('debtType').value,
         person: $('debtPerson').value,
         amount: parseFloat($('debtAmount').value),
-        reason: $('debtReason').value,
-        deadline: $('debtDeadline').value || null,
+        reason: $('debtReason')?.value || '',
+        deadline: $('debtDeadline')?.value || null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
@@ -1032,8 +1332,10 @@ async function handleDebtSubmit(e) {
         }
         
         closeModal('debtModal');
+        checkAchievements();
         renderDebtsPreview();
         renderDebts();
+        updateNetWorth();
     } catch (err) {
         toast('Eroare la salvare', 'error');
     }
@@ -1047,14 +1349,20 @@ function renderDebts() {
     const totalOwe = owe.reduce((a, d) => a + d.amount, 0);
     const totalOwed = owed.reduce((a, d) => a + d.amount, 0);
     
-    $('totalToPayDebts').textContent = fmt(totalOwe);
-    $('totalToReceiveDebts').textContent = fmt(totalOwed);
+    if ($('totalToPayDebts')) $('totalToPayDebts').textContent = fmt(totalOwe);
+    if ($('totalToReceiveDebts')) $('totalToReceiveDebts').textContent = fmt(totalOwed);
     
-    $('debtsOweList').innerHTML = owe.length ? owe.map(d => debtHTML(d)).join('') : 
-        '<div class="empty-state small"><p>Nicio datorie de plătit</p></div>';
+    const oweList = $('debtsOweList');
+    if (oweList) {
+        oweList.innerHTML = owe.length ? owe.map(d => debtHTML(d)).join('') : 
+            '<div class="empty-state small"><p>Nicio datorie de plătit</p></div>';
+    }
     
-    $('debtsOwedList').innerHTML = owed.length ? owed.map(d => debtHTML(d)).join('') : 
-        '<div class="empty-state small"><p>Nimeni nu-ți datorează</p></div>';
+    const owedList = $('debtsOwedList');
+    if (owedList) {
+        owedList.innerHTML = owed.length ? owed.map(d => debtHTML(d)).join('') : 
+            '<div class="empty-state small"><p>Nimeni nu-ți datorează</p></div>';
+    }
 }
 
 function debtHTML(d) {
@@ -1087,8 +1395,10 @@ async function markDebtPaid(id) {
         await db.collection('users').doc(state.user.uid).collection('debts').doc(id).delete();
         state.debts = state.debts.filter(d => d.id !== id);
         toast('Datorie achitată!', 'success');
+        checkAchievements();
         renderDebtsPreview();
         renderDebts();
+        updateNetWorth();
     } catch (err) {
         toast('Eroare', 'error');
     }
@@ -1100,16 +1410,16 @@ function editDebt(id) {
     if (!d) return;
     
     state.editingId = id;
-    $('debtId').value = id;
-    $('debtModalTitle').textContent = 'Editează datorie';
+    if ($('debtId')) $('debtId').value = id;
+    if ($('debtModalTitle')) $('debtModalTitle').textContent = 'Editează datorie';
     
     $$('.debt-tab').forEach(t => t.classList.toggle('active', t.dataset.type === d.type));
-    $('debtType').value = d.type;
-    $('personLabel').textContent = d.type === 'owe' ? 'Cui datorezi?' : 'Cine îți datorează?';
-    $('debtPerson').value = d.person;
-    $('debtAmount').value = d.amount;
-    $('debtReason').value = d.reason || '';
-    $('debtDeadline').value = d.deadline || '';
+    if ($('debtType')) $('debtType').value = d.type;
+    if ($('personLabel')) $('personLabel').textContent = d.type === 'owe' ? 'Cui datorezi?' : 'Cine îți datorează?';
+    if ($('debtPerson')) $('debtPerson').value = d.person;
+    if ($('debtAmount')) $('debtAmount').value = d.amount;
+    if ($('debtReason')) $('debtReason').value = d.reason || '';
+    if ($('debtDeadline')) $('debtDeadline').value = d.deadline || '';
     
     openModal('debtModal');
 }
@@ -1124,6 +1434,7 @@ async function deleteDebt(id) {
         toast('Datorie ștearsă!', 'success');
         renderDebtsPreview();
         renderDebts();
+        updateNetWorth();
     } catch (err) {
         toast('Eroare', 'error');
     }
@@ -1135,10 +1446,10 @@ async function handleReminderSubmit(e) {
     
     const data = {
         title: $('reminderTitle').value,
-        amount: parseFloat($('reminderAmount').value) || null,
+        amount: parseFloat($('reminderAmount')?.value) || null,
         date: $('reminderDate').value,
-        repeat: $('reminderRepeat').value,
-        category: $('reminderCategory').value || null,
+        repeat: $('reminderRepeat')?.value || 'once',
+        category: $('reminderCategory')?.value || null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
@@ -1172,11 +1483,17 @@ function renderReminders() {
         .filter(r => new Date(r.date) >= today)
         .sort((a, b) => new Date(a.date) - new Date(b.date));
     
-    $('upcomingReminders').innerHTML = upcoming.length ? upcoming.map(r => reminderHTML(r)).join('') : 
-        '<div class="empty-state small"><p>Niciun reminder viitor</p></div>';
+    const upcomingList = $('upcomingReminders');
+    if (upcomingList) {
+        upcomingList.innerHTML = upcoming.length ? upcoming.map(r => reminderHTML(r)).join('') : 
+            '<div class="empty-state small"><p>Niciun reminder viitor</p></div>';
+    }
     
-    $('allReminders').innerHTML = state.reminders.length ? state.reminders.map(r => reminderHTML(r)).join('') : 
-        '<div class="empty-state small"><p>Niciun reminder</p></div>';
+    const allList = $('allReminders');
+    if (allList) {
+        allList.innerHTML = state.reminders.length ? state.reminders.map(r => reminderHTML(r)).join('') : 
+            '<div class="empty-state small"><p>Niciun reminder</p></div>';
+    }
 }
 
 // Edit reminder
@@ -1185,13 +1502,13 @@ function editReminder(id) {
     if (!r) return;
     
     state.editingId = id;
-    $('reminderId').value = id;
-    $('reminderModalTitle').textContent = 'Editează reminder';
-    $('reminderTitle').value = r.title;
-    $('reminderAmount').value = r.amount || '';
-    $('reminderDate').value = r.date;
-    $('reminderRepeat').value = r.repeat;
-    $('reminderCategory').value = r.category || '';
+    if ($('reminderId')) $('reminderId').value = id;
+    if ($('reminderModalTitle')) $('reminderModalTitle').textContent = 'Editează reminder';
+    if ($('reminderTitle')) $('reminderTitle').value = r.title;
+    if ($('reminderAmount')) $('reminderAmount').value = r.amount || '';
+    if ($('reminderDate')) $('reminderDate').value = r.date;
+    if ($('reminderRepeat')) $('reminderRepeat').value = r.repeat;
+    if ($('reminderCategory')) $('reminderCategory').value = r.category || '';
     
     openModal('reminderModal');
 }
@@ -1218,11 +1535,157 @@ function checkReminders() {
     const due = state.reminders.filter(r => r.date <= today);
     
     const badge = document.querySelector('.notif-badge');
-    if (due.length > 0) {
-        badge.textContent = due.length;
-        badge.classList.remove('hidden');
-    } else {
-        badge.classList.add('hidden');
+    if (badge) {
+        if (due.length > 0) {
+            badge.textContent = due.length;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+}
+
+// Handle account submit
+async function handleAccountSubmit(e) {
+    e.preventDefault();
+    
+    const data = {
+        name: $('accountName').value,
+        type: $('accountType')?.value || 'checking',
+        balance: parseFloat($('accountBalance')?.value) || 0,
+        icon: $('accountIcon')?.value || '💳',
+        color: $('accountColor')?.value || '#8b5cf6',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        const ref = db.collection('users').doc(state.user.uid).collection('accounts');
+        
+        if (state.editingId) {
+            await ref.doc(state.editingId).update(data);
+            const idx = state.accounts.findIndex(a => a.id === state.editingId);
+            if (idx >= 0) state.accounts[idx] = { ...state.accounts[idx], ...data };
+            toast('Cont actualizat!', 'success');
+        } else {
+            const doc = await ref.add(data);
+            state.accounts.push({ id: doc.id, ...data });
+            toast('Cont adăugat!', 'success');
+        }
+        
+        closeModal('accountModal');
+        renderAccountsPreview();
+        renderAccounts();
+        updateNetWorth();
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
+    }
+}
+
+// Render accounts
+function renderAccounts() {
+    const container = $('accountsList');
+    if (!container) return;
+    
+    if (state.accounts.length === 0) {
+        container.innerHTML = `<div class="empty-state"><span class="empty-icon">💳</span><p>Niciun cont adăugat</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = state.accounts.map(acc => `
+        <div class="account-card-full" style="border-left: 4px solid ${acc.color || '#8b5cf6'}">
+            <div class="account-icon-big">${acc.icon || '💳'}</div>
+            <div class="account-info-full">
+                <div class="account-name-full">${esc(acc.name)}</div>
+                <div class="account-type-full">${getAccountTypeName(acc.type)}</div>
+            </div>
+            <div class="account-balance-full">${fmt(acc.balance || 0)}</div>
+            <div class="account-actions">
+                <button class="acc-action" onclick="editAccount('${acc.id}')">✏️</button>
+                <button class="acc-action" onclick="deleteAccount('${acc.id}')">🗑️</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getAccountTypeName(type) {
+    const types = {
+        checking: 'Cont curent',
+        savings: 'Cont economii',
+        cash: 'Numerar',
+        credit: 'Card credit',
+        investment: 'Investiții'
+    };
+    return types[type] || type;
+}
+
+// Edit account
+function editAccount(id) {
+    const acc = state.accounts.find(a => a.id === id);
+    if (!acc) return;
+    
+    state.editingId = id;
+    if ($('accountId')) $('accountId').value = id;
+    if ($('accountModalTitle')) $('accountModalTitle').textContent = 'Editează cont';
+    if ($('accountName')) $('accountName').value = acc.name;
+    if ($('accountType')) $('accountType').value = acc.type || 'checking';
+    if ($('accountBalance')) $('accountBalance').value = acc.balance || 0;
+    if ($('accountIcon')) $('accountIcon').value = acc.icon || '💳';
+    if ($('accountColor')) $('accountColor').value = acc.color || '#8b5cf6';
+    
+    openModal('accountModal');
+}
+
+// Delete account
+async function deleteAccount(id) {
+    if (!confirm('Ștergi acest cont?')) return;
+    
+    try {
+        await db.collection('users').doc(state.user.uid).collection('accounts').doc(id).delete();
+        state.accounts = state.accounts.filter(a => a.id !== id);
+        toast('Cont șters!', 'success');
+        renderAccountsPreview();
+        renderAccounts();
+        updateNetWorth();
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+// Handle budget submit
+async function handleBudgetSubmit(e) {
+    e.preventDefault();
+    
+    const data = {
+        category: $('budgetCategory').value,
+        limit: parseFloat($('budgetLimit').value),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        const ref = db.collection('users').doc(state.user.uid).collection('budgets');
+        
+        // Check if budget for this category exists
+        const existing = state.budgets.find(b => b.category === data.category);
+        if (existing && !state.editingId) {
+            toast('Există deja un buget pentru această categorie!', 'warning');
+            return;
+        }
+        
+        if (state.editingId) {
+            await ref.doc(state.editingId).update(data);
+            const idx = state.budgets.findIndex(b => b.id === state.editingId);
+            if (idx >= 0) state.budgets[idx] = { ...state.budgets[idx], ...data };
+            toast('Buget actualizat!', 'success');
+        } else {
+            const doc = await ref.add(data);
+            state.budgets.push({ id: doc.id, ...data });
+            toast('Buget setat!', 'success');
+        }
+        
+        closeModal('budgetModal');
+        renderBudgetsPreview();
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
     }
 }
 
@@ -1257,9 +1720,9 @@ function updateAnalytics() {
         else if (t.type === 'expense') byDate[dateKey].expense += t.amount;
     });
     
-    $('analyticsIncome').textContent = fmt(income);
-    $('analyticsExpense').textContent = fmt(expense);
-    $('analyticsSavings').textContent = fmt(income - expense);
+    if ($('analyticsIncome')) $('analyticsIncome').textContent = fmt(income);
+    if ($('analyticsExpense')) $('analyticsExpense').textContent = fmt(expense);
+    if ($('analyticsSavings')) $('analyticsSavings').textContent = fmt(income - expense);
     
     // Trend chart
     updateTrendChart(byDate);
@@ -1275,11 +1738,14 @@ function updateAnalytics() {
 }
 
 function updateTrendChart(byDate) {
+    const canvas = $('trendChart');
+    if (!canvas) return;
+    
     const dates = Object.keys(byDate).sort();
     const incomeData = dates.map(d => byDate[d].income);
     const expenseData = dates.map(d => byDate[d].expense);
     
-    const ctx = $('trendChart').getContext('2d');
+    const ctx = canvas.getContext('2d');
     
     if (state.trendChart) state.trendChart.destroy();
     
@@ -1331,6 +1797,8 @@ function updateTrendChart(byDate) {
 
 function detectPatterns(trans) {
     const container = $('patterns');
+    if (!container) return;
+    
     const patterns = [];
     
     if (trans.length < 5) {
@@ -1348,7 +1816,7 @@ function detectPatterns(trans) {
     const weekendPercent = totalExpense > 0 ? (weekendTotal / totalExpense * 100) : 0;
     
     if (weekendPercent > 40) {
-        patterns.push({ icon: '📅', text: `${weekendPercent.toFixed(0)}% din cheltuieli sunt în weekend. Ai grijă la cheltuielile impulsive!` });
+        patterns.push({ icon: '📅', text: `${weekendPercent.toFixed(0)}% din cheltuieli sunt în weekend.` });
     }
     
     // Top category
@@ -1363,24 +1831,8 @@ function detectPatterns(trans) {
     if (sorted.length > 0) {
         const [topCat, topAmount] = sorted[0];
         const percent = (topAmount / totalExpense * 100).toFixed(0);
-        patterns.push({ icon: '📊', text: `"${topCat}" este categoria ta principală de cheltuieli (${percent}%)` });
+        patterns.push({ icon: '📊', text: `"${topCat}" este categoria principală (${percent}%)` });
     }
-    
-    // Recurring patterns
-    const recurring = {};
-    trans.forEach(t => {
-        const key = t.category + '-' + t.amount;
-        recurring[key] = (recurring[key] || 0) + 1;
-    });
-    
-    Object.entries(recurring).forEach(([key, count]) => {
-        if (count >= 3) {
-            const [catId, amount] = key.split('-');
-            const cat = findCategory('expense', catId) || findCategory('income', catId);
-            const name = cat ? cat.name : catId;
-            patterns.push({ icon: '🔄', text: `Tranzacție recurentă detectată: ${name} - ${fmt(parseFloat(amount))} (de ${count} ori)` });
-        }
-    });
     
     container.innerHTML = patterns.length ? patterns.map(p => `
         <div class="pattern-item">
@@ -1392,6 +1844,8 @@ function detectPatterns(trans) {
 
 function detectAnomalies(trans) {
     const container = $('anomalies');
+    if (!container) return;
+    
     const anomalies = [];
     
     const expenses = trans.filter(t => t.type === 'expense');
@@ -1410,27 +1864,10 @@ function detectAnomalies(trans) {
             const name = cat ? cat.name : t.category;
             anomalies.push({ 
                 icon: '⚠️', 
-                text: `Cheltuială neobișnuit de mare: ${name} - ${fmt(t.amount)} (${formatDate(t.date)})` 
+                text: `Cheltuială mare: ${name} - ${fmt(t.amount)} (${formatDate(t.date)})` 
             });
         }
     });
-    
-    // Spending increase
-    const thisMonth = expenses.filter(t => {
-        const d = new Date(t.date);
-        return d.getMonth() === new Date().getMonth();
-    }).reduce((a, t) => a + t.amount, 0);
-    
-    const lastMonth = expenses.filter(t => {
-        const d = new Date(t.date);
-        const now = new Date();
-        return d.getMonth() === (now.getMonth() - 1 + 12) % 12;
-    }).reduce((a, t) => a + t.amount, 0);
-    
-    if (lastMonth > 0 && thisMonth > lastMonth * 1.5) {
-        const increase = ((thisMonth - lastMonth) / lastMonth * 100).toFixed(0);
-        anomalies.push({ icon: '📈', text: `Cheltuielile au crescut cu ${increase}% față de luna trecută!` });
-    }
     
     container.innerHTML = anomalies.length ? anomalies.map(a => `
         <div class="anomaly-item">
@@ -1442,6 +1879,8 @@ function detectAnomalies(trans) {
 
 function renderCategoryBreakdown(byCategory, total) {
     const container = $('categoryBreakdown');
+    if (!container) return;
+    
     const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
     
     if (sorted.length === 0) {
@@ -1453,6 +1892,7 @@ function renderCategoryBreakdown(byCategory, total) {
         const percent = total > 0 ? (amount / total * 100) : 0;
         const cat = categories.expense.find(c => c.name === name);
         const icon = cat ? cat.icon : '📦';
+        const color = cat ? cat.color : '#8b5cf6';
         
         return `
             <div class="cat-item">
@@ -1460,7 +1900,7 @@ function renderCategoryBreakdown(byCategory, total) {
                     <span class="cat-name">${icon} ${name}</span>
                     <span class="cat-amount">${fmt(amount)}</span>
                 </div>
-                <div class="cat-bar"><div class="cat-fill" style="width:${percent}%"></div></div>
+                <div class="cat-bar"><div class="cat-fill" style="width:${percent}%;background:${color}"></div></div>
                 <div class="cat-percent">${percent.toFixed(1)}%</div>
             </div>
         `;
@@ -1470,6 +1910,8 @@ function renderCategoryBreakdown(byCategory, total) {
 // AI Functions
 async function sendAiMessage() {
     const input = $('aiInput');
+    if (!input) return;
+    
     const message = input.value.trim();
     if (!message) return;
     
@@ -1477,23 +1919,44 @@ async function sendAiMessage() {
     addAiMessage(message, 'user');
     addAiTyping();
     
+    state.aiUsed = true;
+    checkAchievements();
+    
+    console.log('🤖 Sending AI message:', message);
+    console.log('📊 Current state - Transactions:', state.transactions.length, 'Goals:', state.goals.length, 'Debts:', state.debts.length);
+    
     try {
-        const response = await callGemini(message);
+        const response = await callGeminiAPI(message);
         removeAiTyping();
         addAiMessage(response, 'assistant');
     } catch (err) {
+        console.error('❌ AI Error:', err);
         removeAiTyping();
-        addAiMessage('Scuze, am întâmpinat o eroare. Încearcă din nou.', 'assistant');
+        
+        let errorMsg = 'Scuze, am întâmpinat o eroare. ';
+        if (err.message.includes('API key')) {
+            errorMsg += 'Problema cu cheia API. Verifică configurarea.';
+        } else if (err.message.includes('quota')) {
+            errorMsg += 'Limita API depășită. Încearcă mai târziu.';
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+            errorMsg += 'Problemă de conexiune. Verifică internetul.';
+        } else {
+            errorMsg += 'Încearcă din nou sau verifică consola (F12) pentru detalii.';
+        }
+        
+        addAiMessage(errorMsg, 'assistant');
     }
 }
 
 function askAI(question) {
-    $('aiInput').value = question;
+    if ($('aiInput')) $('aiInput').value = question;
     sendAiMessage();
 }
 
 function addAiMessage(text, role) {
     const container = $('aiMessages');
+    if (!container) return;
+    
     const div = document.createElement('div');
     div.className = `ai-message ${role}`;
     div.innerHTML = `
@@ -1506,6 +1969,8 @@ function addAiMessage(text, role) {
 
 function addAiTyping() {
     const container = $('aiMessages');
+    if (!container) return;
+    
     const div = document.createElement('div');
     div.className = 'ai-message assistant';
     div.id = 'aiTyping';
@@ -1522,8 +1987,12 @@ function removeAiTyping() {
     if (typing) typing.remove();
 }
 
-async function callGemini(message) {
+// Call Gemini API - tries Vercel first, falls back to direct
+async function callGeminiAPI(message) {
     const context = buildFinancialContext();
+    
+    console.log('📊 Financial context built:', context.substring(0, 200) + '...');
+    
     const prompt = `Ești un asistent financiar personal expert. Analizează datele financiare ale utilizatorului și răspunde la întrebări într-un mod prietenos și util.
 
 CONTEXT FINANCIAR AL UTILIZATORULUI:
@@ -1531,22 +2000,62 @@ ${context}
 
 ÎNTREBAREA UTILIZATORULUI: ${message}
 
-Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritate. Dacă dai sfaturi, fii specific și actionabil. Poți folosi <strong> pentru text important.`;
+Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritate. Dacă dai sfaturi, fii specific și actionabil.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${getGK()}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
-        })
-    });
-
-    const data = await response.json();
-    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-        return data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+    // Try Vercel API first (secure, key hidden on server)
+    try {
+        console.log('🔐 Trying Vercel API...');
+        const vercelResponse = await fetch(`${API_BASE}/api/gemini`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, maxTokens: 1000 })
+        });
+        
+        if (vercelResponse.ok) {
+            const data = await vercelResponse.json();
+            if (data.success) {
+                console.log('✅ Vercel API success!');
+                return data.response.replace(/\n/g, '<br>');
+            } else {
+                console.log('⚠️ Vercel API returned error:', data.error);
+            }
+        } else {
+            console.log('⚠️ Vercel API status:', vercelResponse.status);
+        }
+    } catch (e) {
+        console.log('⚠️ Vercel API not available:', e.message);
     }
-    throw new Error('Invalid response');
+    
+    // Fallback to direct Gemini API (for GitHub Pages or if Vercel fails)
+    console.log('🔄 Falling back to direct Gemini API...');
+    
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('❌ Gemini API error:', data.error);
+            throw new Error(data.error.message);
+        }
+        
+        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+            console.log('✅ Direct Gemini API success!');
+            return data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+        }
+        
+        throw new Error('Invalid response from Gemini');
+    } catch (error) {
+        console.error('❌ Direct API failed:', error);
+        throw error;
+    }
 }
 
 function buildFinancialContext() {
@@ -1576,6 +2085,8 @@ Balanță: ${income - expense} ${state.currency}
 Rata de economisire: ${income > 0 ? ((income - expense) / income * 100).toFixed(1) : 0}%
 Media zilnică cheltuieli: ${(expense / daysPassed).toFixed(0)} ${state.currency}
 Predicție sfârșit de lună: ${(expense / daysPassed * daysInMonth).toFixed(0)} ${state.currency}
+Streak zile: ${state.streak}
+Patrimoniu net: ${state.netWorth} ${state.currency}
 
 Top 5 categorii de cheltuieli:
 ${sortedCats.map(([name, amount]) => `- ${name}: ${amount} ${state.currency}`).join('\n')}
@@ -1594,12 +2105,23 @@ ${state.goals.map(g => `- ${g.name}: ${g.saved}/${g.target} ${state.currency} ($
 - De plătit: ${owe} ${state.currency}
 - De recuperat: ${owed} ${state.currency}`;
     }
+
+    if (state.budgets.length > 0) {
+        context += `\n\nBugete setate:
+${state.budgets.map(b => {
+            const cat = findCategory('expense', b.category);
+            const spent = monthTrans.filter(t => t.type === 'expense' && t.category === b.category).reduce((s, t) => s + t.amount, 0);
+            return `- ${cat?.name || b.category}: ${spent}/${b.limit} ${state.currency}`;
+        }).join('\n')}`;
+    }
     
     return context;
 }
 
 async function runFullAiAnalysis() {
     const container = $('aiAnalysis');
+    if (!container) return;
+    
     container.innerHTML = '<p class="ai-placeholder">Se analizează datele...</p>';
     
     try {
@@ -1616,21 +2138,8 @@ ${context}
 
 Răspunde în română, structurat și concis. Folosește emoji-uri pentru claritate.`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${getGK()}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
-            })
-        });
-
-        const data = await response.json();
-        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-            container.innerHTML = `<div class="ai-analysis-content">${data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</div>`;
-        } else {
-            throw new Error('Invalid response');
-        }
+        const response = await callGeminiAPI(prompt.replace('ÎNTREBAREA UTILIZATORULUI:', ''));
+        container.innerHTML = `<div class="ai-analysis-content">${response}</div>`;
     } catch (err) {
         container.innerHTML = '<p class="ai-placeholder">Eroare la analiză. Încearcă din nou.</p>';
     }
@@ -1638,8 +2147,9 @@ Răspunde în română, structurat și concis. Folosește emoji-uri pentru clari
 
 // Search
 function handleSearch() {
-    const query = $('searchInput').value.toLowerCase().trim();
+    const query = $('searchInput')?.value.toLowerCase().trim();
     const resultsContainer = $('searchResults');
+    if (!resultsContainer) return;
     
     if (!query) {
         resultsContainer.classList.add('hidden');
@@ -1651,7 +2161,8 @@ function handleSearch() {
         const catName = cat ? cat.name.toLowerCase() : t.category.toLowerCase();
         return catName.includes(query) || 
                (t.subcategory && t.subcategory.toLowerCase().includes(query)) ||
-               (t.description && t.description.toLowerCase().includes(query));
+               (t.description && t.description.toLowerCase().includes(query)) ||
+               (t.tags && t.tags.some(tag => tag.toLowerCase().includes(query)));
     }).slice(0, 10);
     
     if (results.length === 0) {
@@ -1678,15 +2189,14 @@ function handleSearch() {
 }
 
 function goToTransaction(id) {
-    $('searchBar').classList.add('hidden');
-    $('searchInput').value = '';
-    $('searchResults').classList.add('hidden');
+    if ($('searchBar')) $('searchBar').classList.add('hidden');
+    if ($('searchInput')) $('searchInput').value = '';
+    if ($('searchResults')) $('searchResults').classList.add('hidden');
     
     switchView('transactions');
     $$('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelector('.nav-item[data-view="transactions"]').classList.add('active');
+    document.querySelector('.nav-item[data-view="transactions"]')?.classList.add('active');
     
-    // Find and highlight the transaction
     const t = state.transactions.find(tr => tr.id === id);
     if (t) {
         state.month = new Date(t.date).getMonth();
@@ -1706,42 +2216,19 @@ function updateProfile() {
     const email = state.user.email;
     const initial = name.charAt(0).toUpperCase();
     
-    $('profileAvatar').textContent = initial;
-    $('profileName').textContent = name;
-    $('profileEmail').textContent = email;
+    if ($('profileAvatar')) $('profileAvatar').textContent = initial;
+    if ($('profileName')) $('profileName').textContent = name;
+    if ($('profileEmail')) $('profileEmail').textContent = email;
     
-    $('totalTransCount').textContent = state.transactions.length;
+    if ($('totalTransCount')) $('totalTransCount').textContent = state.transactions.length;
     
     const createdAt = state.user.metadata?.creationTime;
-    if (createdAt) {
+    if (createdAt && $('memberSince')) {
         const date = new Date(createdAt);
         $('memberSince').textContent = months[date.getMonth()].slice(0, 3) + ' ' + date.getFullYear();
     }
     
-    // Calculate streak (simplified)
-    $('streakDays').textContent = calculateStreak();
-}
-
-function calculateStreak() {
-    if (state.transactions.length === 0) return 0;
-    
-    const dates = [...new Set(state.transactions.map(t => t.date))].sort().reverse();
-    let streak = 0;
-    let currentDate = new Date();
-    
-    for (const dateStr of dates) {
-        const date = new Date(dateStr);
-        const diffDays = Math.floor((currentDate - date) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays <= 1) {
-            streak++;
-            currentDate = date;
-        } else {
-            break;
-        }
-    }
-    
-    return streak;
+    if ($('streakDays')) $('streakDays').textContent = state.streak;
 }
 
 // Export functions
@@ -1751,6 +2238,8 @@ function exportJSON() {
         goals: state.goals,
         reminders: state.reminders,
         debts: state.debts,
+        accounts: state.accounts,
+        budgets: state.budgets,
         exportedAt: new Date().toISOString()
     };
     
@@ -1759,7 +2248,7 @@ function exportJSON() {
 }
 
 function exportCSV() {
-    const headers = ['Data', 'Tip', 'Categorie', 'Subcategorie', 'Sumă', 'Descriere'];
+    const headers = ['Data', 'Tip', 'Categorie', 'Subcategorie', 'Sumă', 'Descriere', 'Tags'];
     const rows = state.transactions.map(t => {
         const cat = findCategory(t.type, t.category);
         return [
@@ -1768,7 +2257,8 @@ function exportCSV() {
             cat ? cat.name : t.category,
             t.subcategory || '',
             t.amount,
-            t.description || ''
+            t.description || '',
+            (t.tags || []).join('; ')
         ].map(v => `"${v}"`).join(',');
     });
     
@@ -1796,7 +2286,7 @@ async function clearAllData() {
         const uid = state.user.uid;
         const batch = db.batch();
         
-        const collections = ['transactions', 'goals', 'reminders', 'debts'];
+        const collections = ['transactions', 'goals', 'reminders', 'debts', 'accounts', 'budgets'];
         for (const col of collections) {
             const snap = await db.collection('users').doc(uid).collection(col).get();
             snap.docs.forEach(doc => batch.delete(doc.ref));
@@ -1808,6 +2298,8 @@ async function clearAllData() {
         state.goals = [];
         state.reminders = [];
         state.debts = [];
+        state.accounts = [];
+        state.budgets = [];
         
         renderAll();
         toast('Toate datele au fost șterse!', 'success');
@@ -1843,6 +2335,8 @@ function esc(str) {
 
 function toast(message, type = 'info') {
     const container = $('toastContainer');
+    if (!container) return;
+    
     const div = document.createElement('div');
     div.className = `toast ${type}`;
     
@@ -1861,11 +2355,508 @@ function debounce(fn, delay) {
     };
 }
 
+// ==========================================
+// PREMIUM FEATURES
+// ==========================================
+
+// Financial Health Score (0-100)
+function calculateHealthScore() {
+    let score = 50; // Start neutral
+    
+    const monthTrans = getMonthTransactions();
+    let income = 0, expense = 0;
+    monthTrans.forEach(t => {
+        if (t.type === 'income') income += t.amount;
+        else if (t.type === 'expense') expense += t.amount;
+    });
+    
+    // Savings Rate (max +25 points)
+    const savingsRate = income > 0 ? ((income - expense) / income * 100) : 0;
+    if (savingsRate >= 30) score += 25;
+    else if (savingsRate >= 20) score += 20;
+    else if (savingsRate >= 10) score += 10;
+    else if (savingsRate < 0) score -= 15;
+    
+    // Streak (max +10 points)
+    if (state.streak >= 30) score += 10;
+    else if (state.streak >= 14) score += 7;
+    else if (state.streak >= 7) score += 5;
+    
+    // Budget adherence (max +15 points)
+    const budgetsOk = state.budgets.every(b => {
+        const spent = monthTrans.filter(t => t.type === 'expense' && t.category === b.category).reduce((s, t) => s + t.amount, 0);
+        return spent <= b.limit;
+    });
+    if (state.budgets.length > 0 && budgetsOk) score += 15;
+    else if (state.budgets.length === 0) score += 5;
+    
+    // Goals progress (max +10 points)
+    if (state.goals.length > 0) {
+        const avgProgress = state.goals.reduce((a, g) => a + (g.saved / g.target), 0) / state.goals.length;
+        score += Math.round(avgProgress * 10);
+    }
+    
+    // Debt management (max +10 points)
+    const debtsOwe = state.debts.filter(d => d.type === 'owe').reduce((a, d) => a + d.amount, 0);
+    if (debtsOwe === 0) score += 10;
+    else if (debtsOwe < income * 0.2) score += 5;
+    
+    // Emergency fund - accounts balance (max +10 points)
+    const totalAccounts = state.accounts.reduce((a, acc) => a + (acc.balance || 0), 0);
+    if (totalAccounts >= expense * 6) score += 10; // 6 months emergency
+    else if (totalAccounts >= expense * 3) score += 7;
+    else if (totalAccounts >= expense) score += 3;
+    
+    // Diversification - multiple accounts (max +5 points)
+    if (state.accounts.length >= 3) score += 5;
+    else if (state.accounts.length >= 2) score += 3;
+    
+    state.healthScore = Math.max(0, Math.min(100, score));
+    
+    if ($('healthScore')) {
+        $('healthScore').textContent = state.healthScore;
+        $('healthScore').className = 'health-score ' + getHealthScoreClass(state.healthScore);
+    }
+    
+    return state.healthScore;
+}
+
+function getHealthScoreClass(score) {
+    if (score >= 80) return 'excellent';
+    if (score >= 60) return 'good';
+    if (score >= 40) return 'fair';
+    return 'poor';
+}
+
+function getHealthScoreLabel(score) {
+    if (score >= 80) return 'Excelent 🌟';
+    if (score >= 60) return 'Bun 👍';
+    if (score >= 40) return 'Mediu 😐';
+    return 'Necesită atenție ⚠️';
+}
+
+// Month vs Month Comparison
+function getMonthComparison() {
+    const currentMonth = getMonthTransactions();
+    
+    const lastMonth = state.month === 0 ? 11 : state.month - 1;
+    const lastYear = state.month === 0 ? state.year - 1 : state.year;
+    
+    const prevMonthTrans = state.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
+    });
+    
+    const current = { income: 0, expense: 0 };
+    const prev = { income: 0, expense: 0 };
+    
+    currentMonth.forEach(t => {
+        if (t.type === 'income') current.income += t.amount;
+        else if (t.type === 'expense') current.expense += t.amount;
+    });
+    
+    prevMonthTrans.forEach(t => {
+        if (t.type === 'income') prev.income += t.amount;
+        else if (t.type === 'expense') prev.expense += t.amount;
+    });
+    
+    return {
+        income: {
+            current: current.income,
+            prev: prev.income,
+            change: prev.income > 0 ? ((current.income - prev.income) / prev.income * 100) : 0
+        },
+        expense: {
+            current: current.expense,
+            prev: prev.expense,
+            change: prev.expense > 0 ? ((current.expense - prev.expense) / prev.expense * 100) : 0
+        },
+        balance: {
+            current: current.income - current.expense,
+            prev: prev.income - prev.expense
+        }
+    };
+}
+
+// Voice Input for Transactions
+function initVoiceInput() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        console.log('Voice recognition not supported');
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'ro-RO';
+    
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        console.log('🎤 Voice input:', transcript);
+        parseVoiceCommand(transcript);
+    };
+    
+    recognition.onerror = (event) => {
+        console.error('Voice error:', event.error);
+        toast('Nu am înțeles. Încearcă din nou.', 'error');
+    };
+    
+    window.startVoiceInput = () => {
+        recognition.start();
+        toast('🎤 Te ascult...', 'info');
+    };
+}
+
+function parseVoiceCommand(text) {
+    // Patterns: "cheltuială 50 lei mâncare" or "am cheltuit 100 pe transport"
+    const expensePatterns = [
+        /(?:cheltuial[aă]|am cheltuit|minus)\s*(\d+)\s*(?:lei|ron)?\s*(?:pe|la|pentru)?\s*(.+)?/i,
+        /(\d+)\s*(?:lei|ron)?\s*(?:pe|la|pentru)\s*(.+)/i
+    ];
+    
+    const incomePatterns = [
+        /(?:venit|am primit|plus|salariu)\s*(\d+)\s*(?:lei|ron)?/i
+    ];
+    
+    for (const pattern of expensePatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            const amount = parseFloat(match[1]);
+            const category = match[2] ? guessCategory(match[2]) : 'other_expense';
+            
+            openTransModal('expense');
+            if ($('transAmount')) $('transAmount').value = amount;
+            if ($('transCategory')) $('transCategory').value = category;
+            populateSubcategories();
+            
+            toast(`💸 Cheltuială: ${amount} RON`, 'success');
+            return;
+        }
+    }
+    
+    for (const pattern of incomePatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            const amount = parseFloat(match[1]);
+            
+            openTransModal('income');
+            if ($('transAmount')) $('transAmount').value = amount;
+            
+            toast(`💵 Venit: ${amount} RON`, 'success');
+            return;
+        }
+    }
+    
+    toast('Nu am înțeles comanda. Spune "cheltuială 50 lei mâncare"', 'warning');
+}
+
+function guessCategory(text) {
+    const categoryMap = {
+        'mâncare|mancare|restaurant|supermarket|magazin': 'food',
+        'transport|benzină|benzina|uber|taxi|autobuz': 'transport',
+        'chirie|întreținere|intretinere|casă|casa': 'housing',
+        'electricitate|gaz|apă|apa|internet|telefon': 'utilities',
+        'doctor|medicament|farmacie|sănătate': 'health',
+        'haine|cumpărături|cumparaturi|shopping': 'shopping',
+        'cinema|film|joc|divertisment|distracție': 'entertainment',
+        'curs|carte|educație|educatie|școală': 'education'
+    };
+    
+    for (const [keywords, category] of Object.entries(categoryMap)) {
+        const regex = new RegExp(keywords, 'i');
+        if (regex.test(text)) return category;
+    }
+    
+    return 'other_expense';
+}
+
+// Split Bills
+function openSplitModal(transactionId = null) {
+    if ($('splitForm')) $('splitForm').reset();
+    if ($('splitId')) $('splitId').value = transactionId || '';
+    
+    if (transactionId) {
+        const trans = state.transactions.find(t => t.id === transactionId);
+        if (trans) {
+            if ($('splitAmount')) $('splitAmount').value = trans.amount;
+            if ($('splitDescription')) $('splitDescription').value = trans.description || '';
+        }
+    }
+    
+    openModal('splitModal');
+}
+
+async function handleSplitSubmit(e) {
+    e.preventDefault();
+    
+    const total = parseFloat($('splitAmount').value);
+    const people = $('splitPeople').value.split(',').map(p => p.trim()).filter(p => p);
+    const description = $('splitDescription')?.value || '';
+    
+    if (people.length === 0) {
+        toast('Adaugă cel puțin o persoană!', 'error');
+        return;
+    }
+    
+    const perPerson = total / (people.length + 1); // +1 for yourself
+    
+    // Create debts for each person
+    for (const person of people) {
+        const debtData = {
+            type: 'owed',
+            person: person,
+            amount: perPerson,
+            reason: description || `Split: ${fmt(total)}`,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        try {
+            const doc = await db.collection('users').doc(state.user.uid).collection('debts').add(debtData);
+            state.debts.push({ id: doc.id, ...debtData });
+        } catch (err) {
+            console.error('Error creating split debt:', err);
+        }
+    }
+    
+    closeModal('splitModal');
+    toast(`Împărțit ${fmt(total)} cu ${people.length} persoane (${fmt(perPerson)}/persoană)`, 'success');
+    renderDebtsPreview();
+    renderDebts();
+}
+
+// Weekly Report Generator
+function generateWeeklyReport() {
+    const today = new Date();
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    
+    const weekTrans = state.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d >= weekAgo && d <= today;
+    });
+    
+    let income = 0, expense = 0;
+    const byCategory = {};
+    const byDay = {};
+    
+    weekTrans.forEach(t => {
+        if (t.type === 'income') income += t.amount;
+        else if (t.type === 'expense') {
+            expense += t.amount;
+            const cat = findCategory('expense', t.category);
+            const name = cat ? cat.name : t.category;
+            byCategory[name] = (byCategory[name] || 0) + t.amount;
+        }
+        
+        const day = new Date(t.date).toLocaleDateString('ro-RO', { weekday: 'short' });
+        if (!byDay[day]) byDay[day] = { income: 0, expense: 0 };
+        if (t.type === 'income') byDay[day].income += t.amount;
+        else if (t.type === 'expense') byDay[day].expense += t.amount;
+    });
+    
+    const topCategories = Object.entries(byCategory).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const dailyAvg = expense / 7;
+    const comparison = getMonthComparison();
+    
+    state.weeklyReport = {
+        period: `${weekAgo.toLocaleDateString('ro-RO')} - ${today.toLocaleDateString('ro-RO')}`,
+        income,
+        expense,
+        balance: income - expense,
+        dailyAvg,
+        topCategories,
+        byDay,
+        transactionCount: weekTrans.length,
+        healthScore: state.healthScore
+    };
+    
+    return state.weeklyReport;
+}
+
+function showWeeklyReport() {
+    const report = generateWeeklyReport();
+    
+    const message = `📊 RAPORT SĂPTĂMÂNAL\n${report.period}\n\n` +
+        `💵 Venituri: ${fmt(report.income)}\n` +
+        `💸 Cheltuieli: ${fmt(report.expense)}\n` +
+        `💰 Balanță: ${fmt(report.balance)}\n` +
+        `📅 Media zilnică: ${fmt(report.dailyAvg)}\n` +
+        `📝 Tranzacții: ${report.transactionCount}\n\n` +
+        `🏆 Top categorii:\n${report.topCategories.map(([cat, amount]) => `  • ${cat}: ${fmt(amount)}`).join('\n')}\n\n` +
+        `❤️ Scor sănătate: ${report.healthScore}/100`;
+    
+    // Use AI to analyze
+    askAI(`Analizează acest raport săptămânal și dă-mi 3 sfaturi concrete:\n${message}`);
+}
+
+// Smart Notifications
+function checkSmartAlerts() {
+    const today = new Date();
+    const alerts = [];
+    
+    // Spending velocity alert
+    const monthTrans = getMonthTransactions();
+    const expense = monthTrans.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0);
+    const dayOfMonth = today.getDate();
+    const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+    const expectedExpense = (expense / dayOfMonth) * daysInMonth;
+    const income = monthTrans.filter(t => t.type === 'income').reduce((a, t) => a + t.amount, 0);
+    
+    if (expectedExpense > income && income > 0) {
+        alerts.push({
+            type: 'warning',
+            icon: '📈',
+            title: 'Ritmul cheltuielilor',
+            message: `La acest ritm vei cheltui ${fmt(expectedExpense)}, mai mult decât venitul de ${fmt(income)}!`
+        });
+    }
+    
+    // Weekend spending pattern
+    const todayDay = today.getDay();
+    if (todayDay === 5) { // Friday
+        const lastWeekendSpending = monthTrans.filter(t => {
+            const d = new Date(t.date);
+            return (d.getDay() === 0 || d.getDay() === 6) && t.type === 'expense';
+        }).reduce((a, t) => a + t.amount, 0);
+        
+        if (lastWeekendSpending > expense * 0.4) {
+            alerts.push({
+                type: 'info',
+                icon: '📅',
+                title: 'Weekend spending',
+                message: `Ai cheltuit ${Math.round(lastWeekendSpending / expense * 100)}% din cheltuieli în weekend-uri. Încearcă să reduci!`
+            });
+        }
+    }
+    
+    // Upcoming reminders
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const upcomingReminders = state.reminders.filter(r => {
+        const d = new Date(r.date);
+        return d >= today && d <= tomorrow;
+    });
+    
+    upcomingReminders.forEach(r => {
+        alerts.push({
+            type: 'reminder',
+            icon: '⏰',
+            title: 'Reminder',
+            message: `${r.title}${r.amount ? ` - ${fmt(r.amount)}` : ''}`
+        });
+    });
+    
+    // Goal milestone
+    state.goals.forEach(g => {
+        const progress = g.saved / g.target * 100;
+        if (progress >= 75 && progress < 100) {
+            alerts.push({
+                type: 'success',
+                icon: '🎯',
+                title: 'Aproape de obiectiv!',
+                message: `${g.name}: ${Math.round(progress)}% completat! Mai ai ${fmt(g.target - g.saved)}`
+            });
+        }
+    });
+    
+    return alerts;
+}
+
+// PWA Shortcuts handling
+function handlePWAShortcuts() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    
+    if (action === 'expense') {
+        setTimeout(() => openTransModal('expense'), 1000);
+    } else if (action === 'income') {
+        setTimeout(() => openTransModal('income'), 1000);
+    } else if (action === 'ai') {
+        setTimeout(() => openModal('aiModal'), 1000);
+    }
+}
+
+// Recurring Transactions Auto-Add
+async function processRecurringTransactions() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const recurring = state.transactions.filter(t => t.recurring && t.recurringFreq);
+    
+    for (const t of recurring) {
+        const lastDate = new Date(t.date);
+        let nextDate = new Date(lastDate);
+        
+        switch (t.recurringFreq) {
+            case 'daily':
+                nextDate.setDate(nextDate.getDate() + 1);
+                break;
+            case 'weekly':
+                nextDate.setDate(nextDate.getDate() + 7);
+                break;
+            case 'monthly':
+                nextDate.setMonth(nextDate.getMonth() + 1);
+                break;
+            case 'yearly':
+                nextDate.setFullYear(nextDate.getFullYear() + 1);
+                break;
+        }
+        
+        if (nextDate.toISOString().split('T')[0] === today) {
+            // Create new transaction
+            const newTrans = {
+                ...t,
+                date: today,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            delete newTrans.id;
+            
+            try {
+                const doc = await db.collection('users').doc(state.user.uid).collection('transactions').add(newTrans);
+                state.transactions.unshift({ id: doc.id, ...newTrans, date: today });
+                toast(`🔄 Tranzacție recurentă adăugată: ${findCategory(t.type, t.category)?.name || t.category}`, 'info');
+            } catch (err) {
+                console.error('Error adding recurring transaction:', err);
+            }
+        }
+    }
+}
+
+// Initialize premium features
+function initPremiumFeatures() {
+    initVoiceInput();
+    handlePWAShortcuts();
+    processRecurringTransactions();
+    calculateHealthScore();
+    
+    // Show smart alerts
+    const alerts = checkSmartAlerts();
+    if (alerts.length > 0) {
+        setTimeout(() => {
+            alerts.slice(0, 2).forEach(alert => {
+                toast(`${alert.icon} ${alert.message}`, alert.type === 'warning' ? 'warning' : 'info');
+            });
+        }, 3000);
+    }
+    
+    console.log('✨ Premium features initialized');
+}
+
+// Call after data loads
+const originalLoadAllData = loadAllData;
+loadAllData = async function() {
+    await originalLoadAllData.call(this);
+    initPremiumFeatures();
+};
+
 // Make functions global
 window.openTransModal = openTransModal;
 window.openGoalModal = openGoalModal;
 window.openDebtModal = openDebtModal;
 window.openReminderModal = openReminderModal;
+window.openAccountModal = openAccountModal;
+window.openBudgetModal = openBudgetModal;
 window.closeModal = closeModal;
 window.switchView = switchView;
 window.changeMonth = changeMonth;
@@ -1879,9 +2870,15 @@ window.editDebt = editDebt;
 window.deleteDebt = deleteDebt;
 window.editReminder = editReminder;
 window.deleteReminder = deleteReminder;
+window.editAccount = editAccount;
+window.deleteAccount = deleteAccount;
 window.askAI = askAI;
 window.exportJSON = exportJSON;
 window.exportCSV = exportCSV;
 window.clearAllData = clearAllData;
 window.logout = logout;
 window.goToTransaction = goToTransaction;
+window.startVoiceInput = startVoiceInput;
+window.openSplitModal = openSplitModal;
+window.showWeeklyReport = showWeeklyReport;
+window.calculateHealthScore = calculateHealthScore;

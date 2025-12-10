@@ -2004,54 +2004,78 @@ Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritat
 
     // Try Vercel API first (secure, key hidden on server)
     try {
-        console.log('🔐 Trying Vercel API...');
+        console.log('🔐 Trying Vercel API at:', API_BASE + '/api/gemini');
         const vercelResponse = await fetch(`${API_BASE}/api/gemini`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, maxTokens: 1000 })
+            body: JSON.stringify({ prompt, maxTokens: 1500 })
         });
         
-        if (vercelResponse.ok) {
-            const data = await vercelResponse.json();
-            if (data.success) {
-                console.log('✅ Vercel API success!');
-                return data.response.replace(/\n/g, '<br>');
-            } else {
-                console.log('⚠️ Vercel API returned error:', data.error);
-            }
-        } else {
-            console.log('⚠️ Vercel API status:', vercelResponse.status);
+        const data = await vercelResponse.json();
+        console.log('Vercel API response:', data);
+        
+        if (data.success && data.response) {
+            console.log('✅ Vercel API success!');
+            return data.response.replace(/\n/g, '<br>');
+        } else if (data.error) {
+            console.log('⚠️ Vercel API error:', data.error);
         }
     } catch (e) {
         console.log('⚠️ Vercel API not available:', e.message);
     }
     
     // Fallback to direct Gemini API (for GitHub Pages or if Vercel fails)
-    console.log('🔄 Falling back to direct Gemini API...');
+    console.log('🔄 Falling back to direct Gemini API with model gemini-2.0-flash...');
+    
+    // Official Gemini API endpoint according to docs
+    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+    
+    // Request body according to official Google AI documentation
+    const requestBody = {
+        contents: [{
+            parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1500,
+            topP: 0.8,
+            topK: 40
+        }
+    };
     
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+        console.log('📤 Sending request to Gemini...');
+        const response = await fetch(GEMINI_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
-            })
+            body: JSON.stringify(requestBody)
         });
 
         const data = await response.json();
+        console.log('📥 Gemini response status:', response.status);
         
+        // Check for API errors
         if (data.error) {
             console.error('❌ Gemini API error:', data.error);
-            throw new Error(data.error.message);
+            throw new Error(data.error.message || 'Gemini API error');
         }
         
-        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-            console.log('✅ Direct Gemini API success!');
-            return data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+        // Extract text from response according to official schema
+        if (data.candidates && 
+            data.candidates[0] && 
+            data.candidates[0].content && 
+            data.candidates[0].content.parts && 
+            data.candidates[0].content.parts[0] &&
+            data.candidates[0].content.parts[0].text) {
+            
+            const text = data.candidates[0].content.parts[0].text;
+            console.log('✅ Direct Gemini API success! Response length:', text.length);
+            return text.replace(/\n/g, '<br>');
         }
         
-        throw new Error('Invalid response from Gemini');
+        console.error('❌ Invalid response structure:', JSON.stringify(data).substring(0, 300));
+        throw new Error('Invalid response from Gemini API');
+        
     } catch (error) {
         console.error('❌ Direct API failed:', error);
         throw error;

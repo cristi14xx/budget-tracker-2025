@@ -26,7 +26,7 @@ git push origin main
 1. În Vercel Dashboard → **Settings** → **Environment Variables**
 2. Adaugă variabila:
    - **Name:** `GEMINI_API_KEY`
-   - **Value:** `AIzaSyBq-1ai3ZCeK5hmuVVZbq7eC_TeFxqopnQ` (sau propria cheie)
+   - **Value:** `[CHEIA TA NOUĂ DE LA aistudio.google.com/apikey]`
 3. Click **Save**
 4. Mergi la **Deployments** → Click pe deployment → **⋮** → **Redeploy**
 
@@ -117,4 +117,4 @@ AI-ul primește automat:
 
 ---
 
-Made with 💜 using Gemini 2.0 Flash
+Made with 💜 using Gemini 2.5 Flash

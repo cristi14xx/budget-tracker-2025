@@ -36,8 +36,8 @@ export default async function handler(req, res) {
             });
         }
 
-        // Official Gemini API endpoint - using gemini-2.0-flash (latest stable model)
-        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+        // Official Gemini API endpoint - using gemini-2.5-flash (available on free tier)
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
         // Request body according to official documentation
         const requestBody = {
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
             }
         };
 
-        console.log('Calling Gemini API with model: gemini-2.0-flash');
+        console.log('Calling Gemini API with model: gemini-2.5-flash');
 
         const response = await fetch(GEMINI_URL, {
             method: 'POST',

@@ -19,8 +19,9 @@ const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost:3000' 
     : '';  // Same domain when deployed to Vercel
 
-// Fallback to direct API if Vercel not set up (with your key)
-const GEMINI_KEY = 'AIzaSyBq-1ai3ZCeK5hmuVVZbq7eC_TeFxqopnQ';
+// Fallback API key - REPLACE WITH YOUR OWN or use Vercel Environment Variables
+// Get your free key at: https://aistudio.google.com/apikey
+const GEMINI_KEY = '';
 
 // Categories with subcategories
 const categories = {
@@ -2025,10 +2026,10 @@ Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritat
     }
     
     // Fallback to direct Gemini API (for GitHub Pages or if Vercel fails)
-    console.log('🔄 Falling back to direct Gemini API with model gemini-2.0-flash...');
+    console.log('🔄 Falling back to direct Gemini API with model gemini-2.5-flash...');
     
     // Official Gemini API endpoint according to docs
-    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
     
     // Request body according to official Google AI documentation
     const requestBody = {

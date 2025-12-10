@@ -64,7 +64,7 @@
     
     <div class="test-section">
         <h2>1️⃣ Test Direct API (cu cheia ta)</h2>
-        <input type="text" id="apiKey" placeholder="Introdu API Key Gemini" value="AIzaSyBq-1ai3ZCeK5hmuVVZbq7eC_TeFxqopnQ">
+        <input type="text" id="apiKey" placeholder="Introdu API Key Gemini" value="">
         <button onclick="testDirectAPI()">Test Direct API</button>
         <div id="directResult" class="result" style="display:none;"></div>
         <p class="info">Acest test apelează direct API-ul Google Gemini din browser.</p>
@@ -97,7 +97,7 @@
                 return;
             }
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
             
             const requestBody = {
                 contents: [{

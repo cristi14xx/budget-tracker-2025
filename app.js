@@ -1990,17 +1990,44 @@ function removeAiTyping() {
 // Call Gemini API - tries Vercel first, falls back to direct
 async function callGeminiAPI(message) {
     const context = buildFinancialContext();
+    const userName = state.user?.displayName || 'prietene';
+    const firstName = userName.split(' ')[0];
     
-    console.log('📊 Financial context built:', context.substring(0, 200) + '...');
+    console.log('📊 Financial context built for:', userName);
     
-    const prompt = `Ești un asistent financiar personal expert. Analizează datele financiare ale utilizatorului și răspunde la întrebări într-un mod prietenos și util.
+    const prompt = `Ești un consultant financiar personal de elită, prietenos și empatic. Te numești "Fin" și ești asistentul financiar AI al lui ${userName}.
 
-CONTEXT FINANCIAR AL UTILIZATORULUI:
+PERSONALITATEA TA:
+- Ești cald, prietenos și înțelegător
+- Folosești numele "${firstName}" când te adresezi utilizatorului
+- Dai sfaturi concrete, practice și personalizate
+- Folosești emoji-uri moderat pentru a face conversația plăcută
+- Ești direct și clar, nu vorbești în general
+- Când observi probleme, le menționezi cu tact dar ferm
+- Celebrezi succesele și încurajezi în momentele dificile
+- Răspunzi ÎNTOTDEAUNA în limba română
+
+REGULI STRICTE:
+1. NICIODATĂ nu spune că "nu ai date" sau "nu pot accesa" - ai TOATE datele mai jos
+2. Folosește cifrele EXACTE din context, nu aproximări
+3. Personalizează FIECARE răspuns cu situația specifică a lui ${firstName}
+4. Dacă ${firstName} întreabă ceva specific, răspunde CONCRET cu date reale
+5. Fii PROACTIV - oferă insight-uri pe care ${firstName} nu le-a cerut dar sunt utile
+6. Compară cu luna anterioară când e relevant
+7. Oferă ACȚIUNI concrete, nu sfaturi vagi
+
+CONTEXT FINANCIAR COMPLET AL LUI ${userName.toUpperCase()}:
 ${context}
 
-ÎNTREBAREA UTILIZATORULUI: ${message}
+ÎNTREBAREA LUI ${firstName.toUpperCase()}: ${message}
 
-Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritate. Dacă dai sfaturi, fii specific și actionabil.`;
+INSTRUCȚIUNI PENTRU RĂSPUNS:
+- Răspunde direct la întrebare folosind datele de mai sus
+- Fii specific și folosește cifrele exacte
+- Dacă e relevant, menționează pattern-uri sau tendințe
+- Oferă 1-2 sfaturi acționabile la final
+- Păstrează răspunsul concis dar complet (max 300 cuvinte)
+- Formatează frumos cu paragrafe scurte`;
 
     let vercelError = null;
 
@@ -2012,7 +2039,7 @@ Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritat
         const vercelResponse = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, maxTokens: 1500 })
+            body: JSON.stringify({ prompt, maxTokens: 2000 })
         });
         
         const data = await vercelResponse.json();
@@ -2050,9 +2077,9 @@ Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritat
             parts: [{ text: prompt }]
         }],
         generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1500,
-            topP: 0.8,
+            temperature: 0.8,
+            maxOutputTokens: 2000,
+            topP: 0.9,
             topK: 40
         }
     };
@@ -2097,13 +2124,27 @@ Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritat
 }
 
 function buildFinancialContext() {
+    // Numele utilizatorului
+    const userName = state.user?.displayName || 'Utilizator';
+    const userEmail = state.user?.email || '';
+    
+    // TOATE tranzacțiile
+    const allTransactions = [...state.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const totalTransCount = allTransactions.length;
+    
+    // Tranzacții luna curentă
     const monthTrans = getMonthTransactions();
     let income = 0, expense = 0;
     const byCategory = {};
+    const byCategoryIncome = {};
     
     monthTrans.forEach(t => {
-        if (t.type === 'income') income += t.amount;
-        else if (t.type === 'expense') {
+        if (t.type === 'income') {
+            income += t.amount;
+            const cat = findCategory('income', t.category);
+            const name = cat ? cat.name : t.category;
+            byCategoryIncome[name] = (byCategoryIncome[name] || 0) + t.amount;
+        } else if (t.type === 'expense') {
             expense += t.amount;
             const cat = findCategory('expense', t.category);
             const name = cat ? cat.name : t.category;
@@ -2111,47 +2152,363 @@ function buildFinancialContext() {
         }
     });
     
+    // Calculări avansate
     const sortedCats = Object.entries(byCategory).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const sortedIncome = Object.entries(byCategoryIncome).sort((a, b) => b[1] - a[1]);
     const today = new Date();
     const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
-    const daysPassed = state.month === today.getMonth() ? today.getDate() : daysInMonth;
+    const daysPassed = state.month === today.getMonth() && state.year === today.getFullYear() ? today.getDate() : daysInMonth;
+    const daysLeft = daysInMonth - daysPassed;
+    const dailyAvg = daysPassed > 0 ? expense / daysPassed : 0;
+    const predictedTotal = dailyAvg * daysInMonth;
+    const savingsRate = income > 0 ? ((income - expense) / income * 100) : 0;
     
-    let context = `Luna curentă: ${months[state.month]} ${state.year}
-Venituri totale: ${income} ${state.currency}
-Cheltuieli totale: ${expense} ${state.currency}
-Balanță: ${income - expense} ${state.currency}
-Rata de economisire: ${income > 0 ? ((income - expense) / income * 100).toFixed(1) : 0}%
-Media zilnică cheltuieli: ${(expense / daysPassed).toFixed(0)} ${state.currency}
-Predicție sfârșit de lună: ${(expense / daysPassed * daysInMonth).toFixed(0)} ${state.currency}
-Streak zile: ${state.streak}
-Patrimoniu net: ${state.netWorth} ${state.currency}
+    // ═══════════════════════════════════════
+    // ISTORIC COMPLET - Ultimele 12 luni
+    // ═══════════════════════════════════════
+    const monthlyHistory = [];
+    for (let i = 0; i < 12; i++) {
+        const targetMonth = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        const m = targetMonth.getMonth();
+        const y = targetMonth.getFullYear();
+        
+        const monthData = allTransactions.filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === m && d.getFullYear() === y;
+        });
+        
+        let mIncome = 0, mExpense = 0;
+        monthData.forEach(t => {
+            if (t.type === 'income') mIncome += t.amount;
+            else if (t.type === 'expense') mExpense += t.amount;
+        });
+        
+        if (mIncome > 0 || mExpense > 0 || monthData.length > 0) {
+            monthlyHistory.push({
+                month: months[m],
+                year: y,
+                income: mIncome,
+                expense: mExpense,
+                balance: mIncome - mExpense,
+                transactions: monthData.length,
+                savingsRate: mIncome > 0 ? ((mIncome - mExpense) / mIncome * 100) : 0
+            });
+        }
+    }
+    
+    // Statistici pe tot istoricul
+    let totalHistoryIncome = 0, totalHistoryExpense = 0;
+    const allTimeByCategory = {};
+    
+    allTransactions.forEach(t => {
+        if (t.type === 'income') totalHistoryIncome += t.amount;
+        else if (t.type === 'expense') {
+            totalHistoryExpense += t.amount;
+            const cat = findCategory('expense', t.category);
+            const name = cat ? cat.name : t.category;
+            allTimeByCategory[name] = (allTimeByCategory[name] || 0) + t.amount;
+        }
+    });
+    
+    const avgMonthlyIncome = monthlyHistory.length > 0 
+        ? monthlyHistory.reduce((s, m) => s + m.income, 0) / monthlyHistory.length 
+        : 0;
+    const avgMonthlyExpense = monthlyHistory.length > 0 
+        ? monthlyHistory.reduce((s, m) => s + m.expense, 0) / monthlyHistory.length 
+        : 0;
+    
+    // Tendințe - compară ultimele 3 luni cu 3 luni anterioare
+    const last3Months = monthlyHistory.slice(0, 3);
+    const prev3Months = monthlyHistory.slice(3, 6);
+    
+    let trendExpense = 'stabil';
+    if (last3Months.length >= 2 && prev3Months.length >= 2) {
+        const avgLast3 = last3Months.reduce((s, m) => s + m.expense, 0) / last3Months.length;
+        const avgPrev3 = prev3Months.reduce((s, m) => s + m.expense, 0) / prev3Months.length;
+        if (avgLast3 > avgPrev3 * 1.1) trendExpense = 'CRESCĂTOR ⬆️';
+        else if (avgLast3 < avgPrev3 * 0.9) trendExpense = 'DESCRESCĂTOR ⬇️';
+    }
+    
+    // Pattern-uri - cheltuieli în weekend vs săptămână
+    let weekendExpense = 0, weekdayExpense = 0;
+    monthTrans.forEach(t => {
+        if (t.type === 'expense') {
+            const day = new Date(t.date).getDay();
+            if (day === 0 || day === 6) weekendExpense += t.amount;
+            else weekdayExpense += t.amount;
+        }
+    });
+    
+    // Tranzacția cea mai mare din tot istoricul
+    const biggestExpenseEver = allTransactions
+        .filter(t => t.type === 'expense')
+        .sort((a, b) => b.amount - a.amount)[0];
+    
+    // Tranzacția cea mai mare luna asta
+    const biggestExpense = monthTrans
+        .filter(t => t.type === 'expense')
+        .sort((a, b) => b.amount - a.amount)[0];
+    
+    const biggestIncome = monthTrans
+        .filter(t => t.type === 'income')
+        .sort((a, b) => b.amount - a.amount)[0];
+    
+    // Conturi
+    const totalAccounts = state.accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+    
+    // Prima și ultima tranzacție (cât timp folosește app-ul)
+    const firstTransaction = allTransactions[allTransactions.length - 1];
+    const daysSinceStart = firstTransaction 
+        ? Math.floor((today - new Date(firstTransaction.date)) / (1000 * 60 * 60 * 24))
+        : 0;
+    
+    // Top 5 categorii ALL TIME
+    const topCategoriesAllTime = Object.entries(allTimeByCategory)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+    
+    // ═══════════════════════════════════════
+    // CONSTRUIEȘTE CONTEXTUL
+    // ═══════════════════════════════════════
+    
+    let context = `═══════════════════════════════════════
+👤 PROFIL UTILIZATOR
+═══════════════════════════════════════
+Nume: ${userName}
+Email: ${userEmail}
+Monedă preferată: ${state.currency}
+Streak curent: ${state.streak} zile consecutive
+Folosește aplicația de: ${daysSinceStart} zile
+Total tranzacții înregistrate: ${totalTransCount}
+Patrimoniu net declarat: ${state.netWorth.toLocaleString()} ${state.currency}
 
-Top 5 categorii de cheltuieli:
-${sortedCats.map(([name, amount]) => `- ${name}: ${amount} ${state.currency}`).join('\n')}
+═══════════════════════════════════════
+📊 SUMAR LUNA CURENTĂ - ${months[state.month]} ${state.year}
+═══════════════════════════════════════
+💵 Venituri: ${income.toLocaleString()} ${state.currency}
+💸 Cheltuieli: ${expense.toLocaleString()} ${state.currency}
+📈 Balanță: ${(income - expense).toLocaleString()} ${state.currency}
+💰 Rată economisire: ${savingsRate.toFixed(1)}%
 
-Număr total tranzacții luna aceasta: ${monthTrans.length}`;
+📅 Zile trecute: ${daysPassed}/${daysInMonth} | Zile rămase: ${daysLeft}
+📊 Media zilnică cheltuieli: ${dailyAvg.toFixed(0)} ${state.currency}
+🔮 Predicție cheltuieli luna asta: ${predictedTotal.toFixed(0)} ${state.currency}
 
+═══════════════════════════════════════
+📈 STATISTICI ISTORICE (TOT TIMPUL)
+═══════════════════════════════════════
+💵 Total venituri all-time: ${totalHistoryIncome.toLocaleString()} ${state.currency}
+💸 Total cheltuieli all-time: ${totalHistoryExpense.toLocaleString()} ${state.currency}
+📊 Medie lunară venituri: ${avgMonthlyIncome.toFixed(0)} ${state.currency}
+📊 Medie lunară cheltuieli: ${avgMonthlyExpense.toFixed(0)} ${state.currency}
+📉 Trend cheltuieli: ${trendExpense}`;
+
+    // Istoric lunar
+    if (monthlyHistory.length > 1) {
+        context += `
+
+═══════════════════════════════════════
+📅 ISTORIC LUNAR (ultimele ${monthlyHistory.length} luni)
+═══════════════════════════════════════`;
+        monthlyHistory.forEach(m => {
+            const sign = m.balance >= 0 ? '+' : '';
+            context += `\n${m.month} ${m.year}: Venit ${m.income.toLocaleString()} | Chelt. ${m.expense.toLocaleString()} | Balanță: ${sign}${m.balance.toLocaleString()} | Econ: ${m.savingsRate.toFixed(0)}%`;
+        });
+    }
+
+    // Categorii cheltuieli luna asta
+    if (sortedCats.length > 0) {
+        context += `
+
+═══════════════════════════════════════
+🏷️ TOP CATEGORII LUNA ASTA
+═══════════════════════════════════════`;
+        sortedCats.forEach(([name, amount], i) => {
+            const percent = expense > 0 ? (amount / expense * 100).toFixed(1) : 0;
+            context += `\n${i + 1}. ${name}: ${amount.toLocaleString()} ${state.currency} (${percent}%)`;
+        });
+    }
+    
+    // Top categorii ALL TIME
+    if (topCategoriesAllTime.length > 0) {
+        context += `
+
+═══════════════════════════════════════
+🏷️ TOP CATEGORII ALL-TIME
+═══════════════════════════════════════`;
+        topCategoriesAllTime.forEach(([name, amount], i) => {
+            const percent = totalHistoryExpense > 0 ? (amount / totalHistoryExpense * 100).toFixed(1) : 0;
+            context += `\n${i + 1}. ${name}: ${amount.toLocaleString()} ${state.currency} (${percent}% din total)`;
+        });
+    }
+    
+    // Surse venituri
+    if (sortedIncome.length > 0) {
+        context += `
+
+═══════════════════════════════════════
+💵 SURSE DE VENIT LUNA ASTA
+═══════════════════════════════════════`;
+        sortedIncome.forEach(([name, amount]) => {
+            context += `\n- ${name}: ${amount.toLocaleString()} ${state.currency}`;
+        });
+    }
+    
+    // Pattern-uri
+    context += `
+
+═══════════════════════════════════════
+📊 PATTERN-URI COMPORTAMENT
+═══════════════════════════════════════
+Cheltuieli în weekend: ${weekendExpense.toLocaleString()} ${state.currency}
+Cheltuieli în timpul săptămânii: ${weekdayExpense.toLocaleString()} ${state.currency}
+Tranzacții luna aceasta: ${monthTrans.length}`;
+
+    if (biggestExpense) {
+        const cat = findCategory('expense', biggestExpense.category);
+        context += `\n\n💥 Cea mai mare cheltuială LUNA ASTA: ${biggestExpense.amount.toLocaleString()} ${state.currency} - ${cat?.name || biggestExpense.category}${biggestExpense.note ? ` (${biggestExpense.note})` : ''} - ${biggestExpense.date}`;
+    }
+    
+    if (biggestExpenseEver && biggestExpenseEver !== biggestExpense) {
+        const cat = findCategory('expense', biggestExpenseEver.category);
+        context += `\n💥 Cea mai mare cheltuială VREODATĂ: ${biggestExpenseEver.amount.toLocaleString()} ${state.currency} - ${cat?.name || biggestExpenseEver.category}${biggestExpenseEver.note ? ` (${biggestExpenseEver.note})` : ''} - ${biggestExpenseEver.date}`;
+    }
+    
+    if (biggestIncome) {
+        const cat = findCategory('income', biggestIncome.category);
+        context += `\n💎 Cel mai mare venit luna asta: ${biggestIncome.amount.toLocaleString()} ${state.currency} - ${cat?.name || biggestIncome.category}`;
+    }
+
+    // Ultimele 15 tranzacții pentru context detaliat
+    if (allTransactions.length > 0) {
+        context += `
+
+═══════════════════════════════════════
+🕐 ULTIMELE 15 TRANZACȚII
+═══════════════════════════════════════`;
+        allTransactions.slice(0, 15).forEach(t => {
+            const cat = findCategory(t.type, t.category);
+            const icon = t.type === 'income' ? '💵' : '💸';
+            context += `\n${icon} ${t.date}: ${t.amount.toLocaleString()} ${state.currency} - ${cat?.name || t.category}${t.note ? ` (${t.note})` : ''}`;
+        });
+    }
+
+    // Conturi
+    if (state.accounts.length > 0) {
+        context += `
+
+═══════════════════════════════════════
+🏦 CONTURI BANCARE
+═══════════════════════════════════════`;
+        state.accounts.forEach(a => {
+            context += `\n- ${a.name} (${a.type || 'cont'}): ${(a.balance || 0).toLocaleString()} ${state.currency}`;
+        });
+        context += `\n💰 TOTAL ÎN CONTURI: ${totalAccounts.toLocaleString()} ${state.currency}`;
+    }
+
+    // Obiective
     if (state.goals.length > 0) {
-        context += `\n\nObiective financiare:
-${state.goals.map(g => `- ${g.name}: ${g.saved}/${g.target} ${state.currency} (${(g.saved/g.target*100).toFixed(0)}%)`).join('\n')}`;
+        context += `
+
+═══════════════════════════════════════
+🎯 OBIECTIVE FINANCIARE
+═══════════════════════════════════════`;
+        state.goals.forEach(g => {
+            const percent = (g.saved / g.target * 100).toFixed(0);
+            const remaining = g.target - g.saved;
+            const status = percent >= 100 ? '✅ COMPLET' : percent >= 75 ? '🟢 Aproape' : percent >= 50 ? '🟡 La jumătate' : '🔴 La început';
+            context += `\n${status} ${g.name}: ${g.saved.toLocaleString()}/${g.target.toLocaleString()} ${state.currency} (${percent}%)`;
+            if (remaining > 0) context += ` - Mai ai nevoie: ${remaining.toLocaleString()} ${state.currency}`;
+            if (g.deadline) context += ` | Deadline: ${g.deadline}`;
+        });
     }
     
+    // Datorii
     if (state.debts.length > 0) {
-        const owe = state.debts.filter(d => d.type === 'owe').reduce((a, d) => a + d.amount, 0);
-        const owed = state.debts.filter(d => d.type === 'owed').reduce((a, d) => a + d.amount, 0);
-        context += `\n\nDatorii:
-- De plătit: ${owe} ${state.currency}
-- De recuperat: ${owed} ${state.currency}`;
+        const oweDebts = state.debts.filter(d => d.type === 'owe');
+        const owedDebts = state.debts.filter(d => d.type === 'owed');
+        const totalOwe = oweDebts.reduce((a, d) => a + d.amount, 0);
+        const totalOwed = owedDebts.reduce((a, d) => a + d.amount, 0);
+        
+        context += `
+
+═══════════════════════════════════════
+💳 DATORII
+═══════════════════════════════════════
+🔴 Total DE PLĂTIT: ${totalOwe.toLocaleString()} ${state.currency}
+🟢 Total DE RECUPERAT: ${totalOwed.toLocaleString()} ${state.currency}
+📊 Balanță datorii: ${(totalOwed - totalOwe).toLocaleString()} ${state.currency}`;
+        
+        if (oweDebts.length > 0) {
+            context += `\n\nDatorii de plătit:`;
+            oweDebts.forEach(d => {
+                context += `\n  🔴 ${d.person}: ${d.amount.toLocaleString()} ${state.currency}${d.note ? ` - ${d.note}` : ''}${d.dueDate ? ` (scadent: ${d.dueDate})` : ''}`;
+            });
+        }
+        if (owedDebts.length > 0) {
+            context += `\n\nBani de recuperat:`;
+            owedDebts.forEach(d => {
+                context += `\n  🟢 ${d.person}: ${d.amount.toLocaleString()} ${state.currency}${d.note ? ` - ${d.note}` : ''}`;
+            });
+        }
     }
 
+    // Bugete
     if (state.budgets.length > 0) {
-        context += `\n\nBugete setate:
-${state.budgets.map(b => {
+        context += `
+
+═══════════════════════════════════════
+📋 BUGETE SETATE
+═══════════════════════════════════════`;
+        state.budgets.forEach(b => {
             const cat = findCategory('expense', b.category);
             const spent = monthTrans.filter(t => t.type === 'expense' && t.category === b.category).reduce((s, t) => s + t.amount, 0);
-            return `- ${cat?.name || b.category}: ${spent}/${b.limit} ${state.currency}`;
-        }).join('\n')}`;
+            const percent = (spent / b.limit * 100).toFixed(0);
+            const remaining = b.limit - spent;
+            const status = spent > b.limit ? '🔴 DEPĂȘIT' : spent > b.limit * 0.8 ? '🟡 Atenție' : '🟢 OK';
+            context += `\n${status} ${cat?.name || b.category}: ${spent.toLocaleString()}/${b.limit.toLocaleString()} ${state.currency} (${percent}%)`;
+            if (remaining > 0) context += ` | Mai poți cheltui: ${remaining.toLocaleString()} ${state.currency}`;
+            else context += ` | Depășit cu: ${Math.abs(remaining).toLocaleString()} ${state.currency}`;
+        });
     }
+
+    // Remindere active
+    const activeReminders = state.reminders.filter(r => r.active);
+    if (activeReminders.length > 0) {
+        context += `
+
+═══════════════════════════════════════
+⏰ PLĂȚI RECURENTE / REMINDERE
+═══════════════════════════════════════`;
+        activeReminders.forEach(r => {
+            context += `\n- ${r.name}: ${r.amount.toLocaleString()} ${state.currency} (${r.frequency})`;
+        });
+        const monthlyRecurring = activeReminders
+            .filter(r => r.frequency === 'monthly')
+            .reduce((s, r) => s + r.amount, 0);
+        if (monthlyRecurring > 0) {
+            context += `\n💳 Total plăți recurente lunare: ${monthlyRecurring.toLocaleString()} ${state.currency}`;
+        }
+    }
+
+    // Achievements
+    const unlockedAchievements = achievementsDef.filter(a => a.condition(state));
+    if (unlockedAchievements.length > 0) {
+        context += `
+
+═══════════════════════════════════════
+🏆 ACHIEVEMENTS DEBLOCATE
+═══════════════════════════════════════`;
+        unlockedAchievements.forEach(a => {
+            context += `\n${a.icon} ${a.name}: ${a.desc}`;
+        });
+    }
+
+    context += `
+
+═══════════════════════════════════════
+📅 DATA CURENTĂ: ${today.toLocaleDateString('ro-RO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+═══════════════════════════════════════`;
     
     return context;
 }
@@ -2160,26 +2517,47 @@ async function runFullAiAnalysis() {
     const container = $('aiAnalysis');
     if (!container) return;
     
-    container.innerHTML = '<p class="ai-placeholder">Se analizează datele...</p>';
+    const userName = state.user?.displayName || 'Utilizator';
+    const firstName = userName.split(' ')[0];
+    
+    container.innerHTML = '<p class="ai-placeholder">🔍 Analizez datele tale financiare, ${firstName}...</p>';
     
     try {
         const context = buildFinancialContext();
-        const prompt = `Ești un analist financiar expert. Analizează datele financiare de mai jos și oferă:
-1. O evaluare generală a sănătății financiare (scor 1-10)
-2. 3 puncte forte
-3. 3 arii de îmbunătățit
-4. 3 sfaturi concrete și acționabile
-5. Predicții pentru luna viitoare
+        const analysisPrompt = `Realizează o ANALIZĂ FINANCIARĂ COMPLETĂ pentru ${userName}.
 
-CONTEXT:
+Structurează răspunsul EXACT așa:
+
+📊 SCOR SĂNĂTATE FINANCIARĂ: [X/10]
+[Explică pe scurt de ce acest scor]
+
+💪 PUNCTE FORTE:
+1. [Punct concret cu cifre]
+2. [Punct concret cu cifre]
+3. [Punct concret cu cifre]
+
+⚠️ ARII DE ÎMBUNĂTĂȚIT:
+1. [Problemă specifică cu cifre și soluție]
+2. [Problemă specifică cu cifre și soluție]
+3. [Problemă specifică cu cifre și soluție]
+
+🎯 PLAN DE ACȚIUNE PENTRU LUNA VIITOARE:
+1. [Acțiune concretă cu target numeric]
+2. [Acțiune concretă cu target numeric]
+3. [Acțiune concretă cu target numeric]
+
+🔮 PREDICȚIE:
+[Predicție bazată pe pattern-urile observate]
+
+CONTEXT COMPLET:
 ${context}
 
-Răspunde în română, structurat și concis. Folosește emoji-uri pentru claritate.`;
+IMPORTANT: Folosește CIFRELE EXACTE din context. Fii SPECIFIC, nu general.`;
 
-        const response = await callGeminiAPI(prompt.replace('ÎNTREBAREA UTILIZATORULUI:', ''));
+        const response = await callGeminiAPI(analysisPrompt);
         container.innerHTML = `<div class="ai-analysis-content">${response}</div>`;
     } catch (err) {
-        container.innerHTML = '<p class="ai-placeholder">Eroare la analiză. Încearcă din nou.</p>';
+        container.innerHTML = `<p class="ai-placeholder">❌ Eroare la analiză: ${err.message}. Încearcă din nou.</p>`;
     }
 }
 

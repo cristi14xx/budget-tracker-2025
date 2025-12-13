@@ -1,5 +1,5 @@
 {
-  "rewrites": [
-    { "source": "/api/gemini", "destination": "/api/gemini" }
-  ]
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "framework": null
 }

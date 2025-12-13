@@ -19,8 +19,7 @@ const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost:3000' 
     : '';  // Same domain when deployed to Vercel
 
-// Fallback API key - REPLACE WITH YOUR OWN or use Vercel Environment Variables
-// Get your free key at: https://aistudio.google.com/apikey
+// Gemini API Key - Only used as fallback, prefer Vercel Environment Variables
 const GEMINI_KEY = '';
 
 // Categories with subcategories
@@ -2003,10 +2002,14 @@ ${context}
 
 Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritate. Dacă dai sfaturi, fii specific și actionabil.`;
 
+    let vercelError = null;
+
     // Try Vercel API first (secure, key hidden on server)
     try {
-        console.log('🔐 Trying Vercel API at:', API_BASE + '/api/gemini');
-        const vercelResponse = await fetch(`${API_BASE}/api/gemini`, {
+        const apiUrl = `${API_BASE}/api/gemini`;
+        console.log('🔐 Trying Vercel API at:', apiUrl);
+        
+        const vercelResponse = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt, maxTokens: 1500 })
@@ -2019,10 +2022,20 @@ Răspunde în română, concis dar complet. Folosește emoji-uri pentru claritat
             console.log('✅ Vercel API success!');
             return data.response.replace(/\n/g, '<br>');
         } else if (data.error) {
+            vercelError = data.error;
             console.log('⚠️ Vercel API error:', data.error);
         }
     } catch (e) {
+        vercelError = e.message;
         console.log('⚠️ Vercel API not available:', e.message);
+    }
+    
+    // If no fallback key, show helpful error
+    if (!GEMINI_KEY) {
+        const errorMsg = vercelError 
+            ? `Eroare Vercel API: ${vercelError}` 
+            : 'Vercel API nu este disponibil';
+        throw new Error(`${errorMsg}. Verifică că ai setat GEMINI_API_KEY în Vercel Environment Variables și ai făcut Redeploy.`);
     }
     
     // Fallback to direct Gemini API (for GitHub Pages or if Vercel fails)

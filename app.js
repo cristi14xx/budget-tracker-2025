@@ -2039,7 +2039,7 @@ INSTRUCȚIUNI PENTRU RĂSPUNS:
         const vercelResponse = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, maxTokens: 2000 })
+            body: JSON.stringify({ prompt, maxTokens: 4000 })
         });
         
         const data = await vercelResponse.json();
@@ -2078,7 +2078,7 @@ INSTRUCȚIUNI PENTRU RĂSPUNS:
         }],
         generationConfig: {
             temperature: 0.8,
-            maxOutputTokens: 2000,
+            maxOutputTokens: 4000,
             topP: 0.9,
             topK: 40
         }

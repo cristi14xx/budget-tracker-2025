@@ -210,9 +210,17 @@ const $$ = sel => document.querySelectorAll(sel);
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    initAuth();
-    initEventListeners();
-    setTimeout(() => $('splash')?.classList.add('hidden'), 1500);
+    try {
+        initAuth();
+        initEventListeners();
+    } catch (err) {
+        console.error('Init error:', err);
+    }
+    // Always hide splash after 2 seconds
+    setTimeout(() => {
+        const splash = document.getElementById('splash');
+        if (splash) splash.style.display = 'none';
+    }, 2000);
 });
 
 // Auth
@@ -230,34 +238,43 @@ function initAuth() {
 }
 
 function showAuth() {
-    $('authScreen').classList.remove('hidden');
-    $('appScreen').classList.add('hidden');
+    $('authScreen')?.classList.remove('hidden');
+    $('app')?.classList.add('hidden');
+    $('splash')?.classList.add('hidden');
 }
 
 function showApp() {
-    $('authScreen').classList.add('hidden');
-    $('appScreen').classList.remove('hidden');
+    $('authScreen')?.classList.add('hidden');
+    $('app')?.classList.remove('hidden');
+    $('splash')?.classList.add('hidden');
     updateProfile();
 }
 
 // Event Listeners
 function initEventListeners() {
+    try {
     // Auth tabs
     $$('.auth-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             $$('.auth-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             const tabName = tab.dataset.tab;
-            $$('.auth-form').forEach(f => f.classList.remove('active'));
-            $(tabName + 'Form').classList.add('active');
+            if (tabName === 'login') {
+                $('loginForm')?.classList.remove('hidden');
+                $('registerForm')?.classList.add('hidden');
+            } else {
+                $('loginForm')?.classList.add('hidden');
+                $('registerForm')?.classList.remove('hidden');
+            }
         });
     });
 
     // Login form
-    $('loginForm').addEventListener('submit', async e => {
+    $('loginForm')?.addEventListener('submit', async e => {
         e.preventDefault();
-        const email = $('loginEmail').value;
-        const pass = $('loginPassword').value;
+        const email = $('loginEmail')?.value;
+        const pass = $('loginPassword')?.value;
+        if (!email || !pass) return;
         try {
             await auth.signInWithEmailAndPassword(email, pass);
             toast('Autentificare reușită!', 'success');
@@ -267,11 +284,12 @@ function initEventListeners() {
     });
 
     // Register form
-    $('registerForm').addEventListener('submit', async e => {
+    $('registerForm')?.addEventListener('submit', async e => {
         e.preventDefault();
-        const name = $('registerName').value;
-        const email = $('registerEmail').value;
-        const pass = $('registerPassword').value;
+        const name = $('regName')?.value;
+        const email = $('regEmail')?.value;
+        const pass = $('regPassword')?.value;
+        if (!name || !email || !pass) return;
         try {
             const { user } = await auth.createUserWithEmailAndPassword(email, pass);
             await user.updateProfile({ displayName: name });
@@ -284,8 +302,8 @@ function initEventListeners() {
         }
     });
 
-    // Google auth
-    $('googleAuth').addEventListener('click', async () => {
+    // Google auth (optional)
+    $('googleAuth')?.addEventListener('click', async () => {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
             await auth.signInWithPopup(provider);
@@ -299,70 +317,39 @@ function initEventListeners() {
     $$('.nav-item[data-view]').forEach(item => {
         item.addEventListener('click', () => {
             const view = item.dataset.view;
-            switchView(view);
-            $$('.nav-item').forEach(n => n.classList.remove('active'));
-            item.classList.add('active');
+            if (view) switchView(view);
         });
-    });
-
-    // Month navigation
-    $('prevMonth')?.addEventListener('click', () => changeMonth(-1));
-    $('nextMonth')?.addEventListener('click', () => changeMonth(1));
-
-    // Search
-    $('searchToggle')?.addEventListener('click', () => {
-        $('searchBar').classList.toggle('hidden');
-        if (!$('searchBar').classList.contains('hidden')) {
-            $('searchInput').focus();
-        }
-    });
-    $('searchClose')?.addEventListener('click', () => {
-        $('searchBar').classList.add('hidden');
-        $('searchInput').value = '';
-        $('searchResults').classList.add('hidden');
-    });
-    $('searchInput')?.addEventListener('input', debounce(handleSearch, 300));
-
-    // AI button
-    $('aiBtn')?.addEventListener('click', () => openModal('aiModal'));
-    $('aiSend')?.addEventListener('click', sendAiMessage);
-    $('aiInput')?.addEventListener('keypress', e => {
-        if (e.key === 'Enter') sendAiMessage();
     });
 
     // Transaction form
     $('transForm')?.addEventListener('submit', handleTransactionSubmit);
-    $$('.type-tab').forEach(tab => {
+    
+    // Type tabs in transaction modal
+    $$('#transModal .type-tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            $$('.type-tab').forEach(t => t.classList.remove('active'));
+            $$('#transModal .type-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            $('transType').value = tab.dataset.type;
+            const typeInput = $('transType');
+            if (typeInput) typeInput.value = tab.dataset.type;
             populateCategories(tab.dataset.type);
         });
     });
+    
     $('transCategory')?.addEventListener('change', populateSubcategories);
-    $('transRecurring')?.addEventListener('change', e => {
-        $('recurringOptions').classList.toggle('hidden', !e.target.checked);
-    });
 
     // Goal form
     $('goalForm')?.addEventListener('submit', handleGoalSubmit);
-    $$('.icon-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            $$('.icon-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            $('goalIcon').value = btn.dataset.icon;
-        });
-    });
 
-    // Debt form
+    // Debt form  
     $('debtForm')?.addEventListener('submit', handleDebtSubmit);
-    $$('.debt-tab').forEach(tab => {
+    
+    // Debt type tabs
+    $$('#debtModal .type-tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            $$('.debt-tab').forEach(t => t.classList.remove('active'));
+            $$('#debtModal .type-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            $('debtType').value = tab.dataset.type;
-            $('personLabel').textContent = tab.dataset.type === 'owe' ? 'Cui datorezi?' : 'Cine îți datorează?';
+            const typeInput = $('debtType');
+            if (typeInput) typeInput.value = tab.dataset.type;
         });
     });
 
@@ -375,42 +362,50 @@ function initEventListeners() {
     // Budget form
     $('budgetForm')?.addEventListener('submit', handleBudgetSubmit);
 
-    // Filters
+    // Utility form
+    $('utilityForm')?.addEventListener('submit', saveUtility);
+    
+    // Filter buttons
     $$('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             $$('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            state.filter = btn.dataset.filter;
-            renderAllTransactions();
+            filterTransactions(btn.dataset.filter);
         });
     });
-
-    // Period selector
-    $$('.period-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            $$('.period-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            state.period = parseInt(btn.dataset.period);
-            updateAnalytics();
+    
+    // PDF import
+    const pdfDropzone = $('pdfDropzone');
+    const pdfInput = $('pdfFileInput');
+    
+    if (pdfDropzone && pdfInput) {
+        pdfDropzone.addEventListener('click', () => pdfInput.click());
+        pdfDropzone.addEventListener('dragover', e => { e.preventDefault(); pdfDropzone.style.borderColor = 'var(--primary)'; });
+        pdfDropzone.addEventListener('dragleave', () => { pdfDropzone.style.borderColor = 'var(--border)'; });
+        pdfDropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            pdfDropzone.style.borderColor = 'var(--border)';
+            const file = e.dataTransfer?.files[0];
+            if (file && file.type === 'application/pdf') handlePdfUpload(file);
         });
-    });
-
-    // AI Analysis
-    $('runAiAnalysis')?.addEventListener('click', runFullAiAnalysis);
-
-    // Refresh insights
-    $('refreshInsights')?.addEventListener('click', generateInsights);
-
-    // Settings
+        pdfInput.addEventListener('change', e => {
+            const file = e.target.files?.[0];
+            if (file) handlePdfUpload(file);
+        });
+    }
+    
+    // Currency select
     $('currencySelect')?.addEventListener('change', e => {
         state.currency = e.target.value;
-        localStorage.setItem('currency', state.currency);
+        if (state.user) {
+            db.collection('users').doc(state.user.uid).update({ currency: state.currency });
+        }
         renderAll();
     });
-    if ($('currencySelect')) $('currencySelect').value = state.currency;
-
-    // Reminder category
-    populateReminderCategories();
+    
+    } catch (err) {
+        console.error('Event listeners error:', err);
+    }
 }
 
 // Auth error messages
@@ -3167,21 +3162,23 @@ function updateProfile() {
     if (!state.user) return;
     
     const name = state.user.displayName || 'Utilizator';
-    const email = state.user.email;
+    const email = state.user.email || '';
     const initial = name.charAt(0).toUpperCase();
     
+    // Update menu
+    if ($('menuAvatar')) $('menuAvatar').textContent = initial;
+    if ($('menuUserName')) $('menuUserName').textContent = name;
+    if ($('menuUserEmail')) $('menuUserEmail').textContent = email;
+    
+    // Update settings
+    if ($('settingsName')) $('settingsName').textContent = name;
+    if ($('settingsEmail')) $('settingsEmail').textContent = email;
+    
+    // Legacy elements (in case they exist)
     if ($('profileAvatar')) $('profileAvatar').textContent = initial;
     if ($('profileName')) $('profileName').textContent = name;
     if ($('profileEmail')) $('profileEmail').textContent = email;
-    
     if ($('totalTransCount')) $('totalTransCount').textContent = state.transactions.length;
-    
-    const createdAt = state.user.metadata?.creationTime;
-    if (createdAt && $('memberSince')) {
-        const date = new Date(createdAt);
-        $('memberSince').textContent = months[date.getMonth()].slice(0, 3) + ' ' + date.getFullYear();
-    }
-    
     if ($('streakDays')) $('streakDays').textContent = state.streak;
 }
 
@@ -5110,3 +5107,43 @@ window.setTransType = setTransType;
 window.setDebtType = setDebtType;
 window.updateAnalytics = updateAnalytics;
 window.runFullAiAnalysis = runFullAiAnalysis;
+
+// Alias for HTML onsubmit handlers
+window.saveTransaction = handleTransactionSubmit;
+window.saveGoal = handleGoalSubmit;
+window.saveDebt = handleDebtSubmit;
+window.saveReminder = handleReminderSubmit;
+window.saveAccount = handleAccountSubmit;
+window.saveBudget = handleBudgetSubmit;
+window.saveUtility = saveUtility;
+window.saveSplit = handleSplitSubmit;
+
+// Navigation functions
+window.navigateTo = navigateTo;
+window.toggleMenu = toggleMenu;
+window.closeMenu = closeMenu;
+window.changeMonth = changeMonth;
+
+// Modal functions
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.openTransModal = openTransModal;
+window.openGoalModal = openGoalModal;
+window.openDebtModal = openDebtModal;
+window.openReminderModal = openReminderModal;
+window.openAccountModal = openAccountModal;
+window.openBudgetModal = openBudgetModal;
+window.openUtilityModal = openUtilityModal;
+window.openSplitModal = openSplitModal;
+
+// Action functions
+window.editTransaction = editTransaction;
+window.deleteTransaction = deleteTransaction;
+window.askAI = askAI;
+window.logout = logout;
+window.exportJSON = exportJSON;
+window.exportCSV = exportCSV;
+window.clearAllData = clearAllData;
+window.saveNetWorth = saveNetWorth;
+window.confirmImport = confirmImport;
+window.clearImportPreview = clearImportPreview;

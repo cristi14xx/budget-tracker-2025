@@ -215,6 +215,39 @@
                     </div>
                 </div>
 
+                <!-- Smart Tips -->
+                <div class="section-header">
+                    <h2>💡 Sfaturi inteligente</h2>
+                </div>
+                <div id="smartTips" class="smart-tips">
+                    <p class="no-tips">Se analizează datele...</p>
+                </div>
+
+                <!-- FIRE Progress -->
+                <div class="section-header">
+                    <h2>🔥 Progres FIRE</h2>
+                    <span class="fire-tooltip" title="Financial Independence, Retire Early">ⓘ</span>
+                </div>
+                <div class="fire-card">
+                    <div class="fire-header">
+                        <span>Obiectiv independență financiară</span>
+                        <span id="fireNumber" class="fire-number">-- RON</span>
+                    </div>
+                    <div class="fire-progress">
+                        <div id="fireFill" class="fire-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="fire-stats">
+                        <div class="fire-stat">
+                            <span class="fire-stat-value" id="fireProgress">0%</span>
+                            <span class="fire-stat-label">Progres</span>
+                        </div>
+                        <div class="fire-stat">
+                            <span class="fire-stat-value" id="fireYears">-- ani</span>
+                            <span class="fire-stat-label">Estimare</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Accounts Preview -->
                 <div class="section-header">
                     <h2>💳 Conturi</h2>
@@ -304,6 +337,39 @@
                         <span class="empty-icon">⏰</span>
                         <p>Niciun reminder</p>
                     </div>
+                </div>
+
+                <!-- Home Utilities Preview -->
+                <div class="section-header">
+                    <h2>🏠 Utilități Casă</h2>
+                    <button onclick="switchView('utilities')" class="see-all">Vezi toate →</button>
+                </div>
+                <div id="utilitiesPreview" class="utilities-preview">
+                    <div class="utilities-cards">
+                        <div class="utility-mini" onclick="openUtilityModal('electricity')">
+                            <span class="utility-mini-icon">⚡</span>
+                            <span class="utility-mini-name">Curent</span>
+                            <span id="utilElectricity" class="utility-mini-value">-- RON</span>
+                        </div>
+                        <div class="utility-mini" onclick="openUtilityModal('gas')">
+                            <span class="utility-mini-icon">🔥</span>
+                            <span class="utility-mini-name">Gaz</span>
+                            <span id="utilGas" class="utility-mini-value">-- RON</span>
+                        </div>
+                        <div class="utility-mini" onclick="openUtilityModal('water')">
+                            <span class="utility-mini-icon">💧</span>
+                            <span class="utility-mini-name">Apă</span>
+                            <span id="utilWater" class="utility-mini-value">-- RON</span>
+                        </div>
+                        <div class="utility-mini" onclick="openUtilityModal('internet')">
+                            <span class="utility-mini-icon">📶</span>
+                            <span class="utility-mini-name">Internet</span>
+                            <span id="utilInternet" class="utility-mini-value">-- RON</span>
+                        </div>
+                    </div>
+                    <button class="add-utility-btn" onclick="openUtilityModal()">
+                        ➕ Adaugă factură utilități
+                    </button>
                 </div>
 
                 <!-- Net Worth -->
@@ -489,6 +555,120 @@
                 <div id="allReminders" class="reminders-list"></div>
             </section>
 
+            <!-- Utilities View -->
+            <section id="utilitiesView" class="view">
+                <div class="view-header">
+                    <h1>🏠 Utilități Casă</h1>
+                    <button onclick="openUtilityModal()" class="add-btn">+ Adaugă</button>
+                </div>
+
+                <!-- Monthly Total -->
+                <div class="utilities-total-card">
+                    <div class="utilities-total-header">
+                        <span>💡 Total utilități luna aceasta</span>
+                        <span id="utilitiesMonthLabel">Dec 2025</span>
+                    </div>
+                    <div id="utilitiesTotalAmount" class="utilities-total-amount">0 RON</div>
+                    <div class="utilities-comparison">
+                        <span id="utilitiesComparison">vs. luna trecută: --</span>
+                    </div>
+                </div>
+
+                <!-- Utilities Grid -->
+                <div class="utilities-grid">
+                    <div class="utility-card" onclick="openUtilityModal('electricity')">
+                        <div class="utility-card-header">
+                            <span class="utility-card-icon" style="background: #eab308">⚡</span>
+                            <span class="utility-card-name">Electricitate</span>
+                        </div>
+                        <div id="utilElectricityDetail" class="utility-card-value">-- RON</div>
+                        <div id="utilElectricityUnit" class="utility-card-unit">-- kWh</div>
+                        <div class="utility-card-trend">
+                            <span id="utilElectricityTrend">--</span>
+                        </div>
+                    </div>
+
+                    <div class="utility-card" onclick="openUtilityModal('gas')">
+                        <div class="utility-card-header">
+                            <span class="utility-card-icon" style="background: #f97316">🔥</span>
+                            <span class="utility-card-name">Gaz</span>
+                        </div>
+                        <div id="utilGasDetail" class="utility-card-value">-- RON</div>
+                        <div id="utilGasUnit" class="utility-card-unit">-- m³</div>
+                        <div class="utility-card-trend">
+                            <span id="utilGasTrend">--</span>
+                        </div>
+                    </div>
+
+                    <div class="utility-card" onclick="openUtilityModal('water')">
+                        <div class="utility-card-header">
+                            <span class="utility-card-icon" style="background: #3b82f6">💧</span>
+                            <span class="utility-card-name">Apă</span>
+                        </div>
+                        <div id="utilWaterDetail" class="utility-card-value">-- RON</div>
+                        <div id="utilWaterUnit" class="utility-card-unit">-- m³</div>
+                        <div class="utility-card-trend">
+                            <span id="utilWaterTrend">--</span>
+                        </div>
+                    </div>
+
+                    <div class="utility-card" onclick="openUtilityModal('heating')">
+                        <div class="utility-card-header">
+                            <span class="utility-card-icon" style="background: #ef4444">🌡️</span>
+                            <span class="utility-card-name">Încălzire</span>
+                        </div>
+                        <div id="utilHeatingDetail" class="utility-card-value">-- RON</div>
+                        <div id="utilHeatingUnit" class="utility-card-unit">-- Gcal</div>
+                        <div class="utility-card-trend">
+                            <span id="utilHeatingTrend">--</span>
+                        </div>
+                    </div>
+
+                    <div class="utility-card" onclick="openUtilityModal('internet')">
+                        <div class="utility-card-header">
+                            <span class="utility-card-icon" style="background: #8b5cf6">📶</span>
+                            <span class="utility-card-name">Internet</span>
+                        </div>
+                        <div id="utilInternetDetail" class="utility-card-value">-- RON</div>
+                        <div id="utilInternetUnit" class="utility-card-unit">-- Mbps</div>
+                        <div class="utility-card-trend">
+                            <span id="utilInternetTrend">--</span>
+                        </div>
+                    </div>
+
+                    <div class="utility-card" onclick="openUtilityModal('maintenance')">
+                        <div class="utility-card-header">
+                            <span class="utility-card-icon" style="background: #a855f7">🏢</span>
+                            <span class="utility-card-name">Întreținere</span>
+                        </div>
+                        <div id="utilMaintenanceDetail" class="utility-card-value">-- RON</div>
+                        <div id="utilMaintenanceUnit" class="utility-card-unit">--</div>
+                        <div class="utility-card-trend">
+                            <span id="utilMaintenanceTrend">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Utilities Chart -->
+                <div class="section-header">
+                    <h2>📊 Evoluție 12 luni</h2>
+                </div>
+                <div class="chart-container utilities-chart">
+                    <canvas id="utilitiesChart"></canvas>
+                </div>
+
+                <!-- Utilities History -->
+                <div class="section-header">
+                    <h2>📜 Istoric facturi</h2>
+                </div>
+                <div id="utilitiesHistory" class="utilities-history">
+                    <div class="empty-state small">
+                        <span class="empty-icon">📄</span>
+                        <p>Nicio factură înregistrată</p>
+                    </div>
+                </div>
+            </section>
+
             <!-- Profile View -->
             <section id="profileView" class="view">
                 <div class="view-header">
@@ -533,13 +713,40 @@
                             <option value="GBP">GBP</option>
                         </select>
                     </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-icon">🌙</span>
+                            <span class="setting-label">Temă</span>
+                        </div>
+                        <button onclick="toggleTheme()" class="theme-toggle">
+                            <span id="themeIcon">🌙</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📥 Import date</h3>
+                    <div class="import-buttons">
+                        <button onclick="openModal('importPdfModal')" class="import-btn">📄 Import PDF extras bancă</button>
+                    </div>
+                    <p class="import-desc">Importă tranzacții din PDF și lasă AI-ul să le categoriseze automat</p>
                 </div>
 
                 <div class="settings-section">
                     <h3>📤 Export date</h3>
                     <div class="export-buttons">
-                        <button onclick="exportJSON()" class="export-btn">📄 Export JSON</button>
-                        <button onclick="exportCSV()" class="export-btn">📊 Export CSV</button>
+                        <button onclick="exportJSON()" class="export-btn">📄 JSON</button>
+                        <button onclick="exportCSV()" class="export-btn">📊 CSV</button>
+                        <button onclick="exportDetailedReport()" class="export-btn highlight">📈 Raport complet</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🧮 Calculatoare</h3>
+                    <div class="calculator-buttons">
+                        <button onclick="showSavingsCalculator()" class="calc-btn">💰 Calculator economii</button>
+                        <button onclick="showFIRECalculator()" class="calc-btn">🔥 Calculator FIRE</button>
                     </div>
                 </div>
 
@@ -957,6 +1164,104 @@
                 <button type="submit" class="btn-submit">Împarte & Creează datorii</button>
             </form>
         </div>
+    </div>
+
+    <!-- Utility Modal -->
+    <div id="utilityModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('utilityModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="utilityModalTitle">➕ Adaugă factură utilități</h2>
+                <button class="modal-close" onclick="closeModal('utilityModal')">✕</button>
+            </div>
+            
+            <form id="utilityForm" onsubmit="saveUtility(event)">
+                <input type="hidden" id="utilityId">
+                
+                <label>Tip utilitate</label>
+                <select id="utilityType" required>
+                    <option value="">Selectează...</option>
+                    <option value="electricity">⚡ Electricitate</option>
+                    <option value="gas">🔥 Gaz</option>
+                    <option value="water">💧 Apă</option>
+                    <option value="heating">🌡️ Încălzire centrală</option>
+                    <option value="internet">📶 Internet</option>
+                    <option value="phone">📱 Telefon</option>
+                    <option value="tv">📺 TV/Streaming</option>
+                    <option value="trash">🗑️ Gunoi</option>
+                    <option value="maintenance">🏢 Întreținere bloc</option>
+                </select>
+
+                <label>Luna facturii</label>
+                <input type="month" id="utilityMonth" required>
+
+                <label>Sumă (RON)</label>
+                <input type="number" id="utilityAmount" step="0.01" required placeholder="0.00">
+
+                <label>Consum (opțional)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="utilityConsumption" step="0.01" placeholder="Ex: 150">
+                    <span id="utilityUnit" class="input-unit">kWh</span>
+                </div>
+
+                <label>Furnizor</label>
+                <input type="text" id="utilityProvider" placeholder="Ex: Enel, E.ON, Digi...">
+
+                <label>Note (opțional)</label>
+                <textarea id="utilityNote" rows="2" placeholder="Detalii adiționale..."></textarea>
+
+                <button type="submit" class="btn-submit">💾 Salvează factura</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Import PDF Modal -->
+    <div id="importPdfModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('importPdfModal')"></div>
+        <div class="modal-content ai-modal">
+            <div class="modal-header">
+                <h2>📄 Import PDF & Categorisire AI</h2>
+                <button class="modal-close" onclick="closeModal('importPdfModal')">✕</button>
+            </div>
+            
+            <div class="import-info">
+                <p>📌 Încarcă un extras de cont PDF și AI-ul va categorisa automat tranzacțiile.</p>
+                <p class="import-note">Funcționează cu extrase de la: BT, ING, BCR, Raiffeisen, BRD, Revolut, etc.</p>
+            </div>
+
+            <div class="import-dropzone" id="pdfDropzone">
+                <span class="dropzone-icon">📁</span>
+                <p>Trage PDF-ul aici sau click pentru a selecta</p>
+                <input type="file" id="pdfFileInput" accept=".pdf" hidden>
+            </div>
+
+            <div id="importProgress" class="import-progress hidden">
+                <div class="import-progress-bar">
+                    <div id="importProgressFill" class="import-progress-fill"></div>
+                </div>
+                <span id="importStatus">Se procesează...</span>
+            </div>
+
+            <div id="importPreview" class="import-preview hidden">
+                <div class="import-preview-header">
+                    <span id="importCount">0 tranzacții găsite</span>
+                    <button onclick="clearImportPreview()" class="btn-link">🗑️ Șterge</button>
+                </div>
+                <div id="importTransList" class="import-trans-list"></div>
+                <button onclick="confirmImport()" class="btn-submit">✅ Importă toate tranzacțiile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab-container" id="fabContainer">
+        <div class="fab-menu">
+            <button class="fab-menu-item" onclick="openTransModal('expense')">💸 Cheltuială</button>
+            <button class="fab-menu-item" onclick="openTransModal('income')">💵 Venit</button>
+            <button class="fab-menu-item" onclick="openModal('aiModal')">🤖 Întreabă AI</button>
+            <button class="fab-menu-item" onclick="openUtilityModal()">🏠 Factură utilități</button>
+        </div>
+        <button class="fab" onclick="toggleFab()">+</button>
     </div>
 
     <!-- Toast Container -->

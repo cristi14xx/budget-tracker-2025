@@ -22,53 +22,130 @@ const API_BASE = window.location.hostname === 'localhost'
 // Gemini API Key - Only used as fallback, prefer Vercel Environment Variables
 const GEMINI_KEY = '';
 
-// Categories with subcategories
+// Categories with subcategories - EXTENDED VERSION
 const categories = {
     expense: [
-        { id: 'food', name: 'Mâncare', icon: '🍔', color: '#ef4444', subs: ['Supermarket', 'Restaurant', 'Livrare', 'Cafea', 'Fast-food', 'Piață', 'Patiserie'] },
-        { id: 'transport', name: 'Transport', icon: '🚗', color: '#f59e0b', subs: ['Benzină', 'Motorină', 'Uber/Bolt', 'Transport public', 'Parcare', 'Service auto', 'Asigurare auto', 'Rovignetă', 'ITP'] },
-        { id: 'housing', name: 'Locuință', icon: '🏠', color: '#8b5cf6', subs: ['Chirie', 'Rată credit', 'Întreținere', 'Reparații', 'Mobilă', 'Curățenie', 'Decorațiuni'] },
-        { id: 'utilities', name: 'Utilități', icon: '💡', color: '#3b82f6', subs: ['Electricitate', 'Gaz', 'Apă', 'Internet', 'Telefon', 'TV/Streaming', 'Gunoi'] },
-        { id: 'health', name: 'Sănătate', icon: '💊', color: '#10b981', subs: ['Medicamente', 'Doctor', 'Analize', 'Dentist', 'Ochelari', 'Sală fitness', 'Suplimente'] },
-        { id: 'shopping', name: 'Cumpărături', icon: '🛍️', color: '#ec4899', subs: ['Haine', 'Încălțăminte', 'Cosmetice', 'Electronice', 'Casă', 'Cadouri', 'Accesorii'] },
-        { id: 'entertainment', name: 'Divertisment', icon: '🎬', color: '#06b6d4', subs: ['Cinema', 'Concerte', 'Jocuri', 'Hobby', 'Sport', 'Vacanțe', 'Excursii'] },
-        { id: 'education', name: 'Educație', icon: '📚', color: '#84cc16', subs: ['Cărți', 'Cursuri', 'Școală', 'Meditații', 'Certificări'] },
-        { id: 'subscriptions', name: 'Abonamente', icon: '📱', color: '#a855f7', subs: ['Netflix', 'Spotify', 'YouTube', 'HBO', 'Disney+', 'Software', 'Gaming'] },
-        { id: 'family', name: 'Familie', icon: '👨‍👩‍👧', color: '#f97316', subs: ['Copii', 'Animale', 'Cadouri', 'Activități'] },
-        { id: 'personal', name: 'Personal', icon: '💆', color: '#14b8a6', subs: ['Frizerie', 'Salon', 'Spa', 'Îngrijire'] },
-        { id: 'taxes', name: 'Taxe', icon: '🏛️', color: '#64748b', subs: ['Impozit', 'CAS/CASS', 'Taxe locale', 'Amenzi'] },
-        { id: 'insurance', name: 'Asigurări', icon: '🛡️', color: '#0ea5e9', subs: ['Viață', 'Sănătate', 'Locuință', 'Călătorie'] },
-        { id: 'other_expense', name: 'Altele', icon: '📦', color: '#78716c', subs: ['Diverse', 'Neprevăzute', 'Comisioane'] }
+        // Esențiale
+        { id: 'food', name: 'Mâncare', icon: '🍔', color: '#ef4444', subs: ['Supermarket', 'Restaurant', 'Livrare', 'Cafea', 'Fast-food', 'Piață', 'Patiserie', 'Băuturi', 'Gustări', 'Cantine', 'Food court'] },
+        { id: 'transport', name: 'Transport', icon: '🚗', color: '#f59e0b', subs: ['Benzină', 'Motorină', 'GPL', 'Electric charging', 'Uber/Bolt', 'Transport public', 'Taxi', 'Parcare', 'Service auto', 'Asigurare auto', 'Rovignetă', 'ITP', 'Spălătorie auto', 'Piese auto', 'Anvelopele', 'Închiriere auto', 'Leasing auto'] },
+        { id: 'housing', name: 'Locuință', icon: '🏠', color: '#8b5cf6', subs: ['Chirie', 'Rată credit ipotecar', 'Întreținere', 'Reparații', 'Mobilă', 'Curățenie', 'Decorațiuni', 'Grădinărit', 'Pază/Securitate', 'Administrare bloc', 'Renovare', 'Instalații sanitare', 'Instalații electrice'] },
+        { id: 'utilities', name: 'Utilități', icon: '💡', color: '#3b82f6', subs: ['Electricitate', 'Gaz', 'Apă', 'Canalizare', 'Internet', 'Telefon fix', 'Telefon mobil', 'TV cablu', 'Streaming', 'Gunoi', 'Încălzire centrală', 'Lemne/Peleți'] },
+        { id: 'health', name: 'Sănătate', icon: '💊', color: '#10b981', subs: ['Medicamente', 'Doctor', 'Analize', 'Dentist', 'Ochelari', 'Lentile', 'Sală fitness', 'Suplimente', 'Psiholog', 'Fizioterapeut', 'Spital', 'Urgențe', 'Vaccin', 'Stomatologie estetică'] },
+        
+        // Shopping & Lifestyle
+        { id: 'shopping', name: 'Cumpărături', icon: '🛍️', color: '#ec4899', subs: ['Haine', 'Încălțăminte', 'Cosmetice', 'Parfumuri', 'Electronice', 'Electrocasnice', 'Gadgeturi', 'Casă & Grădină', 'Cadouri', 'Accesorii', 'Bijuterii', 'Ceasuri', 'Genți'] },
+        { id: 'entertainment', name: 'Divertisment', icon: '🎬', color: '#06b6d4', subs: ['Cinema', 'Teatru', 'Concerte', 'Muzeu', 'Jocuri video', 'Jocuri societate', 'Hobby', 'Sport', 'Vacanțe', 'Excursii', 'City break', 'Festival', 'Parc distracții', 'Escape room', 'Bowling'] },
+        { id: 'subscriptions', name: 'Abonamente', icon: '📱', color: '#a855f7', subs: ['Netflix', 'Spotify', 'YouTube Premium', 'HBO Max', 'Disney+', 'Amazon Prime', 'Apple TV', 'Deezer', 'ChatGPT Plus', 'Cloud storage', 'Software', 'Gaming', 'VPN', 'Patreon', 'OnlyFans', 'Presă online'] },
+        { id: 'personal', name: 'Personal', icon: '💆', color: '#14b8a6', subs: ['Frizerie', 'Salon', 'Spa', 'Masaj', 'Manichiură', 'Pedichiură', 'Epilare', 'Cosmetician', 'Wellness', 'Saună'] },
+        
+        // Educație & Dezvoltare
+        { id: 'education', name: 'Educație', icon: '📚', color: '#84cc16', subs: ['Cărți', 'Audiobooks', 'Cursuri online', 'Universitate', 'Masterat', 'MBA', 'Școală privată', 'Grădiniță', 'Meditații', 'Certificări IT', 'Limbi străine', 'Conferințe', 'Workshop', 'Materiale școlare'] },
+        
+        // Familie & Copii
+        { id: 'family', name: 'Familie', icon: '👨‍👩‍👧', color: '#f97316', subs: ['Copii - haine', 'Copii - jucării', 'Copii - școală', 'Copii - activități', 'Copii - sănătate', 'Animale - mâncare', 'Animale - veterinar', 'Animale - accesorii', 'Babysitter', 'Bonă', 'Cadouri familie', 'Activități familie'] },
+        
+        // Financiar
+        { id: 'taxes', name: 'Taxe & Impozite', icon: '🏛️', color: '#64748b', subs: ['Impozit pe venit', 'CAS', 'CASS', 'Impozit proprietate', 'Taxă auto', 'Taxe locale', 'Amenzi', 'Taxe notariale', 'Taxe consulat'] },
+        { id: 'insurance', name: 'Asigurări', icon: '🛡️', color: '#0ea5e9', subs: ['Asigurare viață', 'Asigurare sănătate privată', 'Asigurare locuință', 'Asigurare călătorie', 'CASCO', 'RCA', 'Asigurare credit'] },
+        { id: 'banking', name: 'Bancar', icon: '🏦', color: '#6366f1', subs: ['Comisioane bancare', 'Comision card', 'Comision transfer', 'Comision retragere', 'Comision schimb valutar', 'Dobânzi credit', 'Rate credit consum', 'Rate credit auto', 'Overdraft'] },
+        
+        // Investiții (Cheltuieli)
+        { id: 'invest_expense', name: 'Investiții', icon: '📈', color: '#10b981', subs: ['Cumpărare acțiuni', 'Cumpărare ETF', 'Cumpărare obligațiuni', 'Cumpărare crypto', 'Depozit bancar', 'Fonduri mutuale', 'Trading fees', 'Comisioane broker', 'Aur/Argint', 'NFT', 'Startup investment'] },
+        { id: 'real_estate', name: 'Imobiliare', icon: '🏢', color: '#8b5cf6', subs: ['Avans proprietate', 'Rată ipotecară investiție', 'Renovare pt închiriere', 'Notariat', 'Evaluare', 'Comision agenție', 'Taxe imobiliare'] },
+        
+        // Business
+        { id: 'business', name: 'Business', icon: '💼', color: '#eab308', subs: ['Echipamente', 'Software', 'Marketing', 'Publicitate', 'Website', 'Hosting', 'Domeniu', 'Contabilitate', 'Juridic', 'Consultanță', 'Birou', 'Coworking', 'Deplasări business'] },
+        
+        // Altele
+        { id: 'charity', name: 'Donații', icon: '❤️', color: '#f43f5e', subs: ['Caritate', 'ONG', 'Biserica', 'Crowdfunding', 'Cauze sociale', 'Ajutor familie'] },
+        { id: 'gifts', name: 'Cadouri', icon: '🎁', color: '#d946ef', subs: ['Ziua de naștere', 'Crăciun', 'Paște', 'Nuntă', 'Botez', 'Absolvire', 'Valentines', 'Aniversări'] },
+        { id: 'vice', name: 'Vicii', icon: '🎰', color: '#991b1b', subs: ['Țigări', 'Alcool', 'Pariuri', 'Cazino', 'Loto'] },
+        { id: 'other_expense', name: 'Altele', icon: '📦', color: '#78716c', subs: ['Diverse', 'Neprevăzute', 'ATM fees', 'Bacșiș', 'Livrare colete', 'Poștă', 'Fotocopii', 'Curățătorie haine'] }
     ],
     income: [
-        { id: 'salary', name: 'Salariu', icon: '💼', color: '#10b981', subs: ['Salariu net', 'Bonusuri', 'Prime', 'Ore suplimentare'] },
-        { id: 'freelance', name: 'Freelance', icon: '💻', color: '#06b6d4', subs: ['Proiecte', 'Consultanță', 'Colaborări'] },
-        { id: 'investments', name: 'Investiții', icon: '📈', color: '#8b5cf6', subs: ['Dividende', 'Dobânzi', 'Crypto', 'Acțiuni'] },
-        { id: 'rental', name: 'Chirii', icon: '🏢', color: '#f59e0b', subs: ['Apartament', 'Cameră', 'Airbnb'] },
-        { id: 'sales', name: 'Vânzări', icon: '🏷️', color: '#ec4899', subs: ['Online', 'Fizic', 'Second-hand'] },
-        { id: 'gifts_income', name: 'Cadouri', icon: '🎁', color: '#ef4444', subs: ['Bani primiți', 'Moștenire'] },
-        { id: 'refunds', name: 'Rambursări', icon: '↩️', color: '#3b82f6', subs: ['Retururi', 'Decontări'] },
-        { id: 'other_income', name: 'Alte venituri', icon: '💰', color: '#84cc16', subs: ['Diverse', 'Câștiguri', 'Premii'] }
+        // Venituri active
+        { id: 'salary', name: 'Salariu', icon: '💼', color: '#10b981', subs: ['Salariu net', 'Bonusuri', 'Prime', 'Ore suplimentare', 'Al 13-lea salariu', 'Tichete de masă', 'Tichete cadou', 'Decontări', 'Concediu plătit'] },
+        { id: 'freelance', name: 'Freelance', icon: '💻', color: '#06b6d4', subs: ['Proiecte', 'Consultanță', 'Colaborări', 'Comisioane', 'Royalties', 'Drepturi autor'] },
+        { id: 'business_income', name: 'Afaceri', icon: '🏪', color: '#8b5cf6', subs: ['Vânzări produse', 'Vânzări servicii', 'Profit business', 'PFA/SRL încasări', 'Dropshipping', 'E-commerce'] },
+        { id: 'sidehustle', name: 'Side Hustle', icon: '🚀', color: '#f59e0b', subs: ['Uber/Bolt driver', 'Livrări', 'Tutoring', 'Traduceri', 'Design', 'Programare', 'Content creation', 'Social media'] },
+        
+        // Venituri pasive
+        { id: 'investments_income', name: 'Investiții', icon: '📈', color: '#22c55e', subs: ['Dividende acțiuni', 'Dividende ETF', 'Dobânzi depozit', 'Dobânzi obligațiuni', 'Cupon obligațiuni', 'Profit trading', 'Randament fonduri'] },
+        { id: 'crypto_income', name: 'Crypto', icon: '₿', color: '#f7931a', subs: ['Profit crypto', 'Staking rewards', 'Mining', 'Airdrops', 'DeFi yields', 'NFT sales', 'Referral crypto'] },
+        { id: 'rental_income', name: 'Chirii', icon: '🏢', color: '#0ea5e9', subs: ['Chirie apartament', 'Chirie cameră', 'Airbnb', 'Booking', 'Chirie comercial', 'Chirie teren', 'Chirie parcare'] },
+        { id: 'real_estate_income', name: 'Imobiliare', icon: '🏠', color: '#7c3aed', subs: ['Vânzare proprietate', 'Profit imobiliar', 'Comision imobiliar'] },
+        
+        // Alte venituri
+        { id: 'pension', name: 'Pensie', icon: '👴', color: '#64748b', subs: ['Pensie stat', 'Pensie privată', 'Pensie specială'] },
+        { id: 'social', name: 'Ajutoare sociale', icon: '🏛️', color: '#14b8a6', subs: ['Alocație copii', 'Indemnizație creștere copil', 'Șomaj', 'Ajutor social', 'Bursă', 'Subvenții'] },
+        { id: 'gifts_income', name: 'Cadouri primite', icon: '🎁', color: '#ec4899', subs: ['Bani primiți', 'Cadou nuntă', 'Cadou botez', 'Moștenire', 'Donații primite'] },
+        { id: 'refunds', name: 'Rambursări', icon: '↩️', color: '#3b82f6', subs: ['Retururi produse', 'Decontări medicale', 'Rambursare taxe', 'Cashback', 'Garanție returnată', 'Asigurare încasată'] },
+        { id: 'sales', name: 'Vânzări', icon: '🏷️', color: '#f97316', subs: ['OLX/Marketplace', 'Vânzare auto', 'Second-hand', 'Garage sale', 'Vânzare electronice'] },
+        { id: 'winnings', name: 'Câștiguri', icon: '🎰', color: '#eab308', subs: ['Loto', 'Pariuri', 'Concursuri', 'Premii', 'Tombole'] },
+        { id: 'other_income', name: 'Alte venituri', icon: '💰', color: '#84cc16', subs: ['Diverse', 'Bacșiș primit', 'Găsit', 'Împrumuturi returnate'] }
     ],
     correction: [
-        { id: 'correction', name: 'Corecție sold', icon: '⚖️', color: '#6366f1', subs: ['Ajustare numerar', 'Diferență bancă', 'Corecție eroare'] }
+        { id: 'correction', name: 'Corecție sold', icon: '⚖️', color: '#6366f1', subs: ['Ajustare numerar', 'Diferență bancă', 'Corecție eroare', 'Reconciliere conturi', 'Sold inițial'] }
     ]
 };
 
-// Achievements definitions
+// Utility types for home tracking
+const utilityTypes = [
+    { id: 'electricity', name: 'Electricitate', icon: '⚡', unit: 'kWh', color: '#eab308' },
+    { id: 'gas', name: 'Gaz', icon: '🔥', unit: 'm³', color: '#f97316' },
+    { id: 'water', name: 'Apă', icon: '💧', unit: 'm³', color: '#3b82f6' },
+    { id: 'heating', name: 'Încălzire', icon: '🌡️', unit: 'Gcal', color: '#ef4444' },
+    { id: 'internet', name: 'Internet', icon: '📶', unit: 'Mbps', color: '#8b5cf6' },
+    { id: 'phone', name: 'Telefon', icon: '📱', unit: 'min', color: '#10b981' },
+    { id: 'tv', name: 'TV/Streaming', icon: '📺', unit: '', color: '#06b6d4' },
+    { id: 'trash', name: 'Gunoi', icon: '🗑️', unit: '', color: '#64748b' },
+    { id: 'maintenance', name: 'Întreținere', icon: '🏢', unit: '', color: '#a855f7' }
+];
+
+// Achievements definitions - EXTENDED
 const achievementsDef = [
+    // Tranzacții
     { id: 'first_trans', name: 'Prima tranzacție', icon: '🎯', desc: 'Ai adăugat prima tranzacție', condition: (s) => s.transactions.length >= 1 },
     { id: 'trans_10', name: 'Starter', icon: '📝', desc: '10 tranzacții înregistrate', condition: (s) => s.transactions.length >= 10 },
     { id: 'trans_50', name: 'Consistent', icon: '📊', desc: '50 tranzacții înregistrate', condition: (s) => s.transactions.length >= 50 },
     { id: 'trans_100', name: 'Pro Tracker', icon: '🏆', desc: '100 tranzacții înregistrate', condition: (s) => s.transactions.length >= 100 },
+    { id: 'trans_500', name: 'Legendă', icon: '👑', desc: '500 tranzacții înregistrate', condition: (s) => s.transactions.length >= 500 },
+    { id: 'trans_1000', name: 'Master Tracker', icon: '💎', desc: '1000 tranzacții înregistrate', condition: (s) => s.transactions.length >= 1000 },
+    
+    // Streak
     { id: 'streak_7', name: 'Săptămână perfectă', icon: '🔥', desc: '7 zile consecutive de tracking', condition: (s) => s.streak >= 7 },
     { id: 'streak_30', name: 'Lună de foc', icon: '💪', desc: '30 zile consecutive', condition: (s) => s.streak >= 30 },
+    { id: 'streak_100', name: 'Centenar', icon: '💯', desc: '100 zile consecutive', condition: (s) => s.streak >= 100 },
+    { id: 'streak_365', name: 'Un an întreg!', icon: '🎊', desc: '365 zile consecutive', condition: (s) => s.streak >= 365 },
+    
+    // Economii
     { id: 'saver_20', name: 'Economist', icon: '💰', desc: 'Ai economisit 20% din venituri', condition: (s) => s.savingsRate >= 20 },
     { id: 'saver_50', name: 'Super Saver', icon: '🌟', desc: 'Ai economisit 50% din venituri', condition: (s) => s.savingsRate >= 50 },
+    { id: 'saver_70', name: 'FIRE Aspirant', icon: '🔥', desc: 'Ai economisit 70% din venituri', condition: (s) => s.savingsRate >= 70 },
+    
+    // Obiective & Datorii
     { id: 'goal_complete', name: 'Goal Getter', icon: '🎯', desc: 'Ai completat un obiectiv', condition: (s) => s.goals.some(g => g.saved >= g.target) },
+    { id: 'goals_3', name: 'Ambițios', icon: '🚀', desc: 'Ai 3+ obiective active', condition: (s) => s.goals.length >= 3 },
     { id: 'budget_master', name: 'Budget Master', icon: '👑', desc: 'Ai rămas în buget o lună întreagă', condition: (s) => s.budgetKept },
     { id: 'debt_free', name: 'Debt Free', icon: '🆓', desc: 'Zero datorii de plătit', condition: (s) => s.debts.filter(d => d.type === 'owe').length === 0 },
-    { id: 'ai_user', name: 'AI Explorer', icon: '🤖', desc: 'Ai folosit asistentul AI', condition: (s) => s.aiUsed }
+    
+    // Investiții & Net Worth
+    { id: 'investor', name: 'Investitor', icon: '📈', desc: 'Prima investiție înregistrată', condition: (s) => s.transactions.some(t => t.category === 'invest_expense' || t.category === 'investments_income') },
+    { id: 'crypto_holder', name: 'Crypto Holder', icon: '₿', desc: 'Ai tranzacții crypto', condition: (s) => s.transactions.some(t => t.category === 'crypto_income' || (t.subcategory && t.subcategory.toLowerCase().includes('crypto'))) },
+    { id: 'net_worth_10k', name: '10K Club', icon: '💵', desc: 'Patrimoniu net de 10,000+', condition: (s) => s.netWorth >= 10000 },
+    { id: 'net_worth_50k', name: '50K Club', icon: '💎', desc: 'Patrimoniu net de 50,000+', condition: (s) => s.netWorth >= 50000 },
+    { id: 'net_worth_100k', name: '100K Club', icon: '🏆', desc: 'Patrimoniu net de 100,000+', condition: (s) => s.netWorth >= 100000 },
+    
+    // Conturi & Organizare
+    { id: 'multi_account', name: 'Organizat', icon: '🏦', desc: 'Ai 3+ conturi configurate', condition: (s) => s.accounts.length >= 3 },
+    { id: 'budgets_set', name: 'Planificator', icon: '📋', desc: 'Ai 5+ bugete setate', condition: (s) => s.budgets.length >= 5 },
+    
+    // Special
+    { id: 'ai_user', name: 'AI Explorer', icon: '🤖', desc: 'Ai folosit asistentul AI', condition: (s) => s.aiUsed },
+    { id: 'utilities_tracker', name: 'Home Manager', icon: '🏠', desc: 'Ai înregistrat utilități', condition: (s) => s.utilities && s.utilities.length >= 1 },
+    { id: 'early_bird', name: 'Early Bird', icon: '🌅', desc: 'Tranzacție adăugată înainte de 7 AM', condition: (s) => s.earlyBird },
+    { id: 'night_owl', name: 'Night Owl', icon: '🦉', desc: 'Tranzacție adăugată după 11 PM', condition: (s) => s.nightOwl },
+    { id: 'weekend_warrior', name: 'Weekend Warrior', icon: '🎉', desc: 'Tracking în weekend', condition: (s) => s.weekendWarrior }
 ];
 
 // State
@@ -81,8 +158,13 @@ let state = {
     accounts: [],
     budgets: [],
     achievements: [],
+    shownAchievements: [],
     challenges: [],
     splits: [],
+    utilities: [],
+    investments: [], // Portfolio tracker
+    netWorthHistory: [], // Historical net worth
+    tags: [], // Custom tags
     month: new Date().getMonth(),
     year: new Date().getFullYear(),
     currency: localStorage.getItem('currency') || 'RON',
@@ -91,13 +173,20 @@ let state = {
     editingId: null,
     chart: null,
     trendChart: null,
+    utilitiesChart: null,
+    netWorthChart: null,
     streak: 0,
     savingsRate: 0,
     budgetKept: false,
     aiUsed: false,
     netWorth: 0,
     healthScore: 0,
-    weeklyReport: null
+    weeklyReport: null,
+    // Special achievement triggers
+    earlyBird: false,
+    nightOwl: false,
+    weekendWarrior: false,
+    theme: localStorage.getItem('theme') || 'dark'
 };
 
 // Savings Challenges
@@ -367,6 +456,19 @@ async function loadAllData() {
         const budSnap = await db.collection('users').doc(uid).collection('budgets').get();
         state.budgets = budSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+        // Utilities
+        const utilSnap = await db.collection('users').doc(uid).collection('utilities').get();
+        state.utilities = utilSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Load user document for achievements and settings
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            state.achievements = userData.achievements || [];
+            state.shownAchievements = userData.shownAchievements || [];
+            state.netWorth = userData.netWorth || 0;
+        }
+
         // Calculate streak
         calculateStreak();
         
@@ -413,25 +515,31 @@ function checkAchievements() {
     const newAchievements = [];
     
     achievementsDef.forEach(ach => {
+        // Check if achievement is earned but not yet in state
         if (!state.achievements.includes(ach.id) && ach.condition(state)) {
-            newAchievements.push(ach);
             state.achievements.push(ach.id);
+            // Only show toast if this achievement hasn't been shown before
+            if (!state.shownAchievements.includes(ach.id)) {
+                newAchievements.push(ach);
+                state.shownAchievements.push(ach.id);
+            }
         }
     });
     
-    if (newAchievements.length > 0) {
-        // Save achievements
+    if (newAchievements.length > 0 || state.achievements.length > 0) {
+        // Save achievements and shown achievements
         if (state.user) {
             db.collection('users').doc(state.user.uid).update({
-                achievements: state.achievements
+                achievements: state.achievements,
+                shownAchievements: state.shownAchievements
             }).catch(() => {});
         }
         
-        // Show toast for new achievements
-        newAchievements.forEach(ach => {
+        // Show toast only for truly new achievements
+        newAchievements.forEach((ach, idx) => {
             setTimeout(() => {
-                toast(`🏆 Achievement: ${ach.name}!`, 'success');
-            }, 500);
+                toast(`🏆 Achievement deblocat: ${ach.name}!`, 'success');
+            }, 500 + idx * 1000);
         });
     }
 }
@@ -445,10 +553,97 @@ function renderAll() {
     renderRemindersPreview();
     renderAccountsPreview();
     renderBudgetsPreview();
+    renderUtilitiesPreview();
+    renderSmartTips();
+    updateFIREProgress();
     updateChart();
     generateInsights();
     updateNetWorth();
 }
+
+// Update FIRE progress display
+function updateFIREProgress() {
+    const fire = calculateFIRE();
+    
+    const fireNumberEl = $('fireNumber');
+    const fireProgressEl = $('fireProgress');
+    const fireYearsEl = $('fireYears');
+    const fireFillEl = $('fireFill');
+    
+    if (fireNumberEl) fireNumberEl.textContent = `${fire.fireNumber.toLocaleString()} ${state.currency}`;
+    if (fireProgressEl) fireProgressEl.textContent = `${Math.min(fire.progress, 100).toFixed(1)}%`;
+    if (fireYearsEl) {
+        if (fire.yearsToFire === Infinity || fire.yearsToFire > 100) {
+            fireYearsEl.textContent = '∞';
+        } else {
+            fireYearsEl.textContent = `${fire.yearsToFire.toFixed(1)} ani`;
+        }
+    }
+    if (fireFillEl) fireFillEl.style.width = `${Math.min(fire.progress, 100)}%`;
+}
+
+// Show Savings Calculator modal
+function showSavingsCalculator() {
+    const target = prompt('Pentru ce sumă vrei să economisești?', '10000');
+    if (!target) return;
+    
+    const amount = parseFloat(target);
+    if (isNaN(amount) || amount <= 0) {
+        toast('Te rog introdu o sumă validă', 'error');
+        return;
+    }
+    
+    const result = calculateSavingsTime(amount);
+    
+    if (result.months === Infinity) {
+        toast('❌ ' + result.message, 'warning');
+    } else {
+        toast(`💰 Pentru ${amount.toLocaleString()} ${state.currency} ai nevoie de ${result.message} (economisești ~${result.monthlySavings.toLocaleString()} ${state.currency}/lună)`, 'success');
+    }
+}
+
+// Show FIRE Calculator details
+function showFIRECalculator() {
+    const fire = calculateFIRE();
+    
+    const message = `
+🔥 Calculator FIRE (Financial Independence)
+
+📊 Cheltuieli anuale: ${fire.annualExpense.toLocaleString()} ${state.currency}
+🎯 Obiectiv FIRE (25x): ${fire.fireNumber.toLocaleString()} ${state.currency}
+💰 Patrimoniu actual: ${fire.currentNetWorth.toLocaleString()} ${state.currency}
+📈 Progres: ${fire.progress.toFixed(1)}%
+💵 Economii lunare: ${fire.monthlySavings.toLocaleString()} ${state.currency}
+⏱️ Ani până la FIRE: ${fire.yearsToFire === Infinity ? '∞' : fire.yearsToFire.toFixed(1)}
+
+Regula 4%: Poți retrage 4% pe an din investiții fără a rămâne fără bani.
+    `.trim();
+    
+    alert(message);
+}
+
+// Make calculator functions global
+window.showSavingsCalculator = showSavingsCalculator;
+window.showFIRECalculator = showFIRECalculator;
+window.updateFIREProgress = updateFIREProgress;
+
+// Toggle floating action button
+function toggleFab() {
+    const container = $('fabContainer');
+    if (container) {
+        container.classList.toggle('open');
+    }
+}
+
+// Close FAB when clicking outside
+document.addEventListener('click', (e) => {
+    const fab = $('fabContainer');
+    if (fab && !fab.contains(e.target)) {
+        fab.classList.remove('open');
+    }
+});
+
+window.toggleFab = toggleFab;
 
 // Get month transactions
 function getMonthTransactions() {
@@ -943,6 +1138,7 @@ function switchView(view) {
     if (view === 'debts') renderDebts();
     if (view === 'reminders') renderReminders();
     if (view === 'accounts') renderAccounts();
+    if (view === 'utilities') renderUtilitiesView();
 }
 
 // Change month
@@ -2491,6 +2687,31 @@ Tranzacții luna aceasta: ${monthTrans.length}`;
         }
     }
 
+    // Utilities
+    if (state.utilities && state.utilities.length > 0) {
+        const currentUtilMonth = `${state.year}-${String(state.month + 1).padStart(2, '0')}`;
+        const monthUtils = state.utilities.filter(u => u.month === currentUtilMonth);
+        const totalUtils = monthUtils.reduce((sum, u) => sum + u.amount, 0);
+        
+        context += `
+
+═══════════════════════════════════════
+🏠 UTILITĂȚI CASĂ
+═══════════════════════════════════════
+Total utilități luna asta: ${totalUtils.toLocaleString()} ${state.currency}`;
+        
+        const byType = {};
+        monthUtils.forEach(u => {
+            const ut = utilityTypes.find(t => t.id === u.type);
+            const name = ut ? ut.name : u.type;
+            byType[name] = (byType[name] || 0) + u.amount;
+        });
+        
+        Object.entries(byType).forEach(([name, amount]) => {
+            context += `\n- ${name}: ${amount.toLocaleString()} ${state.currency}`;
+        });
+    }
+
     // Achievements
     const unlockedAchievements = achievementsDef.filter(a => a.condition(state));
     if (unlockedAchievements.length > 0) {
@@ -2693,6 +2914,541 @@ function downloadFile(content, filename, type) {
     URL.revokeObjectURL(url);
 }
 
+// ========================================
+// UTILITIES FUNCTIONS
+// ========================================
+
+function openUtilityModal(type = '') {
+    const modal = $('utilityModal');
+    const form = $('utilityForm');
+    const typeSelect = $('utilityType');
+    const monthInput = $('utilityMonth');
+    
+    form.reset();
+    $('utilityId').value = '';
+    
+    // Set current month as default
+    const now = new Date();
+    monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    if (type) {
+        typeSelect.value = type;
+        updateUtilityUnit();
+    }
+    
+    $('utilityModalTitle').textContent = '➕ Adaugă factură utilități';
+    openModal('utilityModal');
+}
+
+function updateUtilityUnit() {
+    const type = $('utilityType').value;
+    const unitSpan = $('utilityUnit');
+    
+    const units = {
+        'electricity': 'kWh',
+        'gas': 'm³',
+        'water': 'm³',
+        'heating': 'Gcal',
+        'internet': 'Mbps',
+        'phone': 'min',
+        'tv': '',
+        'trash': '',
+        'maintenance': ''
+    };
+    
+    unitSpan.textContent = units[type] || '';
+}
+
+// Add event listener for utility type change
+document.addEventListener('DOMContentLoaded', () => {
+    const utilityType = $('utilityType');
+    if (utilityType) {
+        utilityType.addEventListener('change', updateUtilityUnit);
+    }
+    
+    // PDF dropzone handlers
+    const dropzone = $('pdfDropzone');
+    const fileInput = $('pdfFileInput');
+    
+    if (dropzone && fileInput) {
+        dropzone.addEventListener('click', () => fileInput.click());
+        
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+        
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                processPdfFile(file);
+            } else {
+                toast('Te rog selectează un fișier PDF', 'error');
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) processPdfFile(file);
+        });
+    }
+});
+
+async function saveUtility(e) {
+    e.preventDefault();
+    if (!state.user) return;
+    
+    const type = $('utilityType').value;
+    const month = $('utilityMonth').value;
+    const amount = parseFloat($('utilityAmount').value);
+    const consumption = parseFloat($('utilityConsumption').value) || null;
+    const provider = $('utilityProvider').value.trim();
+    const note = $('utilityNote').value.trim();
+    const id = $('utilityId').value;
+    
+    const utilityData = {
+        type,
+        month,
+        amount,
+        consumption,
+        provider,
+        note,
+        createdAt: new Date().toISOString()
+    };
+    
+    try {
+        const ref = db.collection('users').doc(state.user.uid).collection('utilities');
+        
+        if (id) {
+            await ref.doc(id).update(utilityData);
+            const idx = state.utilities.findIndex(u => u.id === id);
+            if (idx > -1) state.utilities[idx] = { id, ...utilityData };
+            toast('Factură actualizată!', 'success');
+        } else {
+            const doc = await ref.add(utilityData);
+            state.utilities.push({ id: doc.id, ...utilityData });
+            toast('Factură adăugată!', 'success');
+            
+            // Also add as transaction
+            await addUtilityAsTransaction(utilityData);
+        }
+        
+        closeModal('utilityModal');
+        renderUtilitiesPreview();
+        if ($('utilitiesView')?.classList.contains('active')) {
+            renderUtilitiesView();
+        }
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
+        console.error(err);
+    }
+}
+
+async function addUtilityAsTransaction(utility) {
+    const utilType = utilityTypes.find(u => u.id === utility.type);
+    const monthDate = new Date(utility.month + '-15');
+    
+    const transData = {
+        type: 'expense',
+        category: 'utilities',
+        subcategory: utilType?.name || utility.type,
+        amount: utility.amount,
+        date: utility.month + '-15',
+        note: utility.provider ? `Factură ${utilType?.name} - ${utility.provider}` : `Factură ${utilType?.name}`,
+        createdAt: new Date().toISOString()
+    };
+    
+    try {
+        const doc = await db.collection('users').doc(state.user.uid).collection('transactions').add(transData);
+        state.transactions.push({ id: doc.id, ...transData });
+        state.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } catch (err) {
+        console.error('Error adding utility transaction:', err);
+    }
+}
+
+function renderUtilitiesPreview() {
+    const currentMonth = `${state.year}-${String(state.month + 1).padStart(2, '0')}`;
+    
+    const monthUtilities = state.utilities.filter(u => u.month === currentMonth);
+    
+    const byType = {};
+    monthUtilities.forEach(u => {
+        if (!byType[u.type]) byType[u.type] = 0;
+        byType[u.type] += u.amount;
+    });
+    
+    // Update preview cards
+    const updatePreview = (id, type) => {
+        const el = $(id);
+        if (el) {
+            el.textContent = byType[type] ? `${byType[type].toLocaleString()} ${state.currency}` : '-- RON';
+        }
+    };
+    
+    updatePreview('utilElectricity', 'electricity');
+    updatePreview('utilGas', 'gas');
+    updatePreview('utilWater', 'water');
+    updatePreview('utilInternet', 'internet');
+}
+
+function renderUtilitiesView() {
+    const currentMonth = `${state.year}-${String(state.month + 1).padStart(2, '0')}`;
+    const prevMonth = state.month === 0 
+        ? `${state.year - 1}-12` 
+        : `${state.year}-${String(state.month).padStart(2, '0')}`;
+    
+    // Current month utilities
+    const monthUtilities = state.utilities.filter(u => u.month === currentMonth);
+    const prevMonthUtilities = state.utilities.filter(u => u.month === prevMonth);
+    
+    const total = monthUtilities.reduce((sum, u) => sum + u.amount, 0);
+    const prevTotal = prevMonthUtilities.reduce((sum, u) => sum + u.amount, 0);
+    
+    // Update total
+    const totalEl = $('utilitiesTotalAmount');
+    if (totalEl) totalEl.textContent = `${total.toLocaleString()} ${state.currency}`;
+    
+    const monthLabel = $('utilitiesMonthLabel');
+    if (monthLabel) monthLabel.textContent = `${months[state.month]} ${state.year}`;
+    
+    // Comparison
+    const compEl = $('utilitiesComparison');
+    if (compEl && prevTotal > 0) {
+        const diff = ((total - prevTotal) / prevTotal * 100).toFixed(1);
+        const sign = diff >= 0 ? '+' : '';
+        compEl.textContent = `vs. luna trecută: ${sign}${diff}%`;
+        compEl.className = diff < 0 ? 'utilities-comparison down' : 'utilities-comparison up';
+    }
+    
+    // Update each utility card
+    const byType = {};
+    const byTypePrev = {};
+    monthUtilities.forEach(u => {
+        if (!byType[u.type]) byType[u.type] = { amount: 0, consumption: 0 };
+        byType[u.type].amount += u.amount;
+        if (u.consumption) byType[u.type].consumption += u.consumption;
+    });
+    prevMonthUtilities.forEach(u => {
+        if (!byTypePrev[u.type]) byTypePrev[u.type] = 0;
+        byTypePrev[u.type] += u.amount;
+    });
+    
+    utilityTypes.forEach(ut => {
+        const data = byType[ut.id] || { amount: 0, consumption: 0 };
+        const prev = byTypePrev[ut.id] || 0;
+        
+        const valueEl = $(`util${ut.id.charAt(0).toUpperCase() + ut.id.slice(1)}Detail`);
+        const unitEl = $(`util${ut.id.charAt(0).toUpperCase() + ut.id.slice(1)}Unit`);
+        const trendEl = $(`util${ut.id.charAt(0).toUpperCase() + ut.id.slice(1)}Trend`);
+        
+        if (valueEl) valueEl.textContent = data.amount ? `${data.amount.toLocaleString()} ${state.currency}` : '-- RON';
+        if (unitEl && ut.unit) unitEl.textContent = data.consumption ? `${data.consumption} ${ut.unit}` : `-- ${ut.unit}`;
+        if (trendEl && prev > 0) {
+            const diff = ((data.amount - prev) / prev * 100).toFixed(0);
+            const sign = diff >= 0 ? '+' : '';
+            trendEl.innerHTML = `<span class="${diff < 0 ? 'down' : 'up'}">${sign}${diff}% vs. luna trecută</span>`;
+        }
+    });
+    
+    // Render history
+    renderUtilitiesHistory();
+    
+    // Render chart
+    renderUtilitiesChart();
+}
+
+function renderUtilitiesHistory() {
+    const container = $('utilitiesHistory');
+    if (!container) return;
+    
+    const sorted = [...state.utilities].sort((a, b) => b.month.localeCompare(a.month));
+    
+    if (sorted.length === 0) {
+        container.innerHTML = `<div class="empty-state small"><span class="empty-icon">📄</span><p>Nicio factură înregistrată</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = sorted.slice(0, 20).map(u => {
+        const ut = utilityTypes.find(t => t.id === u.type) || { icon: '📄', name: u.type, color: '#64748b' };
+        const monthParts = u.month.split('-');
+        const monthName = months[parseInt(monthParts[1]) - 1];
+        
+        return `
+            <div class="utility-history-item" onclick="editUtility('${u.id}')">
+                <div class="utility-history-icon" style="background: ${ut.color}">${ut.icon}</div>
+                <div class="utility-history-info">
+                    <span class="utility-history-type">${ut.name}</span>
+                    <span class="utility-history-date">${monthName} ${monthParts[0]}${u.provider ? ` • ${u.provider}` : ''}</span>
+                </div>
+                <div>
+                    <div class="utility-history-amount">${u.amount.toLocaleString()} ${state.currency}</div>
+                    ${u.consumption ? `<div class="utility-history-consumption">${u.consumption} ${ut.unit}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function editUtility(id) {
+    const utility = state.utilities.find(u => u.id === id);
+    if (!utility) return;
+    
+    $('utilityId').value = id;
+    $('utilityType').value = utility.type;
+    $('utilityMonth').value = utility.month;
+    $('utilityAmount').value = utility.amount;
+    $('utilityConsumption').value = utility.consumption || '';
+    $('utilityProvider').value = utility.provider || '';
+    $('utilityNote').value = utility.note || '';
+    
+    updateUtilityUnit();
+    $('utilityModalTitle').textContent = '✏️ Editează factură';
+    openModal('utilityModal');
+}
+
+function renderUtilitiesChart() {
+    const ctx = document.getElementById('utilitiesChart');
+    if (!ctx) return;
+    
+    // Destroy existing chart
+    if (state.utilitiesChart) {
+        state.utilitiesChart.destroy();
+    }
+    
+    // Get last 12 months data
+    const monthsData = [];
+    const now = new Date();
+    
+    for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const monthUtils = state.utilities.filter(u => u.month === monthKey);
+        const total = monthUtils.reduce((sum, u) => sum + u.amount, 0);
+        
+        monthsData.push({
+            label: months[d.getMonth()].substring(0, 3),
+            value: total
+        });
+    }
+    
+    state.utilitiesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: monthsData.map(m => m.label),
+            datasets: [{
+                label: 'Total utilități',
+                data: monthsData.map(m => m.value),
+                backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                borderColor: '#8b5cf6',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { color: '#9ca3af' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#9ca3af' }
+                }
+            }
+        }
+    });
+}
+
+// ========================================
+// IMPORT PDF FUNCTIONS
+// ========================================
+
+let pendingImportTransactions = [];
+
+async function processPdfFile(file) {
+    const progress = $('importProgress');
+    const progressFill = $('importProgressFill');
+    const status = $('importStatus');
+    const preview = $('importPreview');
+    
+    progress.classList.remove('hidden');
+    preview.classList.add('hidden');
+    progressFill.style.width = '10%';
+    status.textContent = 'Se încarcă PDF-ul...';
+    
+    try {
+        // Read file as base64
+        const base64 = await readFileAsBase64(file);
+        progressFill.style.width = '30%';
+        status.textContent = 'Se extrage textul...';
+        
+        // Extract text from PDF using pdf.js or send to AI directly
+        const text = await extractTextFromPdf(base64);
+        progressFill.style.width = '50%';
+        status.textContent = 'AI analizează tranzacțiile...';
+        
+        // Send to AI for categorization
+        const transactions = await categorizeWithAI(text);
+        progressFill.style.width = '100%';
+        status.textContent = `${transactions.length} tranzacții găsite!`;
+        
+        // Show preview
+        pendingImportTransactions = transactions;
+        renderImportPreview(transactions);
+        
+        setTimeout(() => {
+            progress.classList.add('hidden');
+            preview.classList.remove('hidden');
+        }, 500);
+        
+    } catch (err) {
+        console.error('PDF processing error:', err);
+        status.textContent = 'Eroare: ' + err.message;
+        progressFill.style.width = '0%';
+        toast('Eroare la procesarea PDF-ului', 'error');
+    }
+}
+
+function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function extractTextFromPdf(base64) {
+    // For simplicity, we'll use the raw base64 and let AI handle it
+    // In production, you'd use pdf.js to extract text first
+    return base64;
+}
+
+async function categorizeWithAI(pdfContent) {
+    const categoriesList = categories.expense.map(c => `${c.id}: ${c.name} (${c.subs.join(', ')})`).join('\n');
+    const incomeList = categories.income.map(c => `${c.id}: ${c.name} (${c.subs.join(', ')})`).join('\n');
+    
+    const prompt = `Analizează acest extras de cont PDF și extrage toate tranzacțiile.
+
+Pentru fiecare tranzacție, returnează un JSON array cu obiecte care au:
+- date: data în format YYYY-MM-DD
+- amount: suma (număr pozitiv)
+- type: "expense" sau "income"
+- category: id-ul categoriei din lista de mai jos
+- subcategory: subcategoria potrivită
+- description: descrierea originală din extras
+
+CATEGORII CHELTUIELI:
+${categoriesList}
+
+CATEGORII VENITURI:
+${incomeList}
+
+Returnează DOAR un JSON array valid, fără alte explicații. Exemplu:
+[{"date":"2024-12-01","amount":150.50,"type":"expense","category":"food","subcategory":"Supermarket","description":"KAUFLAND RO"}]
+
+Dacă nu poți extrage tranzacții, returnează: []
+
+CONȚINUT PDF (base64):
+${pdfContent.substring(0, 10000)}...`;
+
+    try {
+        const response = await callGeminiAPI(prompt);
+        
+        // Try to parse JSON from response
+        const jsonMatch = response.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]);
+        }
+        return [];
+    } catch (err) {
+        console.error('AI categorization error:', err);
+        return [];
+    }
+}
+
+function renderImportPreview(transactions) {
+    const countEl = $('importCount');
+    const listEl = $('importTransList');
+    
+    if (countEl) countEl.textContent = `${transactions.length} tranzacții găsite`;
+    
+    if (listEl) {
+        listEl.innerHTML = transactions.map((t, idx) => {
+            const cat = findCategory(t.type, t.category);
+            return `
+                <div class="import-trans-item">
+                    <div class="import-trans-icon" style="background: ${cat?.color || '#64748b'}">${cat?.icon || '📦'}</div>
+                    <div class="import-trans-info">
+                        <div class="import-trans-desc">${t.description || 'Tranzacție'}</div>
+                        <div class="import-trans-cat">${cat?.name || t.category} • ${t.date}</div>
+                    </div>
+                    <div class="import-trans-amount ${t.type}">${t.type === 'expense' ? '-' : '+'}${t.amount.toLocaleString()} ${state.currency}</div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+function clearImportPreview() {
+    pendingImportTransactions = [];
+    $('importPreview').classList.add('hidden');
+    $('pdfFileInput').value = '';
+}
+
+async function confirmImport() {
+    if (pendingImportTransactions.length === 0) {
+        toast('Nu există tranzacții de importat', 'error');
+        return;
+    }
+    
+    try {
+        const batch = db.batch();
+        const ref = db.collection('users').doc(state.user.uid).collection('transactions');
+        
+        pendingImportTransactions.forEach(t => {
+            const docRef = ref.doc();
+            batch.set(docRef, {
+                type: t.type,
+                category: t.category,
+                subcategory: t.subcategory || '',
+                amount: t.amount,
+                date: t.date,
+                note: t.description || '',
+                imported: true,
+                createdAt: new Date().toISOString()
+            });
+        });
+        
+        await batch.commit();
+        
+        // Reload transactions
+        await loadAllData();
+        
+        toast(`${pendingImportTransactions.length} tranzacții importate!`, 'success');
+        pendingImportTransactions = [];
+        closeModal('importPdfModal');
+        clearImportPreview();
+        
+    } catch (err) {
+        console.error('Import error:', err);
+        toast('Eroare la import', 'error');
+    }
+}
+
 // Clear all data
 async function clearAllData() {
     if (!confirm('Ești sigur că vrei să ștergi TOATE datele? Această acțiune este ireversibilă!')) return;
@@ -2702,7 +3458,7 @@ async function clearAllData() {
         const uid = state.user.uid;
         const batch = db.batch();
         
-        const collections = ['transactions', 'goals', 'reminders', 'debts', 'accounts', 'budgets'];
+        const collections = ['transactions', 'goals', 'reminders', 'debts', 'accounts', 'budgets', 'utilities'];
         for (const col of collections) {
             const snap = await db.collection('users').doc(uid).collection(col).get();
             snap.docs.forEach(doc => batch.delete(doc.ref));
@@ -3298,3 +4054,499 @@ window.startVoiceInput = startVoiceInput;
 window.openSplitModal = openSplitModal;
 window.showWeeklyReport = showWeeklyReport;
 window.calculateHealthScore = calculateHealthScore;
+
+// ========================================
+// NEW PREMIUM FEATURES
+// ========================================
+
+// Savings Calculator - Cât durează să economisești pentru ceva
+function calculateSavingsTime(targetAmount) {
+    const monthlyTrans = getMonthTransactions();
+    let monthlyIncome = 0, monthlyExpense = 0;
+    
+    monthlyTrans.forEach(t => {
+        if (t.type === 'income') monthlyIncome += t.amount;
+        else if (t.type === 'expense') monthlyExpense += t.amount;
+    });
+    
+    const monthlySavings = monthlyIncome - monthlyExpense;
+    
+    if (monthlySavings <= 0) {
+        return { months: Infinity, message: 'Nu economisești suficient în prezent' };
+    }
+    
+    const months = Math.ceil(targetAmount / monthlySavings);
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+    
+    let message = '';
+    if (years > 0) {
+        message = `${years} an${years > 1 ? 'i' : ''} și ${remainingMonths} lun${remainingMonths !== 1 ? 'i' : 'ă'}`;
+    } else {
+        message = `${months} lun${months !== 1 ? 'i' : 'ă'}`;
+    }
+    
+    return { months, years, remainingMonths, message, monthlySavings };
+}
+
+// Track net worth history monthly
+async function updateNetWorthHistory() {
+    if (!state.user) return;
+    
+    const currentMonth = `${state.year}-${String(state.month + 1).padStart(2, '0')}`;
+    const existing = state.netWorthHistory.find(h => h.month === currentMonth);
+    
+    const historyEntry = {
+        month: currentMonth,
+        netWorth: state.netWorth,
+        date: new Date().toISOString()
+    };
+    
+    try {
+        if (existing) {
+            await db.collection('users').doc(state.user.uid)
+                .collection('netWorthHistory').doc(existing.id).update(historyEntry);
+        } else {
+            const doc = await db.collection('users').doc(state.user.uid)
+                .collection('netWorthHistory').add(historyEntry);
+            state.netWorthHistory.push({ id: doc.id, ...historyEntry });
+        }
+    } catch (err) {
+        console.error('Error saving net worth history:', err);
+    }
+}
+
+// Year vs Year comparison
+function getYearComparison() {
+    const currentYear = state.year;
+    const lastYear = currentYear - 1;
+    
+    const thisYearTrans = state.transactions.filter(t => new Date(t.date).getFullYear() === currentYear);
+    const lastYearTrans = state.transactions.filter(t => new Date(t.date).getFullYear() === lastYear);
+    
+    const calcYearStats = (trans) => {
+        let income = 0, expense = 0;
+        trans.forEach(t => {
+            if (t.type === 'income') income += t.amount;
+            else if (t.type === 'expense') expense += t.amount;
+        });
+        return { income, expense, savings: income - expense, count: trans.length };
+    };
+    
+    const thisYear = calcYearStats(thisYearTrans);
+    const lastYearStats = calcYearStats(lastYearTrans);
+    
+    return {
+        thisYear,
+        lastYear: lastYearStats,
+        incomeChange: lastYearStats.income > 0 ? ((thisYear.income - lastYearStats.income) / lastYearStats.income * 100) : 0,
+        expenseChange: lastYearStats.expense > 0 ? ((thisYear.expense - lastYearStats.expense) / lastYearStats.expense * 100) : 0,
+        savingsChange: lastYearStats.savings !== 0 ? ((thisYear.savings - lastYearStats.savings) / Math.abs(lastYearStats.savings) * 100) : 0
+    };
+}
+
+// Smart Tips based on spending patterns
+function generateSmartTips() {
+    const tips = [];
+    const monthTrans = getMonthTransactions();
+    
+    let income = 0, expense = 0;
+    const byCategory = {};
+    
+    monthTrans.forEach(t => {
+        if (t.type === 'income') income += t.amount;
+        else if (t.type === 'expense') {
+            expense += t.amount;
+            byCategory[t.category] = (byCategory[t.category] || 0) + t.amount;
+        }
+    });
+    
+    // Tip 1: Spending too much on food
+    if (byCategory['food'] && income > 0 && byCategory['food'] / income > 0.25) {
+        tips.push({
+            icon: '🍔',
+            title: 'Cheltuieli mari pe mâncare',
+            message: `Cheltuiești ${(byCategory['food'] / income * 100).toFixed(0)}% din venit pe mâncare. Încearcă să gătești mai mult acasă!`,
+            category: 'food'
+        });
+    }
+    
+    // Tip 2: Subscriptions check
+    if (byCategory['subscriptions'] && byCategory['subscriptions'] > 200) {
+        tips.push({
+            icon: '📱',
+            title: 'Verifică abonamentele',
+            message: `Ai ${byCategory['subscriptions'].toLocaleString()} ${state.currency} pe abonamente. Chiar le folosești pe toate?`,
+            category: 'subscriptions'
+        });
+    }
+    
+    // Tip 3: No emergency fund
+    const totalInAccounts = state.accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+    const monthlyExpense = expense || 1;
+    const emergencyMonths = totalInAccounts / monthlyExpense;
+    
+    if (emergencyMonths < 3) {
+        tips.push({
+            icon: '🚨',
+            title: 'Fond de urgență',
+            message: `Ai doar ${emergencyMonths.toFixed(1)} luni de cheltuieli în conturi. Ideal sunt 3-6 luni.`,
+            category: 'savings'
+        });
+    }
+    
+    // Tip 4: Good savings rate
+    const savingsRate = income > 0 ? (income - expense) / income * 100 : 0;
+    if (savingsRate >= 30) {
+        tips.push({
+            icon: '🌟',
+            title: 'Excelent!',
+            message: `Economisești ${savingsRate.toFixed(0)}% din venit! Continuă așa!`,
+            category: 'positive'
+        });
+    }
+    
+    // Tip 5: Weekend spending
+    let weekendSpend = 0, weekdaySpend = 0;
+    monthTrans.forEach(t => {
+        if (t.type === 'expense') {
+            const day = new Date(t.date).getDay();
+            if (day === 0 || day === 6) weekendSpend += t.amount;
+            else weekdaySpend += t.amount;
+        }
+    });
+    
+    if (weekendSpend > weekdaySpend * 0.5 && weekendSpend > 500) {
+        tips.push({
+            icon: '🎉',
+            title: 'Cheltuieli de weekend',
+            message: `Cheltuiești ${weekendSpend.toLocaleString()} ${state.currency} în weekend-uri. Poate o activitate gratuită?`,
+            category: 'entertainment'
+        });
+    }
+    
+    // Tip 6: No investments
+    const hasInvestments = state.transactions.some(t => 
+        t.category === 'invest_expense' || t.category === 'investments_income' || t.category === 'crypto_income'
+    );
+    
+    if (!hasInvestments && income > 5000) {
+        tips.push({
+            icon: '📈',
+            title: 'Gândește-te la investiții',
+            message: 'Cu veniturile tale, ai putea începe să investești pentru viitor.',
+            category: 'investments'
+        });
+    }
+    
+    // Tip 7: High transport costs
+    if (byCategory['transport'] && income > 0 && byCategory['transport'] / income > 0.15) {
+        tips.push({
+            icon: '🚗',
+            title: 'Costuri transport ridicate',
+            message: `${(byCategory['transport'] / income * 100).toFixed(0)}% din venit merge pe transport. Carpooling sau transport public?`,
+            category: 'transport'
+        });
+    }
+    
+    return tips;
+}
+
+// Render smart tips
+function renderSmartTips() {
+    const container = $('smartTips');
+    if (!container) return;
+    
+    const tips = generateSmartTips();
+    
+    if (tips.length === 0) {
+        container.innerHTML = '<p class="no-tips">🎉 Felicitări! Finanțele tale arată bine!</p>';
+        return;
+    }
+    
+    container.innerHTML = tips.slice(0, 4).map(tip => `
+        <div class="smart-tip" data-category="${tip.category}">
+            <span class="tip-icon">${tip.icon}</span>
+            <div class="tip-content">
+                <span class="tip-title">${tip.title}</span>
+                <span class="tip-message">${tip.message}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Bills Calendar - Upcoming payments
+function getUpcomingBills() {
+    const bills = [];
+    const today = new Date();
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    
+    // From reminders
+    state.reminders.filter(r => r.active).forEach(r => {
+        bills.push({
+            name: r.name,
+            amount: r.amount,
+            date: r.nextDate || null,
+            type: 'reminder',
+            icon: '⏰'
+        });
+    });
+    
+    // From recurring patterns in transactions
+    const patterns = detectRecurringTransactions();
+    patterns.forEach(p => {
+        bills.push({
+            name: p.description,
+            amount: p.amount,
+            date: p.nextExpected,
+            type: 'predicted',
+            icon: '🔄'
+        });
+    });
+    
+    return bills.sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 10);
+}
+
+// Detect recurring transactions
+function detectRecurringTransactions() {
+    const patterns = [];
+    const grouped = {};
+    
+    // Group by similar description and amount
+    state.transactions.filter(t => t.type === 'expense').forEach(t => {
+        const key = `${t.category}-${Math.round(t.amount / 10) * 10}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(t);
+    });
+    
+    Object.entries(grouped).forEach(([key, trans]) => {
+        if (trans.length >= 2) {
+            // Check if monthly pattern (roughly 28-31 days apart)
+            const dates = trans.map(t => new Date(t.date)).sort((a, b) => b - a);
+            
+            if (dates.length >= 2) {
+                const diff = (dates[0] - dates[1]) / (1000 * 60 * 60 * 24);
+                
+                if (diff >= 25 && diff <= 35) {
+                    const avgAmount = trans.reduce((s, t) => s + t.amount, 0) / trans.length;
+                    const nextExpected = new Date(dates[0]);
+                    nextExpected.setMonth(nextExpected.getMonth() + 1);
+                    
+                    const cat = findCategory('expense', trans[0].category);
+                    
+                    patterns.push({
+                        category: trans[0].category,
+                        description: cat?.name || trans[0].category,
+                        amount: avgAmount,
+                        frequency: 'monthly',
+                        nextExpected: nextExpected.toISOString().split('T')[0],
+                        occurrences: trans.length
+                    });
+                }
+            }
+        }
+    });
+    
+    return patterns;
+}
+
+// Theme toggle
+function toggleTheme() {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', state.theme);
+    document.documentElement.setAttribute('data-theme', state.theme);
+    toast(`Temă schimbată: ${state.theme === 'dark' ? 'Întunecată' : 'Luminoasă'}`, 'success');
+}
+
+// Check time-based achievements
+function checkTimeAchievements() {
+    const now = new Date();
+    const hour = now.getHours();
+    const day = now.getDay();
+    
+    if (hour < 7) {
+        state.earlyBird = true;
+    }
+    if (hour >= 23) {
+        state.nightOwl = true;
+    }
+    if (day === 0 || day === 6) {
+        state.weekendWarrior = true;
+    }
+}
+
+// Quick add transaction
+function quickAddTransaction(type, category, amount, description = '') {
+    const transData = {
+        type,
+        category,
+        subcategory: '',
+        amount: parseFloat(amount),
+        date: new Date().toISOString().split('T')[0],
+        note: description,
+        createdAt: new Date().toISOString()
+    };
+    
+    // Check time achievements
+    checkTimeAchievements();
+    
+    return saveTransaction(transData);
+}
+
+// Investment Portfolio Tracker
+function renderPortfolioSummary() {
+    const investmentTrans = state.transactions.filter(t => 
+        t.category === 'invest_expense' || 
+        t.category === 'investments_income' ||
+        t.category === 'crypto_income'
+    );
+    
+    let totalInvested = 0;
+    let totalReturns = 0;
+    
+    investmentTrans.forEach(t => {
+        if (t.type === 'expense') totalInvested += t.amount;
+        else totalReturns += t.amount;
+    });
+    
+    return {
+        totalInvested,
+        totalReturns,
+        netGain: totalReturns - 0, // Simplified - returns only
+        investmentCount: investmentTrans.length
+    };
+}
+
+// Spending heatmap data (for future visualization)
+function getSpendingHeatmap() {
+    const heatmap = {};
+    
+    state.transactions.filter(t => t.type === 'expense').forEach(t => {
+        const date = t.date;
+        if (!heatmap[date]) heatmap[date] = 0;
+        heatmap[date] += t.amount;
+    });
+    
+    return heatmap;
+}
+
+// Financial freedom calculator (FIRE)
+function calculateFIRE() {
+    const monthTrans = getMonthTransactions();
+    let monthlyIncome = 0, monthlyExpense = 0;
+    
+    monthTrans.forEach(t => {
+        if (t.type === 'income') monthlyIncome += t.amount;
+        else if (t.type === 'expense') monthlyExpense += t.amount;
+    });
+    
+    const annualExpense = monthlyExpense * 12;
+    const fireNumber = annualExpense * 25; // 4% rule
+    const currentNetWorth = state.netWorth;
+    const monthlySavings = monthlyIncome - monthlyExpense;
+    
+    let yearsToFire = Infinity;
+    if (monthlySavings > 0) {
+        // Simplified calculation (doesn't account for compound growth)
+        yearsToFire = (fireNumber - currentNetWorth) / (monthlySavings * 12);
+    }
+    
+    return {
+        fireNumber,
+        currentNetWorth,
+        progress: currentNetWorth / fireNumber * 100,
+        yearsToFire: yearsToFire > 0 ? yearsToFire : 0,
+        monthlySavings,
+        annualExpense
+    };
+}
+
+// Category spending breakdown for AI context
+function getCategoryBreakdown(months = 6) {
+    const now = new Date();
+    const breakdown = {};
+    
+    for (let i = 0; i < months; i++) {
+        const targetDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
+        
+        const monthTrans = state.transactions.filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === targetDate.getMonth() && d.getFullYear() === targetDate.getFullYear();
+        });
+        
+        breakdown[monthKey] = {};
+        monthTrans.filter(t => t.type === 'expense').forEach(t => {
+            const cat = findCategory('expense', t.category);
+            const name = cat?.name || t.category;
+            breakdown[monthKey][name] = (breakdown[monthKey][name] || 0) + t.amount;
+        });
+    }
+    
+    return breakdown;
+}
+
+// Export more detailed reports
+function exportDetailedReport() {
+    const report = {
+        generatedAt: new Date().toISOString(),
+        user: state.user?.displayName || 'User',
+        summary: {
+            totalTransactions: state.transactions.length,
+            totalGoals: state.goals.length,
+            totalAccounts: state.accounts.length,
+            netWorth: state.netWorth,
+            healthScore: state.healthScore,
+            streak: state.streak
+        },
+        monthlyStats: [],
+        categoryBreakdown: getCategoryBreakdown(12),
+        yearComparison: getYearComparison(),
+        fire: calculateFIRE(),
+        tips: generateSmartTips()
+    };
+    
+    // Add monthly stats for last 12 months
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+        const targetDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthTrans = state.transactions.filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === targetDate.getMonth() && d.getFullYear() === targetDate.getFullYear();
+        });
+        
+        let income = 0, expense = 0;
+        monthTrans.forEach(t => {
+            if (t.type === 'income') income += t.amount;
+            else if (t.type === 'expense') expense += t.amount;
+        });
+        
+        report.monthlyStats.push({
+            month: months[targetDate.getMonth()],
+            year: targetDate.getFullYear(),
+            income,
+            expense,
+            savings: income - expense,
+            savingsRate: income > 0 ? ((income - expense) / income * 100).toFixed(1) : 0
+        });
+    }
+    
+    const json = JSON.stringify(report, null, 2);
+    downloadFile(json, `budget-pro-report-${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+    toast('Raport detaliat exportat!', 'success');
+}
+
+// Make new functions global
+window.calculateSavingsTime = calculateSavingsTime;
+window.getYearComparison = getYearComparison;
+window.generateSmartTips = generateSmartTips;
+window.renderSmartTips = renderSmartTips;
+window.toggleTheme = toggleTheme;
+window.quickAddTransaction = quickAddTransaction;
+window.calculateFIRE = calculateFIRE;
+window.exportDetailedReport = exportDetailedReport;
+window.openUtilityModal = openUtilityModal;
+window.saveUtility = saveUtility;
+window.editUtility = editUtility;
+window.confirmImport = confirmImport;
+window.clearImportPreview = clearImportPreview;

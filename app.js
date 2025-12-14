@@ -547,39 +547,40 @@ function checkAchievements() {
 // Render all
 function renderAll() {
     updateStats();
+    updateHeaderGreeting();
     renderRecentTransactions();
-    renderGoalsPreview();
-    renderDebtsPreview();
-    renderRemindersPreview();
-    renderAccountsPreview();
-    renderBudgetsPreview();
-    renderUtilitiesPreview();
-    renderSmartTips();
-    updateFIREProgress();
     updateChart();
-    generateInsights();
-    updateNetWorth();
+    updateMenuBadges();
+}
+
+// Update header greeting
+function updateHeaderGreeting() {
+    const greeting = $('headerGreeting');
+    if (!greeting || !state.user) return;
+    
+    const hour = new Date().getHours();
+    const name = state.user.displayName?.split(' ')[0] || 'Utilizator';
+    
+    let greet = 'Bună';
+    if (hour < 12) greet = 'Bună dimineața';
+    else if (hour < 18) greet = 'Bună ziua';
+    else greet = 'Bună seara';
+    
+    greeting.textContent = `${greet}, ${name}! 👋`;
+}
+
+// Update menu badges
+function updateMenuBadges() {
+    if ($('goalsCount')) $('goalsCount').textContent = state.goals.length || '';
+    if ($('debtsCount')) $('debtsCount').textContent = state.debts.length || '';
+    if ($('accountsCount')) $('accountsCount').textContent = state.accounts.length || '';
+    if ($('budgetsCount')) $('budgetsCount').textContent = state.budgets.length || '';
 }
 
 // Update FIRE progress display
 function updateFIREProgress() {
-    const fire = calculateFIRE();
-    
-    const fireNumberEl = $('fireNumber');
-    const fireProgressEl = $('fireProgress');
-    const fireYearsEl = $('fireYears');
-    const fireFillEl = $('fireFill');
-    
-    if (fireNumberEl) fireNumberEl.textContent = `${fire.fireNumber.toLocaleString()} ${state.currency}`;
-    if (fireProgressEl) fireProgressEl.textContent = `${Math.min(fire.progress, 100).toFixed(1)}%`;
-    if (fireYearsEl) {
-        if (fire.yearsToFire === Infinity || fire.yearsToFire > 100) {
-            fireYearsEl.textContent = '∞';
-        } else {
-            fireYearsEl.textContent = `${fire.yearsToFire.toFixed(1)} ani`;
-        }
-    }
-    if (fireFillEl) fireFillEl.style.width = `${Math.min(fire.progress, 100)}%`;
+    // Called from stats view
+    updateFIREDisplay();
 }
 
 // Show Savings Calculator modal
@@ -713,8 +714,9 @@ function updateStats() {
     if ($('dailyAvg')) $('dailyAvg').textContent = fmt(dailyAvg);
     if ($('prediction')) $('prediction').textContent = fmt(prediction);
     if ($('savingsRate')) $('savingsRate').textContent = state.savingsRate.toFixed(0) + '%';
+    if ($('savingsRateHome')) $('savingsRateHome').textContent = state.savingsRate.toFixed(0) + '%';
     if ($('daysLeft')) $('daysLeft').textContent = daysLeft;
-    if ($('streakCount')) $('streakCount').textContent = state.streak;
+    if ($('streakCount')) $('streakCount').textContent = state.streak + '🔥';
     
     // Update month display
     if ($('currentMonth')) $('currentMonth').textContent = months[state.month] + ' ' + state.year;
@@ -825,7 +827,7 @@ function checkBudgetAlerts() {
 // Render recent transactions
 function renderRecentTransactions() {
     const trans = getMonthTransactions().slice(0, 5);
-    const container = $('recentTrans');
+    const container = $('recentTransactions');
     if (!container) return;
     
     if (trans.length === 0) {
@@ -833,26 +835,32 @@ function renderRecentTransactions() {
         return;
     }
     
-    container.innerHTML = trans.map(t => transactionHTML(t)).join('');
+    container.innerHTML = trans.map(t => {
+        const cat = findCategory(t.type, t.category);
+        return `
+            <div class="trans-item" onclick="editTransaction('${t.id}')">
+                <div class="trans-icon" style="background: ${cat?.color || '#666'}20">${cat?.icon || '📦'}</div>
+                <div class="trans-info">
+                    <div class="trans-category">${cat?.name || t.category}</div>
+                    <div class="trans-meta">${t.subcategory || ''} · ${formatDate(t.date)}</div>
+                </div>
+                <div class="trans-amount ${t.type}">${t.type === 'expense' ? '-' : '+'}${t.amount.toLocaleString()} ${state.currency}</div>
+            </div>
+        `;
+    }).join('');
 }
 
 // Render all transactions
 function renderAllTransactions() {
-    let trans = getMonthTransactions();
+    // Reset search when switching to transactions view
+    const searchInput = $('searchInput');
+    if (searchInput && !searchQuery) searchInput.value = '';
     
-    if (state.filter !== 'all') {
-        trans = trans.filter(t => t.type === state.filter);
-    }
+    // Update month display
+    const transMonth = $('transMonth');
+    if (transMonth) transMonth.textContent = `${months[state.month]} ${state.year}`;
     
-    const container = $('allTransactions');
-    if (!container) return;
-    
-    if (trans.length === 0) {
-        container.innerHTML = `<div class="empty-state"><span class="empty-icon">📝</span><p>Nicio tranzacție în această lună</p></div>`;
-        return;
-    }
-    
-    container.innerHTML = trans.map(t => transactionHTML(t, true)).join('');
+    renderFilteredTransactions();
 }
 
 // Transaction HTML
@@ -1132,13 +1140,322 @@ function switchView(view) {
     const viewEl = $(view + 'View');
     if (viewEl) viewEl.classList.add('active');
     
+    // Update bottom nav
+    $$('.nav-item').forEach(n => {
+        n.classList.toggle('active', n.dataset.view === view);
+    });
+    
+    // Update menu items
+    $$('.menu-item').forEach(m => {
+        m.classList.toggle('active', m.dataset.view === view);
+    });
+    
+    // Update header title
+    const titles = {
+        home: 'Budget Pro',
+        transactions: 'Tranzacții',
+        analytics: 'Analiză',
+        accounts: 'Conturi',
+        budgets: 'Bugete',
+        goals: 'Obiective',
+        debts: 'Datorii',
+        utilities: 'Utilități',
+        reminders: 'Remindere',
+        achievements: 'Achievements',
+        settings: 'Setări'
+    };
+    const headerTitle = $('headerTitle');
+    if (headerTitle) headerTitle.textContent = titles[view] || 'Budget Pro';
+    
+    // Render view-specific content
     if (view === 'transactions') renderAllTransactions();
     if (view === 'analytics') updateAnalytics();
     if (view === 'goals') renderGoals();
     if (view === 'debts') renderDebts();
-    if (view === 'reminders') renderReminders();
     if (view === 'accounts') renderAccounts();
+    if (view === 'budgets') renderBudgetsView();
     if (view === 'utilities') renderUtilitiesView();
+    if (view === 'reminders') renderReminders();
+    if (view === 'achievements') renderAchievementsView();
+    if (view === 'settings') renderSettingsView();
+}
+
+// Navigate and close menu
+function navigateTo(view) {
+    switchView(view);
+    closeMenu();
+}
+
+// Toggle side menu
+function toggleMenu() {
+    const menu = $('sideMenu');
+    if (menu) menu.classList.toggle('open');
+}
+
+// Close menu
+function closeMenu() {
+    const menu = $('sideMenu');
+    if (menu) menu.classList.remove('open');
+}
+
+// Render achievements view
+function renderAchievementsView() {
+    const container = $('achievementsList');
+    const countEl = $('achievementsCount');
+    if (!container) return;
+    
+    const unlocked = achievementsDef.filter(a => state.achievements.includes(a.id));
+    if (countEl) countEl.textContent = `${unlocked.length}/${achievementsDef.length}`;
+    
+    container.innerHTML = achievementsDef.map(a => {
+        const isUnlocked = state.achievements.includes(a.id);
+        return `
+            <div class="achievement-badge ${isUnlocked ? 'unlocked' : ''}" title="${a.desc}">
+                <span class="badge-icon">${a.icon}</span>
+                <span class="badge-name">${a.name}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// Render settings view
+function renderSettingsView() {
+    const nameEl = $('settingsName');
+    const emailEl = $('settingsEmail');
+    const avatarEl = $('settingsAvatar');
+    const netWorthInput = $('netWorthInput');
+    const menuNameEl = $('menuUserName');
+    const menuEmailEl = $('menuUserEmail');
+    const menuAvatarEl = $('menuAvatar');
+    
+    if (state.user) {
+        const name = state.user.displayName || 'Utilizator';
+        const email = state.user.email || '';
+        const initial = name.charAt(0).toUpperCase();
+        
+        if (nameEl) nameEl.textContent = name;
+        if (emailEl) emailEl.textContent = email;
+        if (avatarEl) avatarEl.textContent = initial;
+        if (menuNameEl) menuNameEl.textContent = name;
+        if (menuEmailEl) menuEmailEl.textContent = email;
+        if (menuAvatarEl) menuAvatarEl.textContent = initial;
+    }
+    
+    if (netWorthInput) netWorthInput.value = state.netWorth || '';
+}
+
+// Save net worth from settings
+async function saveNetWorth() {
+    const input = $('netWorthInput');
+    if (!input || !state.user) return;
+    
+    const value = parseFloat(input.value) || 0;
+    state.netWorth = value;
+    
+    try {
+        await db.collection('users').doc(state.user.uid).set({ netWorth: value }, { merge: true });
+        toast('Patrimoniu salvat!', 'success');
+        updateNetWorth();
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
+    }
+}
+
+// Render budgets view
+function renderBudgetsView() {
+    const container = $('budgetsList');
+    if (!container) return;
+    
+    if (state.budgets.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">📋</span>
+                <p>Niciun buget setat</p>
+                <button onclick="openBudgetModal()" class="empty-btn">+ Setează buget</button>
+            </div>
+        `;
+        return;
+    }
+    
+    const monthTrans = getMonthTransactions();
+    
+    container.innerHTML = state.budgets.map(b => {
+        const cat = findCategory('expense', b.category);
+        const spent = monthTrans.filter(t => t.type === 'expense' && t.category === b.category)
+            .reduce((sum, t) => sum + t.amount, 0);
+        const percent = Math.min((spent / b.limit) * 100, 100);
+        const remaining = b.limit - spent;
+        const status = spent > b.limit ? 'over' : spent > b.limit * 0.8 ? 'warning' : 'ok';
+        
+        return `
+            <div class="budget-item">
+                <div class="cat-header">
+                    <span class="cat-name">${cat?.icon || '📦'} ${cat?.name || b.category}</span>
+                    <span class="cat-amount">${spent.toLocaleString()} / ${b.limit.toLocaleString()} ${state.currency}</span>
+                </div>
+                <div class="cat-bar">
+                    <div class="cat-fill" style="width: ${percent}%; background: ${status === 'over' ? 'var(--danger)' : status === 'warning' ? 'var(--warning)' : 'var(--success)'}"></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Make new functions global
+window.navigateTo = navigateTo;
+window.toggleMenu = toggleMenu;
+window.closeMenu = closeMenu;
+window.saveNetWorth = saveNetWorth;
+
+// Update stats view
+function updateStatsView() {
+    updateAnalytics();
+    updateFIREDisplay();
+    renderCategoriesBreakdown();
+}
+
+// Update FIRE display in stats
+function updateFIREDisplay() {
+    const fire = calculateFIRE();
+    
+    const progressEl = $('fireProgressValue');
+    const targetEl = $('fireTarget');
+    const yearsEl = $('fireYears');
+    
+    if (progressEl) progressEl.textContent = `${Math.min(fire.progress, 100).toFixed(1)}%`;
+    if (targetEl) targetEl.textContent = `${fire.fireNumber.toLocaleString()} ${state.currency}`;
+    if (yearsEl) {
+        yearsEl.textContent = fire.yearsToFire === Infinity || fire.yearsToFire > 100 
+            ? '∞' 
+            : `${fire.yearsToFire.toFixed(1)} ani`;
+    }
+}
+
+// Render categories breakdown
+function renderCategoriesBreakdown() {
+    const container = $('categoriesBreakdown');
+    if (!container) return;
+    
+    const monthTrans = getMonthTransactions();
+    const byCategory = {};
+    let totalExpense = 0;
+    
+    monthTrans.filter(t => t.type === 'expense').forEach(t => {
+        const cat = findCategory('expense', t.category);
+        const name = cat ? cat.name : t.category;
+        byCategory[name] = byCategory[name] || { amount: 0, icon: cat?.icon || '📦', color: cat?.color || '#64748b' };
+        byCategory[name].amount += t.amount;
+        totalExpense += t.amount;
+    });
+    
+    const sorted = Object.entries(byCategory).sort((a, b) => b[1].amount - a[1].amount).slice(0, 8);
+    
+    if (sorted.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--text3);padding:1rem;">Nicio cheltuială</p>';
+        return;
+    }
+    
+    container.innerHTML = sorted.map(([name, data]) => {
+        const percent = totalExpense > 0 ? (data.amount / totalExpense * 100) : 0;
+        return `
+            <div class="category-row">
+                <div class="category-icon" style="background: ${data.color}">${data.icon}</div>
+                <div class="category-info">
+                    <span class="category-name">${name}</span>
+                    <div class="category-bar">
+                        <div class="category-fill" style="width: ${percent}%; background: ${data.color}"></div>
+                    </div>
+                </div>
+                <span class="category-amount">${data.amount.toLocaleString()} ${state.currency}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// Update menu view
+function updateMenuView() {
+    // Update user card
+    const avatar = $('menuAvatar');
+    const name = $('menuName');
+    const email = $('menuEmail');
+    
+    if (avatar && state.user) {
+        avatar.textContent = (state.user.displayName || 'U').charAt(0).toUpperCase();
+    }
+    if (name) name.textContent = state.user?.displayName || 'Utilizator';
+    if (email) email.textContent = state.user?.email || '';
+    
+    // Update badges
+    if ($('goalsCount')) $('goalsCount').textContent = state.goals.length || '';
+    if ($('debtsCount')) $('debtsCount').textContent = state.debts.length || '';
+    if ($('accountsCount')) $('accountsCount').textContent = state.accounts.length || '';
+    if ($('budgetsCount')) $('budgetsCount').textContent = state.budgets.length || '';
+    
+    // Update net worth
+    if ($('netWorthValue')) {
+        $('netWorthValue').textContent = `${state.netWorth.toLocaleString()} ${state.currency}`;
+    }
+}
+
+// Render achievements
+function renderAchievements() {
+    const container = $('achievementsGrid');
+    const unlockedEl = $('achievementsUnlocked');
+    const totalEl = $('achievementsTotal');
+    
+    if (!container) return;
+    
+    const unlocked = achievementsDef.filter(a => a.condition(state));
+    
+    if (unlockedEl) unlockedEl.textContent = unlocked.length;
+    if (totalEl) totalEl.textContent = achievementsDef.length;
+    
+    container.innerHTML = achievementsDef.map(a => {
+        const isUnlocked = a.condition(state);
+        return `
+            <div class="achievement ${isUnlocked ? 'unlocked' : ''}">
+                <span class="achievement-icon">${a.icon}</span>
+                <span class="achievement-name">${a.name}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// Render profile
+function renderProfile() {
+    const avatar = $('profileAvatar');
+    const name = $('profileName');
+    const email = $('profileEmail');
+    const transCount = $('profileTransCount');
+    const days = $('profileDays');
+    const streak = $('profileStreak');
+    
+    if (avatar && state.user) {
+        avatar.textContent = (state.user.displayName || 'U').charAt(0).toUpperCase();
+    }
+    if (name) name.textContent = state.user?.displayName || 'Utilizator';
+    if (email) email.textContent = state.user?.email || '';
+    if (transCount) transCount.textContent = state.transactions.length;
+    if (streak) streak.textContent = state.streak;
+    
+    // Calculate days since first transaction
+    if (days && state.transactions.length > 0) {
+        const sorted = [...state.transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const firstDate = new Date(sorted[0].date);
+        const daysSince = Math.floor((new Date() - firstDate) / (1000 * 60 * 60 * 24));
+        days.textContent = daysSince;
+    }
+}
+
+// Init settings
+function initSettings() {
+    const currencySelect = $('currencySelect');
+    if (currencySelect) currencySelect.value = state.currency;
+    
+    const themeToggle = $('themeToggle');
+    if (themeToggle) {
+        themeToggle.classList.toggle('active', state.theme === 'dark');
+    }
 }
 
 // Change month
@@ -4550,3 +4867,246 @@ window.saveUtility = saveUtility;
 window.editUtility = editUtility;
 window.confirmImport = confirmImport;
 window.clearImportPreview = clearImportPreview;
+
+// ========================================
+// SEARCH & FILTER FUNCTIONS
+// ========================================
+
+let currentFilter = 'all';
+let searchQuery = '';
+
+// Search transactions
+function searchTransactions() {
+    const input = $('searchInput');
+    searchQuery = input ? input.value.toLowerCase().trim() : '';
+    renderFilteredTransactions();
+}
+
+// Filter transactions by type
+function filterTransactions(type) {
+    currentFilter = type;
+    
+    // Update filter buttons
+    $$('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === type);
+    });
+    
+    renderFilteredTransactions();
+}
+
+// Render filtered transactions
+function renderFilteredTransactions() {
+    const container = $('allTransactions');
+    if (!container) return;
+    
+    let trans = getMonthTransactions();
+    
+    // Apply type filter
+    if (currentFilter !== 'all') {
+        trans = trans.filter(t => t.type === currentFilter);
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+        trans = trans.filter(t => {
+            const cat = findCategory(t.type, t.category);
+            const catName = cat?.name?.toLowerCase() || '';
+            const subName = t.subcategory?.toLowerCase() || '';
+            const noteName = t.note?.toLowerCase() || '';
+            
+            return catName.includes(searchQuery) || 
+                   subName.includes(searchQuery) || 
+                   noteName.includes(searchQuery) ||
+                   t.amount.toString().includes(searchQuery);
+        });
+    }
+    
+    // Sort by date
+    trans.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (trans.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🔍</span>
+                <p>${searchQuery ? 'Nicio tranzacție găsită' : 'Nicio tranzacție în această lună'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = trans.map(t => {
+        const cat = findCategory(t.type, t.category);
+        return `
+            <div class="trans-item" onclick="editTransaction('${t.id}')">
+                <div class="trans-icon" style="background: ${cat?.color || '#666'}20">
+                    ${cat?.icon || '📦'}
+                </div>
+                <div class="trans-info">
+                    <div class="trans-category">${cat?.name || t.category}</div>
+                    <div class="trans-meta">${t.subcategory || ''} · ${formatDate(t.date)}</div>
+                </div>
+                <div class="trans-amount ${t.type}">
+                    ${t.type === 'expense' ? '-' : '+'}${t.amount.toLocaleString()} ${state.currency}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Set transaction type in modal
+function setTransType(type) {
+    const typeInput = $('transType');
+    if (typeInput) typeInput.value = type;
+    
+    // Update tabs
+    $$('.type-tab[data-type]').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.type === type);
+    });
+    
+    // Update categories
+    populateCategories(type);
+}
+
+// Set debt type in modal
+function setDebtType(type) {
+    const typeInput = $('debtType');
+    if (typeInput) typeInput.value = type;
+    
+    // Update tabs in debt modal
+    $$('#debtModal .type-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.type === type);
+    });
+}
+
+// Update analytics view
+function updateAnalytics() {
+    // Health score
+    const health = calculateHealthScore();
+    const healthEl = $('healthScore');
+    const healthFill = $('healthFill');
+    if (healthEl) healthEl.textContent = health + '/100';
+    if (healthFill) healthFill.style.width = health + '%';
+    
+    // FIRE
+    const fire = calculateFIRE();
+    const fireProgressEl = $('fireProgress');
+    const fireFill = $('fireFill');
+    const fireTarget = $('fireTarget');
+    const fireYears = $('fireYears');
+    
+    if (fireProgressEl) fireProgressEl.textContent = fire.progress.toFixed(1) + '%';
+    if (fireFill) fireFill.style.width = Math.min(fire.progress, 100) + '%';
+    if (fireTarget) fireTarget.textContent = fire.fireNumber.toLocaleString() + ' ' + state.currency;
+    if (fireYears) {
+        fireYears.textContent = fire.yearsToFire === Infinity || fire.yearsToFire > 100 
+            ? '∞ ani' 
+            : fire.yearsToFire.toFixed(1) + ' ani';
+    }
+    
+    // Smart tips
+    renderSmartTips();
+    
+    // Trend chart
+    renderTrendChart();
+}
+
+// Render trend chart
+function renderTrendChart() {
+    const ctx = $('trendChart');
+    if (!ctx) return;
+    
+    if (state.trendChart) {
+        state.trendChart.destroy();
+    }
+    
+    const monthsData = [];
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const trans = state.transactions.filter(t => {
+            const td = new Date(t.date);
+            return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+        });
+        
+        let income = 0, expense = 0;
+        trans.forEach(t => {
+            if (t.type === 'income') income += t.amount;
+            else if (t.type === 'expense') expense += t.amount;
+        });
+        
+        monthsData.push({
+            month: months[d.getMonth()].substring(0, 3),
+            income,
+            expense
+        });
+    }
+    
+    state.trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: monthsData.map(m => m.month),
+            datasets: [{
+                label: 'Venituri',
+                data: monthsData.map(m => m.income),
+                borderColor: '#34c759',
+                backgroundColor: 'rgba(52, 199, 89, 0.1)',
+                fill: true,
+                tension: 0.4
+            }, {
+                label: 'Cheltuieli',
+                data: monthsData.map(m => m.expense),
+                borderColor: '#ff3b30',
+                backgroundColor: 'rgba(255, 59, 48, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#636366' } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#636366' } }
+            }
+        }
+    });
+}
+
+// Render smart tips
+function renderSmartTips() {
+    const container = $('smartTips');
+    if (!container) return;
+    
+    const tips = generateSmartTips();
+    
+    if (tips.length === 0) {
+        container.innerHTML = '<div class="tip-item"><span class="tip-icon">🎉</span><div class="tip-content"><span class="tip-title">Excelent!</span><span class="tip-text">Finanțele tale arată bine!</span></div></div>';
+        return;
+    }
+    
+    container.innerHTML = tips.slice(0, 4).map(tip => `
+        <div class="tip-item">
+            <span class="tip-icon">${tip.icon}</span>
+            <div class="tip-content">
+                <span class="tip-title">${tip.title}</span>
+                <span class="tip-text">${tip.message}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Run full AI analysis
+async function runFullAiAnalysis() {
+    openModal('aiModal');
+    await askAI('Analizează în detaliu toate cheltuielile mele și dă-mi sfaturi personalizate pentru a economisi mai mult.');
+}
+
+// Make new functions global
+window.searchTransactions = searchTransactions;
+window.filterTransactions = filterTransactions;
+window.setTransType = setTransType;
+window.setDebtType = setDebtType;
+window.updateAnalytics = updateAnalytics;
+window.runFullAiAnalysis = runFullAiAnalysis;

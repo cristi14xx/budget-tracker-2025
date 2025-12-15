@@ -1,104 +1,574 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0d0d0d">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Budget Pro</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Budget Pro</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="splash" class="splash"><div class="splash-content"><span class="splash-icon">💰</span><h1>Budget Pro</h1><div class="splash-loader"><div class="splash-progress"></div></div></div></div>
-
-    <div id="authScreen" class="auth-screen hidden">
-        <div class="auth-container">
-            <div class="auth-header"><span class="auth-icon">💰</span><h1>Budget Pro</h1><p>Finanțele tale, simplificate</p></div>
-            <div class="auth-tabs"><button class="auth-tab active" data-tab="login">Conectare</button><button class="auth-tab" data-tab="register">Cont nou</button></div>
-            <form id="loginForm" class="auth-form"><input type="email" id="loginEmail" placeholder="Email" required><input type="password" id="loginPassword" placeholder="Parolă" required><button type="submit" class="auth-submit">Conectare</button></form>
-            <form id="registerForm" class="auth-form hidden"><input type="text" id="regName" placeholder="Nume" required><input type="email" id="regEmail" placeholder="Email" required><input type="password" id="regPassword" placeholder="Parolă" required><button type="submit" class="auth-submit">Înregistrare</button></form>
-        </div>
+  <!-- Splash -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-icon">💰</div>
+      <div class="splash-name">Budget Pro</div>
+      <div class="splash-bar"></div>
     </div>
+  </div>
 
-    <div id="app" class="app hidden">
-        <header class="app-header"><button class="header-btn" onclick="toggleMenu()">☰</button><h1 id="headerTitle">Budget Pro</h1><button class="header-btn" onclick="openModal('aiModal')">🤖</button></header>
+  <!-- Auth -->
+  <div id="auth" class="hidden">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">💰</div>
+      <h1>Budget Pro</h1>
+      <p>Finanțele tale, simplificate</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showAuthTab('login')">Conectare</button>
+      <button class="auth-tab" onclick="showAuthTab('register')">Înregistrare</button>
+    </div>
+    <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+      <input type="email" class="auth-input" id="loginEmail" placeholder="Email" required>
+      <input type="password" class="auth-input" id="loginPass" placeholder="Parolă" required>
+      <button type="submit" class="auth-btn">Conectează-te</button>
+    </form>
+    <form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)">
+      <input type="text" class="auth-input" id="regName" placeholder="Nume" required>
+      <input type="email" class="auth-input" id="regEmail" placeholder="Email" required>
+      <input type="password" class="auth-input" id="regPass" placeholder="Parolă" required>
+      <button type="submit" class="auth-btn">Creează cont</button>
+    </form>
+  </div>
 
-        <div id="sideMenu" class="side-menu">
-            <div class="side-menu-overlay" onclick="toggleMenu()"></div>
-            <div class="side-menu-content">
-                <div class="menu-header"><div class="menu-user"><div id="menuAvatar" class="menu-avatar">U</div><div><span id="menuUserName" class="menu-user-name">Utilizator</span><span id="menuUserEmail" class="menu-user-email">email</span></div></div></div>
-                <nav class="menu-nav">
-                    <div class="menu-section"><span class="menu-section-title">Principal</span><button class="menu-item active" data-view="home" onclick="navigateTo('home')">🏠 Acasă</button><button class="menu-item" data-view="transactions" onclick="navigateTo('transactions')">💳 Tranzacții</button><button class="menu-item" data-view="analytics" onclick="navigateTo('analytics')">📊 Analiză</button></div>
-                    <div class="menu-section"><span class="menu-section-title">Finanțe</span><button class="menu-item" data-view="accounts" onclick="navigateTo('accounts')">🏦 Conturi</button><button class="menu-item" data-view="budgets" onclick="navigateTo('budgets')">📋 Bugete</button><button class="menu-item" data-view="goals" onclick="navigateTo('goals')">🎯 Obiective</button><button class="menu-item" data-view="debts" onclick="navigateTo('debts')">🤝 Datorii</button></div>
-                    <div class="menu-section"><span class="menu-section-title">Casă</span><button class="menu-item" data-view="utilities" onclick="navigateTo('utilities')">🏠 Utilități</button><button class="menu-item" data-view="reminders" onclick="navigateTo('reminders')">⏰ Remindere</button></div>
-                    <div class="menu-section"><span class="menu-section-title">Altele</span><button class="menu-item" data-view="achievements" onclick="navigateTo('achievements')">🏆 Achievements</button><button class="menu-item" data-view="settings" onclick="navigateTo('settings')">⚙️ Setări</button></div>
-                </nav>
-                <div class="menu-footer"><button onclick="logout()" class="menu-logout">🚪 Deconectare</button></div>
+  <!-- App -->
+  <div id="app" class="hidden">
+    <header class="header">
+      <button class="header-btn" onclick="openAI()">🤖</button>
+      <span class="header-title" id="headerTitle">Budget Pro</span>
+      <div class="header-avatar" id="headerAvatar" onclick="goTo('menu')">U</div>
+    </header>
+
+    <main class="content">
+      <!-- HOME -->
+      <section id="homeView" class="view active">
+        <div class="welcome">
+          <div class="welcome-text" id="welcomeText">Bună! 👋</div>
+          <div class="welcome-sub" id="welcomeSub">Să vedem cum stai cu banii</div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-label">Balanța lunii</div>
+          <div class="hero-amount" id="heroBalance">0 RON</div>
+          <div class="hero-row">
+            <div class="hero-stat">
+              <div class="hero-stat-icon up">↑</div>
+              <div class="hero-stat-label">Venituri</div>
+              <div class="hero-stat-value green" id="heroIncome">0</div>
             </div>
+            <div class="hero-stat">
+              <div class="hero-stat-icon down">↓</div>
+              <div class="hero-stat-label">Cheltuieli</div>
+              <div class="hero-stat-value red" id="heroExpense">0</div>
+            </div>
+          </div>
         </div>
 
-        <main class="main-content">
-            <section id="homeView" class="view active">
-                <div class="month-nav"><button onclick="changeMonth(-1)" class="month-btn">‹</button><span id="currentMonth">Decembrie 2025</span><button onclick="changeMonth(1)" class="month-btn">›</button></div>
-                <div class="balance-card"><div class="balance-label">Balanța lunară</div><div id="totalBalance" class="balance-amount">0 RON</div><div class="balance-row"><div class="balance-item income"><span class="balance-item-icon">↑</span><div><span class="balance-item-label">Venituri</span><span id="totalIncome" class="balance-item-value">0</span></div></div><div class="balance-item expense"><span class="balance-item-icon">↓</span><div><span class="balance-item-label">Cheltuieli</span><span id="totalExpense" class="balance-item-value">0</span></div></div></div></div>
-                <div class="quick-stats"><div class="qstat"><span class="qstat-value" id="savingsRateHome">0%</span><span class="qstat-label">Economii</span></div><div class="qstat"><span class="qstat-value" id="dailyAvg">0</span><span class="qstat-label">Medie/zi</span></div><div class="qstat"><span class="qstat-value" id="streakCount">0🔥</span><span class="qstat-label">Streak</span></div></div>
-                <div class="quick-actions"><button class="quick-action" onclick="openTransModal('expense')"><span class="qa-icon">💸</span><span>Cheltuială</span></button><button class="quick-action" onclick="openTransModal('income')"><span class="qa-icon">💵</span><span>Venit</span></button><button class="quick-action" onclick="openModal('aiModal')"><span class="qa-icon">🤖</span><span>AI</span></button><button class="quick-action" onclick="navigateTo('analytics')"><span class="qa-icon">📊</span><span>Analiză</span></button><button class="quick-action" onclick="navigateTo('goals')"><span class="qa-icon">🎯</span><span>Obiective</span></button></div>
-                <div class="section-title">Cheltuieli</div><div class="chart-wrapper"><canvas id="expenseChart"></canvas></div>
-                <div class="section-title"><span>Recente</span><button onclick="navigateTo('transactions')" class="see-all">Vezi toate</button></div><div id="recentTransactions" class="transactions-list"></div>
-            </section>
+        <div class="month-nav">
+          <button class="month-btn" onclick="prevMonth()">‹</button>
+          <span class="month-text" id="monthText">Dec 2024</span>
+          <button class="month-btn" onclick="nextMonth()">›</button>
+        </div>
 
-            <section id="transactionsView" class="view">
-                <div class="view-header"><h2>Tranzacții</h2></div>
-                <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="Caută tranzacții..." oninput="searchTransactions()"></div>
-                <div class="filters-bar"><button class="filter-btn active" data-filter="all" onclick="filterTransactions('all')">Toate</button><button class="filter-btn" data-filter="expense" onclick="filterTransactions('expense')">Cheltuieli</button><button class="filter-btn" data-filter="income" onclick="filterTransactions('income')">Venituri</button></div>
-                <div class="month-nav"><button onclick="changeMonth(-1)" class="month-btn">‹</button><span id="transMonth">Decembrie 2025</span><button onclick="changeMonth(1)" class="month-btn">›</button></div>
-                <div id="allTransactions" class="transactions-list"></div>
-            </section>
+        <div class="quick-stats">
+          <div class="stat-box">
+            <div class="stat-value" id="statSavings">0%</div>
+            <div class="stat-label">Economisit</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="statDaily">0</div>
+            <div class="stat-label">Media/zi</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="statStreak">0🔥</div>
+            <div class="stat-label">Streak</div>
+          </div>
+        </div>
 
-            <section id="analyticsView" class="view">
-                <div class="view-header"><h2>Analiză</h2></div>
-                <div class="stat-card"><div class="stat-header"><span>💪 Sănătate financiară</span><span id="healthScore" class="stat-value">--</span></div><div class="stat-bar"><div id="healthFill" class="stat-fill health" style="width:0%"></div></div></div>
-                <div class="stat-card"><div class="stat-header"><span>🔥 Progres FIRE</span><span id="fireProgress" class="stat-value" style="color:#ff9500">0%</span></div><div class="stat-bar"><div id="fireFill" class="stat-fill fire" style="width:0%"></div></div><div style="display:flex;justify-content:space-between;margin-top:0.5rem;font-size:0.8rem;color:var(--text3)"><span>Obiectiv: <span id="fireTarget">0</span></span><span id="fireYears">-- ani</span></div></div>
-                <div class="section-title">💡 Sfaturi</div><div id="smartTips" class="tips-list"></div>
-                <div class="section-title">📈 Trend</div><div class="chart-wrapper"><canvas id="trendChart"></canvas></div>
-            </section>
+        <section class="section">
+          <div class="section-head">
+            <h2 class="section-title">Recente</h2>
+            <button class="section-link" onclick="goTo('transactions')">Vezi toate</button>
+          </div>
+          <div class="tx-list" id="recentTx"></div>
+        </section>
+      </section>
 
-            <section id="accountsView" class="view"><div class="view-header"><h2>Conturi</h2><button onclick="openAccountModal()" class="add-btn">+ Adaugă</button></div><div class="total-card"><span class="total-label">Total</span><span id="totalAccounts" class="total-value">0 RON</span></div><div id="accountsList"></div></section>
-            <section id="budgetsView" class="view"><div class="view-header"><h2>Bugete</h2><button onclick="openBudgetModal()" class="add-btn">+ Adaugă</button></div><div id="budgetsList"></div></section>
-            <section id="goalsView" class="view"><div class="view-header"><h2>Obiective</h2><button onclick="openGoalModal()" class="add-btn">+ Adaugă</button></div><div id="goalsList"></div></section>
-            <section id="debtsView" class="view"><div class="view-header"><h2>Datorii</h2><button onclick="openDebtModal()" class="add-btn">+ Adaugă</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1rem"><div class="stat-card" style="text-align:center;margin:0"><span style="font-size:0.8rem;color:var(--text2)">📤 De plătit</span><div id="totalOwe" style="font-size:1.25rem;font-weight:700;color:var(--danger)">0</div></div><div class="stat-card" style="text-align:center;margin:0"><span style="font-size:0.8rem;color:var(--text2)">📥 De primit</span><div id="totalOwed" style="font-size:1.25rem;font-weight:700;color:var(--success)">0</div></div></div><div class="section-title">De plătit</div><div id="debtsOweList"></div><div class="section-title">De primit</div><div id="debtsOwedList"></div></section>
-            <section id="utilitiesView" class="view"><div class="view-header"><h2>Utilități</h2><button onclick="openUtilityModal()" class="add-btn">+ Adaugă</button></div><div class="total-card gradient"><span class="total-label">Total luna asta</span><span id="utilitiesTotal" class="total-value">0 RON</span></div><div class="utilities-grid"><div class="utility-card" onclick="openUtilityModal('electricity')"><span class="utility-icon" style="background:rgba(234,179,8,0.2)">⚡</span><span class="utility-name">Curent</span><span id="utilElectricity" class="utility-value">--</span></div><div class="utility-card" onclick="openUtilityModal('gas')"><span class="utility-icon" style="background:rgba(249,115,22,0.2)">🔥</span><span class="utility-name">Gaz</span><span id="utilGas" class="utility-value">--</span></div><div class="utility-card" onclick="openUtilityModal('water')"><span class="utility-icon" style="background:rgba(59,130,246,0.2)">💧</span><span class="utility-name">Apă</span><span id="utilWater" class="utility-value">--</span></div><div class="utility-card" onclick="openUtilityModal('internet')"><span class="utility-icon" style="background:rgba(139,92,222,0.2)">📶</span><span class="utility-name">Internet</span><span id="utilInternet" class="utility-value">--</span></div></div><div class="section-title">📜 Istoric</div><div id="utilitiesHistory"></div></section>
-            <section id="remindersView" class="view"><div class="view-header"><h2>Remindere</h2><button onclick="openReminderModal()" class="add-btn">+ Adaugă</button></div><div id="remindersList"></div></section>
-            <section id="achievementsView" class="view"><div class="view-header"><h2>Achievements</h2></div><div class="achievements-header"><div id="achievementsCount" class="count">0/30</div><div class="label">deblocate</div></div><div id="achievementsList" class="achievements-grid"></div></section>
-            <section id="settingsView" class="view"><div class="view-header"><h2>Setări</h2></div><div class="settings-group"><div class="settings-group-title">Profil</div><div class="setting-row"><span id="settingsName">Utilizator</span><span id="settingsEmail" style="color:var(--text3);font-size:0.85rem">email</span></div></div><div class="settings-group"><div class="settings-group-title">Preferințe</div><div class="setting-row"><span>💱 Monedă</span><select id="currencySelect" class="setting-select"><option value="RON">RON</option><option value="EUR">EUR</option><option value="USD">USD</option></select></div></div><div class="settings-group"><div class="settings-group-title">Date</div><button onclick="openModal('importPdfModal')" class="settings-btn">📄 Import PDF</button><button onclick="exportJSON()" class="settings-btn">📤 Export JSON</button><button onclick="exportCSV()" class="settings-btn">📊 Export CSV</button></div><div class="settings-group"><div class="settings-group-title">Patrimoniu</div><div class="setting-row"><input type="number" id="netWorthInput" placeholder="Valoare" style="flex:1;background:var(--bg3);border:none;border-radius:8px;padding:0.5rem;color:var(--text)"><button onclick="saveNetWorth()" style="background:var(--primary);border:none;border-radius:8px;padding:0.5rem 1rem;color:white;margin-left:0.5rem">Save</button></div></div><div class="settings-group"><div class="settings-group-title">Periculos</div><button onclick="clearAllData()" class="settings-btn danger">🗑️ Șterge datele</button></div></section>
-        </main>
+      <!-- TRANSACTIONS -->
+      <section id="transactionsView" class="view">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Caută tranzacții..." oninput="doSearch()">
+        </div>
+        <div class="filters">
+          <button class="filter-btn active" data-f="all" onclick="setFilter('all')">Toate</button>
+          <button class="filter-btn" data-f="expense" onclick="setFilter('expense')">Cheltuieli</button>
+          <button class="filter-btn" data-f="income" onclick="setFilter('income')">Venituri</button>
+        </div>
+        <div class="month-nav">
+          <button class="month-btn" onclick="prevMonth()">‹</button>
+          <span class="month-text" id="txMonthText">Dec 2024</span>
+          <button class="month-btn" onclick="nextMonth()">›</button>
+        </div>
+        <div class="tx-list" id="allTx"></div>
+      </section>
 
-        <nav class="bottom-nav">
-            <button class="nav-item active" data-view="home" onclick="navigateTo('home')"><span class="nav-icon">🏠</span><span class="nav-label">Acasă</span></button>
-            <button class="nav-item" data-view="transactions" onclick="navigateTo('transactions')"><span class="nav-icon">💳</span><span class="nav-label">Istoric</span></button>
-            <button class="nav-item add-btn" onclick="openTransModal('expense')"><span class="nav-icon-add">+</span></button>
-            <button class="nav-item" data-view="analytics" onclick="navigateTo('analytics')"><span class="nav-icon">📊</span><span class="nav-label">Analiză</span></button>
-            <button class="nav-item" onclick="toggleMenu()"><span class="nav-icon">☰</span><span class="nav-label">Meniu</span></button>
-        </nav>
+      <!-- ANALYTICS -->
+      <section id="analyticsView" class="view">
+        <div class="score-hero">
+          <div class="score-label">💪 Scor sănătate financiară</div>
+          <div class="score-num" id="scoreNum">--</div>
+          <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-icon">🔥</div>
+            <div class="metric-value" id="metricFire">0%</div>
+            <div class="metric-label">Progres FIRE</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">📅</div>
+            <div class="metric-value" id="metricYears">--</div>
+            <div class="metric-label">Ani până FIRE</div>
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <div class="chart-head">📈 Trend 6 luni</div>
+          <div class="chart-area"><canvas id="trendCanvas"></canvas></div>
+        </div>
+
+        <section class="section">
+          <div class="section-head"><h2 class="section-title">💡 Sfaturi smart</h2></div>
+          <div id="tipsList"></div>
+        </section>
+      </section>
+
+      <!-- MENU -->
+      <section id="menuView" class="view">
+        <div class="profile-box">
+          <div class="profile-pic" id="profilePic">U</div>
+          <div class="profile-info">
+            <div class="profile-name" id="profileName">Utilizator</div>
+            <div class="profile-email" id="profileEmail">email@example.com</div>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-label">Finanțe</div>
+          <div class="menu-group">
+            <button class="menu-item" onclick="goTo('goals')"><span class="menu-icon">🎯</span><span class="menu-text">Obiective</span><span class="menu-arrow">›</span></button>
+            <button class="menu-item" onclick="goTo('budgets')"><span class="menu-icon">📊</span><span class="menu-text">Bugete</span><span class="menu-arrow">›</span></button>
+            <button class="menu-item" onclick="goTo('accounts')"><span class="menu-icon">🏦</span><span class="menu-text">Conturi</span><span class="menu-arrow">›</span></button>
+            <button class="menu-item" onclick="goTo('debts')"><span class="menu-icon">🤝</span><span class="menu-text">Datorii</span><span class="menu-arrow">›</span></button>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-label">Casă</div>
+          <div class="menu-group">
+            <button class="menu-item" onclick="goTo('utilities')"><span class="menu-icon">💡</span><span class="menu-text">Utilități</span><span class="menu-arrow">›</span></button>
+            <button class="menu-item" onclick="goTo('reminders')"><span class="menu-icon">⏰</span><span class="menu-text">Remindere</span><span class="menu-arrow">›</span></button>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-label">Altele</div>
+          <div class="menu-group">
+            <button class="menu-item" onclick="goTo('achievements')"><span class="menu-icon">🏆</span><span class="menu-text">Achievements</span><span class="menu-arrow">›</span></button>
+            <button class="menu-item" onclick="goTo('settings')"><span class="menu-icon">⚙️</span><span class="menu-text">Setări</span><span class="menu-arrow">›</span></button>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-group">
+            <button class="menu-item danger" onclick="logout()"><span class="menu-icon">🚪</span><span class="menu-text">Deconectare</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- GOALS -->
+      <section id="goalsView" class="view">
+        <div class="sub-header">
+          <button class="back-btn" onclick="goTo('menu')">←</button>
+          <h2 class="sub-title">Obiective</h2>
+          <button class="add-btn" onclick="openGoalModal()">+</button>
+        </div>
+        <div id="goalsList"></div>
+      </section>
+
+      <!-- BUDGETS -->
+      <section id="budgetsView" class="view">
+        <div class="sub-header">
+          <button class="back-btn" onclick="goTo('menu')">←</button>
+          <h2 class="sub-title">Bugete</h2>
+          <button class="add-btn" onclick="openBudgetModal()">+</button>
+        </div>
+        <div id="budgetsList"></div>
+      </section>
+
+      <!-- ACCOUNTS -->
+      <section id="accountsView" class="view">
+        <div class="sub-header">
+          <button class="back-btn" onclick="goTo('menu')">←</button>
+          <h2 class="sub-title">Conturi</h2>
+          <button class="add-btn" onclick="openAccountModal()">+</button>
+        </div>
+        <div id="accountsList"></div>
+      </section>
+
+      <!-- DEBTS -->
+      <section id="debtsView" class="view">
+        <div class="sub-header">
+          <button class="back-btn" onclick="goTo('menu')">←</button>
+          <h2 class="sub-title">Datorii</h2>
+          <button class="add-btn" onclick="openDebtModal()">+</button>
+        </div>
+        <div id="debtsList"></div>
+      </section>
+
+      <!-- UTILITIES -->
+      <section id="utilitiesView" class="view">
+        <div class="sub-header">
+          <button class="back-btn" onclick="goTo('menu')">←</button>
+          <h2 class="sub-title">Utilități</h2>
+          <button class="add-btn" onclick="openUtilityModal()">+</button>
+        </div>
+        <div class="util-grid">
+          <div class="util-card" onclick="openUtilityModal('electricity')">
+            <div class="util-icon" style="background:rgba(234,179,8,0.2)">⚡</div>
+            <div class="util-name">Curent</div>
+            <div class="util-value" id="uElec">--</div>
+          </div>
+          <div class="util-card" onclick="openUtilityModal('gas')">
+            <div class="util-icon" style="background:rgba(249,115,22,0.2)">🔥</div>
+            <div class="util-name">Gaz</div>
+            <div class="util-value" id="uGas">--</div>
+          </div>
+          <div class="util-card" onclick="openUtilityModal('water')">
+            <div class="util-icon" style="background:rgba(59,130,246,0.2)">💧</div>
+            <div class="util-name">Apă</div>
+            <div class="util-value" id="uWater">--</div>
+          </div>
+          <div class="util-card" onclick="openUtilityModal('internet')">
+            <div class="util-icon" style="background:rgba(139,92,246,0.2)">📶</div>
+            <div class="util-name">Internet</div>
+            <div class="util-value" id="uNet">--</div>
+          </div>
+        </div>
+        <div id="utilHistory"></div>
+      </section>
+
+      <!-- REMINDERS -->
+      <section id="remindersView" class="view">
+        <div class="sub-header">
+          <button class="back-btn" onclick="goTo('menu')">←</button>
+          <h2 class="sub-title">Remindere</h2>
+          <button class="add-btn" onclick="openReminderModal()">+</button>
+        </div>
+        <div id="remindersList"></div>
+      </section>
+
+      <!-- ACHIEVEMENTS -->
+      <section id="achievementsView" class="view">
+        <div class="sub-header">
+          <button class="back-btn" onclick="goTo('menu')">←</button>
+          <h2 class="sub-title">Achievements</h2>
+        </div>
+        <div class="ach-hero">
+          <div class="ach-count" id="achCount">0/30</div>
+          <div class="ach-label">deblocate</div>
+        </div>
+        <div class="ach-grid" id="achGrid"></div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="settingsView" class="view">
+        <div class="sub-header">
+          <button class="back-btn" onclick="goTo('menu')">←</button>
+          <h2 class="sub-title">Setări</h2>
+        </div>
+        <div class="menu-section">
+          <div class="menu-label">Preferințe</div>
+          <div class="menu-group">
+            <div class="menu-item">
+              <span class="menu-icon">💱</span>
+              <span class="menu-text">Monedă</span>
+              <select id="currencySel" onchange="setCurrency(this.value)" style="background:var(--card);border:1px solid var(--border);color:#fff;padding:8px 12px;border-radius:8px;font-size:14px;">
+                <option value="RON">RON</option>
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="menu-section">
+          <div class="menu-label">Date</div>
+          <div class="menu-group">
+            <button class="menu-item" onclick="openModal('importModal')"><span class="menu-icon">📄</span><span class="menu-text">Import PDF</span><span class="menu-arrow">›</span></button>
+            <button class="menu-item" onclick="exportJSON()"><span class="menu-icon">📤</span><span class="menu-text">Export JSON</span></button>
+            <button class="menu-item" onclick="exportCSV()"><span class="menu-icon">📊</span><span class="menu-text">Export CSV</span></button>
+          </div>
+        </div>
+        <div class="menu-section">
+          <div class="menu-label">FIRE Calculator</div>
+          <div class="menu-group">
+            <div class="menu-item">
+              <span class="menu-icon">💰</span>
+              <input type="number" id="netWorthIn" placeholder="Patrimoniu total" style="flex:1;background:var(--card);border:1px solid var(--border);color:#fff;padding:10px;border-radius:8px;font-size:14px;">
+              <button onclick="saveNetWorth()" style="background:var(--accent);border:none;color:#000;padding:10px 16px;border-radius:8px;font-weight:600;margin-left:8px;">Save</button>
+            </div>
+          </div>
+        </div>
+        <div class="menu-section">
+          <div class="menu-group">
+            <button class="menu-item danger" onclick="clearAllData()"><span class="menu-icon">🗑️</span><span class="menu-text">Șterge toate datele</span></button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-v="home" onclick="goTo('home')">
+        <span class="nav-icon">🏠</span>Acasă
+      </button>
+      <button class="nav-btn" data-v="transactions" onclick="goTo('transactions')">
+        <span class="nav-icon">💳</span>Istoric
+      </button>
+      <button class="nav-btn fab" onclick="openTxModal()">
+        <div class="fab-circle">+</div>
+      </button>
+      <button class="nav-btn" data-v="analytics" onclick="goTo('analytics')">
+        <span class="nav-icon">📊</span>Analiză
+      </button>
+      <button class="nav-btn" data-v="menu" onclick="goTo('menu')">
+        <span class="nav-icon">☰</span>Cont
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODALS -->
+  <!-- Transaction Modal -->
+  <div id="txModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('txModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <span class="modal-title" id="txModalTitle">Tranzacție nouă</span>
+        <button class="modal-x" onclick="closeModal('txModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="type-tabs">
+          <button class="type-tab expense active" data-t="expense" onclick="setTxType('expense')">💸 Cheltuială</button>
+          <button class="type-tab income" data-t="income" onclick="setTxType('income')">💵 Venit</button>
+        </div>
+        <form id="txForm" onsubmit="saveTx(event)">
+          <input type="hidden" id="txId">
+          <input type="hidden" id="txType" value="expense">
+          <div class="form-row">
+            <input type="number" class="form-input big" id="txAmount" placeholder="0" step="0.01" required>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Categorie</label>
+            <select id="txCat" class="form-select" required onchange="loadSubcats()"></select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Subcategorie</label>
+            <select id="txSubcat" class="form-select"></select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Data</label>
+            <input type="date" id="txDate" class="form-input" required>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Notă (opțional)</label>
+            <input type="text" id="txNote" class="form-input" placeholder="Adaugă o notă...">
+          </div>
+          <button type="submit" class="submit-btn">Salvează</button>
+        </form>
+      </div>
     </div>
+  </div>
 
-    <!-- Modals -->
-    <div id="transModal" class="modal"><div class="modal-overlay" onclick="closeModal('transModal')"></div><div class="modal-content"><div class="modal-header"><h2 id="transModalTitle">Tranzacție</h2><button class="modal-close" onclick="closeModal('transModal')">✕</button></div><div class="modal-body"><div class="type-tabs"><button class="type-tab active" data-type="expense" onclick="setTransType('expense')">💸 Cheltuială</button><button class="type-tab" data-type="income" onclick="setTransType('income')">💵 Venit</button></div><form id="transForm" onsubmit="saveTransaction(event)"><input type="hidden" id="transId"><input type="hidden" id="transType" value="expense"><div class="form-group"><label class="form-label">Sumă</label><input type="number" id="transAmount" class="form-input" step="0.01" required placeholder="0.00"></div><div class="form-group"><label class="form-label">Categorie</label><select id="transCategory" class="form-select" required></select></div><div class="form-group"><label class="form-label">Subcategorie</label><select id="transSubcategory" class="form-select"></select></div><div class="form-group"><label class="form-label">Data</label><input type="date" id="transDate" class="form-input" required></div><div class="form-group"><label class="form-label">Notă</label><input type="text" id="transNote" class="form-input" placeholder="Opțional"></div><button type="submit" class="btn-submit">Salvează</button></form></div></div></div>
-    <div id="aiModal" class="modal ai-modal"><div class="modal-overlay" onclick="closeModal('aiModal')"></div><div class="modal-content"><div class="modal-header"><h2>🤖 Asistent AI</h2><button class="modal-close" onclick="closeModal('aiModal')">✕</button></div><div id="aiMessages" class="ai-messages"><div class="ai-message bot"><div class="ai-avatar">🤖</div><div class="ai-bubble">Salut! Întreabă-mă orice despre finanțele tale.</div></div></div><div class="ai-quick-btns"><button onclick="askAI('Analizează cheltuielile')" class="ai-quick">📊 Analiză</button><button onclick="askAI('Cum economisesc mai mult?')" class="ai-quick">💡 Sfaturi</button><button onclick="askAI('Predicție pentru luna asta')" class="ai-quick">🔮 Predicție</button></div><div class="ai-input-wrap"><input type="text" id="aiInput" placeholder="Scrie..." onkeypress="if(event.key==='Enter')askAI()"><button onclick="askAI()" class="ai-send">➤</button></div></div></div>
-    <div id="goalModal" class="modal"><div class="modal-overlay" onclick="closeModal('goalModal')"></div><div class="modal-content"><div class="modal-header"><h2>🎯 Obiectiv</h2><button class="modal-close" onclick="closeModal('goalModal')">✕</button></div><div class="modal-body"><form id="goalForm" onsubmit="saveGoal(event)"><input type="hidden" id="goalId"><div class="form-group"><label class="form-label">Nume</label><input type="text" id="goalName" class="form-input" required></div><div class="form-group"><label class="form-label">Sumă țintă</label><input type="number" id="goalTarget" class="form-input" required></div><div class="form-group"><label class="form-label">Economisit</label><input type="number" id="goalSaved" class="form-input" value="0"></div><div class="form-group"><label class="form-label">Deadline</label><input type="date" id="goalDeadline" class="form-input"></div><input type="hidden" id="goalIcon" value="🎯"><button type="submit" class="btn-submit">Salvează</button></form></div></div></div>
-    <div id="debtModal" class="modal"><div class="modal-overlay" onclick="closeModal('debtModal')"></div><div class="modal-content"><div class="modal-header"><h2>🤝 Datorie</h2><button class="modal-close" onclick="closeModal('debtModal')">✕</button></div><div class="modal-body"><div class="type-tabs"><button class="type-tab active" data-type="owe" onclick="setDebtType('owe')">📤 Datorez</button><button class="type-tab" data-type="owed" onclick="setDebtType('owed')">📥 Îmi datorează</button></div><form id="debtForm" onsubmit="saveDebt(event)"><input type="hidden" id="debtId"><input type="hidden" id="debtType" value="owe"><div class="form-group"><label class="form-label">Persoană</label><input type="text" id="debtPerson" class="form-input" required></div><div class="form-group"><label class="form-label">Sumă</label><input type="number" id="debtAmount" class="form-input" required></div><div class="form-group"><label class="form-label">Motiv</label><input type="text" id="debtNote" class="form-input"></div><button type="submit" class="btn-submit">Salvează</button></form></div></div></div>
-    <div id="reminderModal" class="modal"><div class="modal-overlay" onclick="closeModal('reminderModal')"></div><div class="modal-content"><div class="modal-header"><h2>⏰ Reminder</h2><button class="modal-close" onclick="closeModal('reminderModal')">✕</button></div><div class="modal-body"><form id="reminderForm" onsubmit="saveReminder(event)"><input type="hidden" id="reminderId"><div class="form-group"><label class="form-label">Nume</label><input type="text" id="reminderName" class="form-input" required></div><div class="form-group"><label class="form-label">Sumă</label><input type="number" id="reminderAmount" class="form-input" required></div><div class="form-group"><label class="form-label">Frecvență</label><select id="reminderFrequency" class="form-select"><option value="monthly">Lunar</option><option value="weekly">Săptămânal</option></select></div><div class="form-group"><label class="form-label">Ziua</label><input type="number" id="reminderDay" class="form-input" min="1" max="31" value="1"></div><button type="submit" class="btn-submit">Salvează</button></form></div></div></div>
-    <div id="accountModal" class="modal"><div class="modal-overlay" onclick="closeModal('accountModal')"></div><div class="modal-content"><div class="modal-header"><h2>🏦 Cont</h2><button class="modal-close" onclick="closeModal('accountModal')">✕</button></div><div class="modal-body"><form id="accountForm" onsubmit="saveAccount(event)"><input type="hidden" id="accountId"><div class="form-group"><label class="form-label">Nume</label><input type="text" id="accountName" class="form-input" required></div><div class="form-group"><label class="form-label">Tip</label><select id="accountType" class="form-select"><option value="bank">🏦 Bancă</option><option value="cash">💵 Cash</option><option value="savings">🐷 Economii</option></select></div><div class="form-group"><label class="form-label">Sold</label><input type="number" id="accountBalance" class="form-input" required></div><button type="submit" class="btn-submit">Salvează</button></form></div></div></div>
-    <div id="budgetModal" class="modal"><div class="modal-overlay" onclick="closeModal('budgetModal')"></div><div class="modal-content"><div class="modal-header"><h2>📋 Buget</h2><button class="modal-close" onclick="closeModal('budgetModal')">✕</button></div><div class="modal-body"><form id="budgetForm" onsubmit="saveBudget(event)"><input type="hidden" id="budgetId"><div class="form-group"><label class="form-label">Categorie</label><select id="budgetCategory" class="form-select" required></select></div><div class="form-group"><label class="form-label">Limită</label><input type="number" id="budgetLimit" class="form-input" required></div><button type="submit" class="btn-submit">Salvează</button></form></div></div></div>
-    <div id="utilityModal" class="modal"><div class="modal-overlay" onclick="closeModal('utilityModal')"></div><div class="modal-content"><div class="modal-header"><h2>🏠 Factură</h2><button class="modal-close" onclick="closeModal('utilityModal')">✕</button></div><div class="modal-body"><form id="utilityForm" onsubmit="saveUtility(event)"><input type="hidden" id="utilityId"><div class="form-group"><label class="form-label">Tip</label><select id="utilityType" class="form-select" required><option value="">Selectează</option><option value="electricity">⚡ Curent</option><option value="gas">🔥 Gaz</option><option value="water">💧 Apă</option><option value="internet">📶 Internet</option></select></div><div class="form-group"><label class="form-label">Luna</label><input type="month" id="utilityMonth" class="form-input" required></div><div class="form-group"><label class="form-label">Sumă</label><input type="number" id="utilityAmount" class="form-input" required></div><div class="form-group"><label class="form-label">Consum</label><input type="number" id="utilityConsumption" class="form-input"></div><div class="form-group"><label class="form-label">Furnizor</label><input type="text" id="utilityProvider" class="form-input"></div><button type="submit" class="btn-submit">Salvează</button></form></div></div></div>
-    <div id="importPdfModal" class="modal"><div class="modal-overlay" onclick="closeModal('importPdfModal')"></div><div class="modal-content"><div class="modal-header"><h2>📄 Import</h2><button class="modal-close" onclick="closeModal('importPdfModal')">✕</button></div><div class="modal-body"><p style="color:var(--text2);margin-bottom:1rem">Încarcă extras PDF și AI categorisează automat.</p><div id="pdfDropzone" style="border:2px dashed var(--border);border-radius:var(--radius-sm);padding:2rem;text-align:center;cursor:pointer" onclick="document.getElementById('pdfFileInput').click()"><div style="font-size:2rem">📁</div><p style="color:var(--text3);margin-top:0.5rem">Click sau trage PDF</p><input type="file" id="pdfFileInput" accept=".pdf" hidden></div><div id="importProgress" class="hidden" style="margin-top:1rem"><div style="height:4px;background:var(--bg3);border-radius:2px"><div id="importProgressFill" style="height:100%;background:var(--primary);border-radius:2px;width:0%;transition:width 0.3s"></div></div><p id="importStatus" style="text-align:center;margin-top:0.5rem;color:var(--text2)">Se procesează...</p></div><div id="importPreview" class="hidden" style="margin-top:1rem"><div style="display:flex;justify-content:space-between;margin-bottom:0.5rem"><span id="importCount">0</span><button onclick="clearImportPreview()" style="background:none;border:none;color:var(--danger);cursor:pointer">🗑️</button></div><div id="importTransList" style="max-height:200px;overflow-y:auto"></div><button onclick="confirmImport()" class="btn-submit">✅ Importă</button></div></div></div></div>
-    <div id="toastContainer" class="toast-container"></div>
-    <div id="offlineIndicator" class="offline-indicator hidden">📴 Offline</div>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js"></script>
+  <!-- AI Modal -->
+  <div id="aiModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('aiModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <span class="modal-title">🤖 Asistent AI</span>
+        <button class="modal-x" onclick="closeModal('aiModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="ai-chat" id="aiChat">
+          <div class="ai-msg">
+            <div class="ai-pic">🤖</div>
+            <div class="ai-bubble">Salut! Sunt Fin, asistentul tău financiar. Cu ce te pot ajuta?</div>
+          </div>
+        </div>
+        <div class="ai-quick">
+          <button class="ai-quick-btn" onclick="askAI('Analizează cheltuielile')">📊 Analiză</button>
+          <button class="ai-quick-btn" onclick="askAI('Cum economisesc?')">💡 Sfaturi</button>
+          <button class="ai-quick-btn" onclick="askAI('Predicție')">🔮 Predicție</button>
+        </div>
+        <div class="ai-input-row">
+          <input type="text" class="ai-input" id="aiIn" placeholder="Scrie un mesaj..." onkeypress="if(event.key==='Enter')sendAI()">
+          <button class="ai-send" onclick="sendAI()">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal Modal -->
+  <div id="goalModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('goalModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">🎯 Obiectiv</span><button class="modal-x" onclick="closeModal('goalModal')">✕</button></div>
+      <div class="modal-body">
+        <form id="goalForm" onsubmit="saveGoal(event)">
+          <input type="hidden" id="goalId">
+          <div class="form-row"><label class="form-label">Nume</label><input type="text" id="goalName" class="form-input" required placeholder="Ex: Vacanță"></div>
+          <div class="form-row"><label class="form-label">Sumă țintă</label><input type="number" id="goalTarget" class="form-input" required></div>
+          <div class="form-row"><label class="form-label">Economisit</label><input type="number" id="goalSaved" class="form-input" value="0"></div>
+          <div class="form-row"><label class="form-label">Deadline</label><input type="date" id="goalDeadline" class="form-input"></div>
+          <button type="submit" class="submit-btn">Salvează</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Modal -->
+  <div id="budgetModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('budgetModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">📊 Buget</span><button class="modal-x" onclick="closeModal('budgetModal')">✕</button></div>
+      <div class="modal-body">
+        <form id="budgetForm" onsubmit="saveBudget(event)">
+          <input type="hidden" id="budgetId">
+          <div class="form-row"><label class="form-label">Categorie</label><select id="budgetCat" class="form-select" required></select></div>
+          <div class="form-row"><label class="form-label">Limită lunară</label><input type="number" id="budgetLimit" class="form-input" required></div>
+          <button type="submit" class="submit-btn">Salvează</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Modal -->
+  <div id="accountModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('accountModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">🏦 Cont</span><button class="modal-x" onclick="closeModal('accountModal')">✕</button></div>
+      <div class="modal-body">
+        <form id="accountForm" onsubmit="saveAccount(event)">
+          <input type="hidden" id="accountId">
+          <div class="form-row"><label class="form-label">Nume</label><input type="text" id="accountName" class="form-input" required placeholder="Ex: ING"></div>
+          <div class="form-row"><label class="form-label">Tip</label><select id="accountType" class="form-select"><option value="bank">🏦 Bancă</option><option value="cash">💵 Cash</option><option value="savings">🐷 Economii</option></select></div>
+          <div class="form-row"><label class="form-label">Sold</label><input type="number" id="accountBal" class="form-input" required></div>
+          <button type="submit" class="submit-btn">Salvează</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debt Modal -->
+  <div id="debtModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('debtModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">🤝 Datorie</span><button class="modal-x" onclick="closeModal('debtModal')">✕</button></div>
+      <div class="modal-body">
+        <div class="type-tabs">
+          <button class="type-tab expense active" data-t="owe" onclick="setDebtType('owe')">📤 Datorez</button>
+          <button class="type-tab income" data-t="owed" onclick="setDebtType('owed')">📥 Îmi datorează</button>
+        </div>
+        <form id="debtForm" onsubmit="saveDebt(event)">
+          <input type="hidden" id="debtId"><input type="hidden" id="debtType" value="owe">
+          <div class="form-row"><label class="form-label">Persoană</label><input type="text" id="debtPerson" class="form-input" required></div>
+          <div class="form-row"><label class="form-label">Sumă</label><input type="number" id="debtAmount" class="form-input" required></div>
+          <div class="form-row"><label class="form-label">Motiv</label><input type="text" id="debtNote" class="form-input"></div>
+          <button type="submit" class="submit-btn">Salvează</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reminder Modal -->
+  <div id="reminderModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('reminderModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">⏰ Reminder</span><button class="modal-x" onclick="closeModal('reminderModal')">✕</button></div>
+      <div class="modal-body">
+        <form id="reminderForm" onsubmit="saveReminder(event)">
+          <input type="hidden" id="reminderId">
+          <div class="form-row"><label class="form-label">Nume</label><input type="text" id="reminderName" class="form-input" required></div>
+          <div class="form-row"><label class="form-label">Sumă</label><input type="number" id="reminderAmount" class="form-input" required></div>
+          <div class="form-row"><label class="form-label">Ziua lunii</label><input type="number" id="reminderDay" class="form-input" min="1" max="31" value="1"></div>
+          <button type="submit" class="submit-btn">Salvează</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Utility Modal -->
+  <div id="utilityModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('utilityModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">💡 Factură</span><button class="modal-x" onclick="closeModal('utilityModal')">✕</button></div>
+      <div class="modal-body">
+        <form id="utilityForm" onsubmit="saveUtility(event)">
+          <input type="hidden" id="utilityId">
+          <div class="form-row"><label class="form-label">Tip</label><select id="utilityType" class="form-select" required><option value="">Selectează</option><option value="electricity">⚡ Curent</option><option value="gas">🔥 Gaz</option><option value="water">💧 Apă</option><option value="internet">📶 Internet</option></select></div>
+          <div class="form-row"><label class="form-label">Luna</label><input type="month" id="utilityMonth" class="form-input" required></div>
+          <div class="form-row"><label class="form-label">Sumă</label><input type="number" id="utilityAmount" class="form-input" required></div>
+          <button type="submit" class="submit-btn">Salvează</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div id="importModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('importModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">📄 Import PDF</span><button class="modal-x" onclick="closeModal('importModal')">✕</button></div>
+      <div class="modal-body">
+        <p style="color:var(--text-secondary);margin-bottom:16px;">AI-ul va categorisa automat tranzacțiile din extrasul tău bancar.</p>
+        <div id="dropZone" style="border:2px dashed var(--border);border-radius:16px;padding:40px;text-align:center;cursor:pointer" onclick="document.getElementById('pdfIn').click()">
+          <div style="font-size:40px;margin-bottom:8px;">📁</div>
+          <p style="color:var(--text-secondary);">Click sau trage PDF-ul aici</p>
+          <input type="file" id="pdfIn" accept=".pdf" hidden onchange="handlePDF(this.files[0])">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

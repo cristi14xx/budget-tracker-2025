@@ -182,6 +182,7 @@ let state = {
     netWorth: 0,
     healthScore: 0,
     weeklyReport: null,
+    initialLoadComplete: false,
     // Special achievement triggers
     earlyBird: false,
     nightOwl: false,
@@ -238,16 +239,17 @@ function initAuth() {
 }
 
 function showAuth() {
-    $('authScreen')?.classList.remove('hidden');
-    $('app')?.classList.add('hidden');
-    $('splash')?.classList.add('hidden');
+    document.getElementById('authScreen')?.classList.remove('hidden');
+    document.getElementById('app')?.classList.add('hidden');
+    document.getElementById('splash')?.classList.add('hidden');
 }
 
 function showApp() {
-    $('authScreen')?.classList.add('hidden');
-    $('app')?.classList.remove('hidden');
-    $('splash')?.classList.add('hidden');
+    document.getElementById('authScreen')?.classList.add('hidden');
+    document.getElementById('app')?.classList.remove('hidden');
+    document.getElementById('splash')?.classList.add('hidden');
     updateProfile();
+    updateGreeting();
 }
 
 // Event Listeners
@@ -463,12 +465,21 @@ async function loadAllData() {
             state.shownAchievements = userData.shownAchievements || [];
             state.netWorth = userData.netWorth || 0;
         }
+        
+        // Sync shownAchievements with achievements on load (don't show old ones)
+        state.achievements.forEach(achId => {
+            if (!state.shownAchievements.includes(achId)) {
+                state.shownAchievements.push(achId);
+            }
+        });
 
         // Calculate streak
         calculateStreak();
         
-        // Check achievements
+        // Mark that initial load is complete - don't show achievement toasts on load
+        state.initialLoadComplete = false;
         checkAchievements();
+        state.initialLoadComplete = true;
 
         renderAll();
         checkReminders();
@@ -513,24 +524,27 @@ function checkAchievements() {
         // Check if achievement is earned but not yet in state
         if (!state.achievements.includes(ach.id) && ach.condition(state)) {
             state.achievements.push(ach.id);
-            // Only show toast if this achievement hasn't been shown before
-            if (!state.shownAchievements.includes(ach.id)) {
+            // Only show toast if initial load is complete and not shown before
+            if (state.initialLoadComplete && !state.shownAchievements.includes(ach.id)) {
                 newAchievements.push(ach);
+                state.shownAchievements.push(ach.id);
+            } else if (!state.shownAchievements.includes(ach.id)) {
+                // Still mark as shown even if we don't display toast
                 state.shownAchievements.push(ach.id);
             }
         }
     });
     
-    if (newAchievements.length > 0 || state.achievements.length > 0) {
-        // Save achievements and shown achievements
-        if (state.user) {
-            db.collection('users').doc(state.user.uid).update({
-                achievements: state.achievements,
-                shownAchievements: state.shownAchievements
-            }).catch(() => {});
-        }
-        
-        // Show toast only for truly new achievements
+    // Save to Firebase if there are any achievements
+    if (state.achievements.length > 0 && state.user) {
+        db.collection('users').doc(state.user.uid).update({
+            achievements: state.achievements,
+            shownAchievements: state.shownAchievements
+        }).catch(() => {});
+    }
+    
+    // Show toast only for truly new achievements (not on initial load)
+    if (state.initialLoadComplete && newAchievements.length > 0) {
         newAchievements.forEach((ach, idx) => {
             setTimeout(() => {
                 toast(`🏆 Achievement deblocat: ${ach.name}!`, 'success');
@@ -666,59 +680,53 @@ function updateStats() {
     const balance = income - expense;
     state.savingsRate = income > 0 ? ((income - expense) / income * 100) : 0;
     
-    if ($('totalIncome')) $('totalIncome').textContent = fmt(income);
-    if ($('totalExpense')) $('totalExpense').textContent = fmt(expense);
-    if ($('totalBalance')) $('totalBalance').textContent = fmt(balance);
+    // Main balance display
+    const totalIncomeEl = document.getElementById('totalIncome');
+    const totalExpenseEl = document.getElementById('totalExpense');
+    const totalBalanceEl = document.getElementById('totalBalance');
     
-    // Calculate change from last month
-    const lastMonthTrans = state.transactions.filter(t => {
-        const d = new Date(t.date);
-        const lm = state.month === 0 ? 11 : state.month - 1;
-        const ly = state.month === 0 ? state.year - 1 : state.year;
-        return d.getMonth() === lm && d.getFullYear() === ly;
-    });
-    
-    let lastBalance = 0;
-    lastMonthTrans.forEach(t => {
-        if (t.type === 'income') lastBalance += t.amount;
-        else if (t.type === 'expense') lastBalance -= t.amount;
-    });
-    
-    const change = lastBalance !== 0 ? ((balance - lastBalance) / Math.abs(lastBalance) * 100).toFixed(0) : 0;
-    const changeEl = $('balanceChange');
-    if (changeEl) {
-        changeEl.textContent = (change >= 0 ? '+' : '') + change + '%';
-        changeEl.className = 'balance-change ' + (change >= 0 ? 'positive' : 'negative');
+    if (totalIncomeEl) totalIncomeEl.textContent = fmt(income);
+    if (totalExpenseEl) totalExpenseEl.textContent = fmt(expense);
+    if (totalBalanceEl) {
+        totalBalanceEl.textContent = fmt(balance);
+        totalBalanceEl.classList.toggle('positive', balance >= 0);
+        totalBalanceEl.classList.toggle('negative', balance < 0);
     }
-    
-    // Progress bar
-    const spentPercent = income > 0 ? Math.min((expense / income) * 100, 100) : 0;
-    if ($('spentProgress')) $('spentProgress').style.width = spentPercent + '%';
-    if ($('spentPercent')) $('spentPercent').textContent = spentPercent.toFixed(0) + '% din venituri cheltuit';
     
     // Quick stats
     const today = new Date();
     const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
     const daysPassed = state.month === today.getMonth() && state.year === today.getFullYear() 
         ? today.getDate() : daysInMonth;
-    const daysLeft = daysInMonth - daysPassed;
     
     const dailyAvg = daysPassed > 0 ? expense / daysPassed : 0;
-    const prediction = dailyAvg * daysInMonth;
     
-    if ($('dailyAvg')) $('dailyAvg').textContent = fmt(dailyAvg);
-    if ($('prediction')) $('prediction').textContent = fmt(prediction);
-    if ($('savingsRate')) $('savingsRate').textContent = state.savingsRate.toFixed(0) + '%';
-    if ($('savingsRateHome')) $('savingsRateHome').textContent = state.savingsRate.toFixed(0) + '%';
-    if ($('daysLeft')) $('daysLeft').textContent = daysLeft;
-    if ($('streakCount')) $('streakCount').textContent = state.streak + '🔥';
+    const dailyAvgEl = document.getElementById('dailyAvg');
+    const savingsRateEl = document.getElementById('savingsRate');
+    const streakEl = document.getElementById('streakDisplay');
+    
+    if (dailyAvgEl) dailyAvgEl.textContent = Math.round(dailyAvg);
+    if (savingsRateEl) {
+        const rate = state.savingsRate.toFixed(0) + '%';
+        savingsRateEl.textContent = rate;
+        savingsRateEl.classList.toggle('good', state.savingsRate >= 20);
+        savingsRateEl.classList.toggle('warning', state.savingsRate > 0 && state.savingsRate < 20);
+        savingsRateEl.classList.toggle('bad', state.savingsRate <= 0);
+    }
+    if (streakEl) streakEl.textContent = state.streak + '🔥';
     
     // Update month display
-    if ($('currentMonth')) $('currentMonth').textContent = months[state.month] + ' ' + state.year;
-    if ($('transMonth')) $('transMonth').textContent = months[state.month] + ' ' + state.year;
+    const currentMonth = document.getElementById('currentMonth');
+    const transMonth = document.getElementById('transMonth');
+    const monthText = months[state.month].substring(0, 3) + ' ' + state.year;
+    if (currentMonth) currentMonth.textContent = monthText;
+    if (transMonth) transMonth.textContent = monthText;
 
     // Check budgets
     checkBudgetAlerts();
+    
+    // Update greeting
+    updateGreeting();
 }
 
 // Update Net Worth
@@ -822,11 +830,11 @@ function checkBudgetAlerts() {
 // Render recent transactions
 function renderRecentTransactions() {
     const trans = getMonthTransactions().slice(0, 5);
-    const container = $('recentTransactions');
+    const container = document.getElementById('recentTransactions');
     if (!container) return;
     
     if (trans.length === 0) {
-        container.innerHTML = `<div class="empty-state"><span class="empty-icon">📝</span><p>Nicio tranzacție încă</p></div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📝</div><p class="empty-text">Nicio tranzacție încă</p><button class="empty-btn" onclick="openTransModal('expense')">+ Adaugă prima</button></div>`;
         return;
     }
     
@@ -835,8 +843,8 @@ function renderRecentTransactions() {
         return `
             <div class="trans-item" onclick="editTransaction('${t.id}')">
                 <div class="trans-icon" style="background: ${cat?.color || '#666'}20">${cat?.icon || '📦'}</div>
-                <div class="trans-info">
-                    <div class="trans-category">${cat?.name || t.category}</div>
+                <div class="trans-details">
+                    <div class="trans-title">${cat?.name || t.category}</div>
                     <div class="trans-meta">${t.subcategory || ''} · ${formatDate(t.date)}</div>
                 </div>
                 <div class="trans-amount ${t.type}">${t.type === 'expense' ? '-' : '+'}${t.amount.toLocaleString()} ${state.currency}</div>
@@ -1131,18 +1139,16 @@ function getRepeatText(repeat) {
 
 // Switch view
 function switchView(view) {
-    $$('.view').forEach(v => v.classList.remove('active'));
-    const viewEl = $(view + 'View');
+    // Hide all views
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    
+    // Show selected view
+    const viewEl = document.getElementById(view + 'View');
     if (viewEl) viewEl.classList.add('active');
     
     // Update bottom nav
-    $$('.nav-item').forEach(n => {
+    document.querySelectorAll('.nav-item').forEach(n => {
         n.classList.toggle('active', n.dataset.view === view);
-    });
-    
-    // Update menu items
-    $$('.menu-item').forEach(m => {
-        m.classList.toggle('active', m.dataset.view === view);
     });
     
     // Update header title
@@ -1150,6 +1156,7 @@ function switchView(view) {
         home: 'Budget Pro',
         transactions: 'Tranzacții',
         analytics: 'Analiză',
+        more: 'Cont',
         accounts: 'Conturi',
         budgets: 'Bugete',
         goals: 'Obiective',
@@ -1159,12 +1166,13 @@ function switchView(view) {
         achievements: 'Achievements',
         settings: 'Setări'
     };
-    const headerTitle = $('headerTitle');
+    const headerTitle = document.getElementById('headerTitle');
     if (headerTitle) headerTitle.textContent = titles[view] || 'Budget Pro';
     
     // Render view-specific content
+    if (view === 'home') { renderRecentTransactions(); updateStats(); }
     if (view === 'transactions') renderAllTransactions();
-    if (view === 'analytics') updateAnalytics();
+    if (view === 'analytics') updateAnalyticsView();
     if (view === 'goals') renderGoals();
     if (view === 'debts') renderDebts();
     if (view === 'accounts') renderAccounts();
@@ -1530,7 +1538,7 @@ function openBudgetModal() {
 function openModal(id) {
     const modal = $(id);
     if (modal) {
-        modal.classList.add('active');
+        modal.classList.add('open');
         document.body.style.overflow = 'hidden';
     }
 }
@@ -1538,7 +1546,7 @@ function openModal(id) {
 function closeModal(id) {
     const modal = $(id);
     if (modal) {
-        modal.classList.remove('active');
+        modal.classList.remove('open');
         document.body.style.overflow = '';
     }
 }
@@ -4893,7 +4901,7 @@ function filterTransactions(type) {
 
 // Render filtered transactions
 function renderFilteredTransactions() {
-    const container = $('allTransactions');
+    const container = document.getElementById('allTransactions');
     if (!container) return;
     
     let trans = getMonthTransactions();
@@ -4924,8 +4932,8 @@ function renderFilteredTransactions() {
     if (trans.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <span class="empty-icon">🔍</span>
-                <p>${searchQuery ? 'Nicio tranzacție găsită' : 'Nicio tranzacție în această lună'}</p>
+                <div class="empty-icon">🔍</div>
+                <p class="empty-text">${searchQuery ? 'Nicio tranzacție găsită' : 'Nicio tranzacție în această lună'}</p>
             </div>
         `;
         return;
@@ -4935,16 +4943,12 @@ function renderFilteredTransactions() {
         const cat = findCategory(t.type, t.category);
         return `
             <div class="trans-item" onclick="editTransaction('${t.id}')">
-                <div class="trans-icon" style="background: ${cat?.color || '#666'}20">
-                    ${cat?.icon || '📦'}
-                </div>
-                <div class="trans-info">
-                    <div class="trans-category">${cat?.name || t.category}</div>
+                <div class="trans-icon" style="background: ${cat?.color || '#666'}20">${cat?.icon || '📦'}</div>
+                <div class="trans-details">
+                    <div class="trans-title">${cat?.name || t.category}</div>
                     <div class="trans-meta">${t.subcategory || ''} · ${formatDate(t.date)}</div>
                 </div>
-                <div class="trans-amount ${t.type}">
-                    ${t.type === 'expense' ? '-' : '+'}${t.amount.toLocaleString()} ${state.currency}
-                </div>
+                <div class="trans-amount ${t.type}">${t.type === 'expense' ? '-' : '+'}${t.amount.toLocaleString()} ${state.currency}</div>
             </div>
         `;
     }).join('');
@@ -4952,12 +4956,15 @@ function renderFilteredTransactions() {
 
 // Set transaction type in modal
 function setTransType(type) {
-    const typeInput = $('transType');
+    const typeInput = document.getElementById('transType');
     if (typeInput) typeInput.value = type;
     
-    // Update tabs
-    $$('.type-tab[data-type]').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.type === type);
+    // Update tabs with new design
+    document.querySelectorAll('#transModal .type-btn').forEach(tab => {
+        const isActive = tab.dataset.type === type;
+        tab.classList.toggle('active', isActive);
+        tab.classList.toggle('expense', isActive && type === 'expense');
+        tab.classList.toggle('income', isActive && type === 'income');
     });
     
     // Update categories
@@ -4966,12 +4973,15 @@ function setTransType(type) {
 
 // Set debt type in modal
 function setDebtType(type) {
-    const typeInput = $('debtType');
+    const typeInput = document.getElementById('debtType');
     if (typeInput) typeInput.value = type;
     
     // Update tabs in debt modal
-    $$('#debtModal .type-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.type === type);
+    document.querySelectorAll('#debtModal .type-btn').forEach(tab => {
+        const isActive = tab.dataset.type === type;
+        tab.classList.toggle('active', isActive);
+        tab.classList.toggle('expense', isActive && type === 'owe');
+        tab.classList.toggle('income', isActive && type === 'owed');
     });
 }
 
@@ -5147,3 +5157,839 @@ window.clearAllData = clearAllData;
 window.saveNetWorth = saveNetWorth;
 window.confirmImport = confirmImport;
 window.clearImportPreview = clearImportPreview;
+
+// New functions for redesign
+window.showAuthTab = showAuthTab;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.handleSearch = handleSearch;
+window.setFilter = setFilter;
+window.populateSubcategories = populateSubcategories;
+window.saveTransaction = saveTransaction;
+window.saveGoal = saveGoal;
+window.saveBudget = saveBudget;
+window.saveAccount = saveAccount;
+window.saveDebt = saveDebt;
+window.saveReminder = saveReminder;
+window.saveUtility = saveUtility;
+window.sendAiMessage = sendAiMessage;
+window.updateAnalyticsView = updateAnalyticsView;
+
+// Auth tab switcher
+function showAuthTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.textContent.toLowerCase().includes(tab)));
+    document.getElementById('loginForm')?.classList.toggle('hidden', tab !== 'login');
+    document.getElementById('registerForm')?.classList.toggle('hidden', tab !== 'register');
+}
+
+// Login handler
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail')?.value;
+    const pass = document.getElementById('loginPassword')?.value;
+    if (!email || !pass) return;
+    try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        toast('Autentificare reușită!', 'success');
+    } catch (err) {
+        toast(getAuthError(err.code), 'error');
+    }
+}
+
+// Register handler
+async function handleRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('regName')?.value;
+    const email = document.getElementById('regEmail')?.value;
+    const pass = document.getElementById('regPassword')?.value;
+    if (!name || !email || !pass) return;
+    try {
+        const { user } = await auth.createUserWithEmailAndPassword(email, pass);
+        await user.updateProfile({ displayName: name });
+        await db.collection('users').doc(user.uid).set({
+            name, email, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        toast('Cont creat cu succes!', 'success');
+    } catch (err) {
+        toast(getAuthError(err.code), 'error');
+    }
+}
+
+// Search handler
+function handleSearch() {
+    searchQuery = document.getElementById('searchInput')?.value?.toLowerCase() || '';
+    renderAllTransactions();
+}
+
+// Filter handler
+function setFilter(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === filter));
+    renderAllTransactions();
+}
+
+// Update greeting
+function updateGreeting() {
+    if (!state.user) return;
+    const hour = new Date().getHours();
+    const name = state.user.displayName?.split(' ')[0] || 'Utilizator';
+    let greet = 'Bună seara';
+    if (hour < 12) greet = 'Bună dimineața';
+    else if (hour < 18) greet = 'Bună ziua';
+    
+    const greetingText = document.getElementById('greetingText');
+    const greetingSub = document.getElementById('greetingSub');
+    if (greetingText) greetingText.textContent = `${greet}, ${name}! 👋`;
+    if (greetingSub) greetingSub.textContent = getSummaryText();
+}
+
+// Get summary text based on financial state
+function getSummaryText() {
+    const trans = getMonthTransactions();
+    const income = trans.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const expense = trans.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const balance = income - expense;
+    
+    if (trans.length === 0) return 'Începe să adaugi tranzacții';
+    if (balance > 0) return 'Luna merge bine! Ești pe plus 💪';
+    if (balance < 0) return 'Atenție, ești pe minus luna asta';
+    return 'Să vedem cum stai cu banii';
+}
+
+// Update analytics view
+function updateAnalyticsView() {
+    // Health score
+    const health = calculateHealthScore();
+    const healthEl = document.getElementById('healthScore');
+    const healthFill = document.getElementById('healthFill');
+    if (healthEl) healthEl.textContent = health + '/100';
+    if (healthFill) healthFill.style.width = health + '%';
+    
+    // FIRE
+    const fire = calculateFIRE();
+    const fireProgressEl = document.getElementById('fireProgress');
+    const fireYearsEl = document.getElementById('fireYears');
+    if (fireProgressEl) fireProgressEl.textContent = fire.progress.toFixed(1) + '%';
+    if (fireYearsEl) {
+        fireYearsEl.textContent = fire.yearsToFire === Infinity || fire.yearsToFire > 100 
+            ? '∞' 
+            : fire.yearsToFire.toFixed(0);
+    }
+    
+    // Render tips
+    renderSmartTipsNew();
+    
+    // Render trend chart
+    renderTrendChartNew();
+}
+
+// Render smart tips
+function renderSmartTipsNew() {
+    const container = document.getElementById('smartTips');
+    if (!container) return;
+    
+    const tips = generateSmartTips();
+    
+    if (!tips || tips.length === 0) {
+        container.innerHTML = '<div class="tip-card"><div class="tip-icon">🎉</div><div class="tip-content"><div class="tip-title">Excelent!</div><div class="tip-text">Finanțele tale arată bine!</div></div></div>';
+        return;
+    }
+    
+    container.innerHTML = tips.slice(0, 3).map(tip => `
+        <div class="tip-card">
+            <div class="tip-icon">${tip.icon}</div>
+            <div class="tip-content">
+                <div class="tip-title">${tip.title}</div>
+                <div class="tip-text">${tip.message}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render trend chart
+function renderTrendChartNew() {
+    const ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+    
+    if (state.trendChart) state.trendChart.destroy();
+    
+    const monthsData = [];
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const trans = state.transactions.filter(t => {
+            const td = new Date(t.date);
+            return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+        });
+        
+        let income = 0, expense = 0;
+        trans.forEach(t => {
+            if (t.type === 'income') income += t.amount;
+            else if (t.type === 'expense') expense += t.amount;
+        });
+        
+        monthsData.push({
+            month: months[d.getMonth()].substring(0, 3),
+            income,
+            expense
+        });
+    }
+    
+    state.trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: monthsData.map(m => m.month),
+            datasets: [{
+                label: 'Venituri',
+                data: monthsData.map(m => m.income),
+                borderColor: '#30d158',
+                backgroundColor: 'rgba(48, 209, 88, 0.1)',
+                fill: true,
+                tension: 0.4
+            }, {
+                label: 'Cheltuieli',
+                data: monthsData.map(m => m.expense),
+                borderColor: '#ff453a',
+                backgroundColor: 'rgba(255, 69, 58, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#636366' } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#636366' } }
+            }
+        }
+    });
+}
+
+// Update profile for new design
+function updateProfileNew() {
+    if (!state.user) return;
+    
+    const name = state.user.displayName || 'Utilizator';
+    const email = state.user.email || '';
+    const initial = name.charAt(0).toUpperCase();
+    
+    // Profile card
+    const avatar = document.getElementById('profileAvatar');
+    const nameEl = document.getElementById('profileName');
+    const emailEl = document.getElementById('profileEmail');
+    
+    if (avatar) avatar.textContent = initial;
+    if (nameEl) nameEl.textContent = name;
+    if (emailEl) emailEl.textContent = email;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NEW 2025 REDESIGN FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    initFirebaseAuth();
+    setTimeout(() => {
+        const splash = document.getElementById('splash');
+        if (splash) splash.classList.add('hidden');
+    }, 1800);
+});
+
+// Firebase Auth
+function initFirebaseAuth() {
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            state.user = user;
+            showMainApp();
+            loadUserData();
+        } else {
+            state.user = null;
+            showAuthScreen();
+        }
+    });
+}
+
+// Show/Hide screens
+function showAuthScreen() {
+    document.getElementById('splash')?.classList.add('hidden');
+    document.getElementById('auth')?.classList.remove('hidden');
+    document.getElementById('app')?.classList.add('hidden');
+}
+
+function showMainApp() {
+    document.getElementById('splash')?.classList.add('hidden');
+    document.getElementById('auth')?.classList.add('hidden');
+    document.getElementById('app')?.classList.remove('hidden');
+    updateUI();
+}
+
+// Auth functions
+function showAuthTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t, i) => {
+        t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+    document.getElementById('loginForm')?.classList.toggle('hidden', tab !== 'login');
+    document.getElementById('registerForm')?.classList.toggle('hidden', tab !== 'register');
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail')?.value;
+    const pass = document.getElementById('loginPass')?.value;
+    try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        toast('Conectat cu succes!', 'success');
+    } catch (err) {
+        toast('Eroare: ' + (err.message || 'Autentificare eșuată'), 'error');
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('regName')?.value;
+    const email = document.getElementById('regEmail')?.value;
+    const pass = document.getElementById('regPass')?.value;
+    try {
+        const { user } = await auth.createUserWithEmailAndPassword(email, pass);
+        await user.updateProfile({ displayName: name });
+        await db.collection('users').doc(user.uid).set({ name, email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        toast('Cont creat!', 'success');
+    } catch (err) {
+        toast('Eroare: ' + (err.message || 'Înregistrare eșuată'), 'error');
+    }
+}
+
+// Load user data
+async function loadUserData() {
+    if (!state.user) return;
+    const uid = state.user.uid;
+    try {
+        const [txSnap, goalsSnap, debtsSnap, accSnap, budSnap, remSnap, utilSnap, userDoc] = await Promise.all([
+            db.collection('users').doc(uid).collection('transactions').orderBy('date', 'desc').get(),
+            db.collection('users').doc(uid).collection('goals').get(),
+            db.collection('users').doc(uid).collection('debts').get(),
+            db.collection('users').doc(uid).collection('accounts').get(),
+            db.collection('users').doc(uid).collection('budgets').get(),
+            db.collection('users').doc(uid).collection('reminders').get(),
+            db.collection('users').doc(uid).collection('utilities').get(),
+            db.collection('users').doc(uid).get()
+        ]);
+        
+        state.transactions = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.goals = goalsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.debts = debtsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.accounts = accSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.budgets = budSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.reminders = remSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.utilities = utilSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        if (userDoc.exists) {
+            const data = userDoc.data();
+            state.achievements = data.achievements || [];
+            state.shownAchievements = data.shownAchievements || [];
+            state.netWorth = data.netWorth || 0;
+            state.currency = data.currency || 'RON';
+        }
+        
+        // Sync achievements so we don't show old ones
+        state.achievements.forEach(id => {
+            if (!state.shownAchievements.includes(id)) state.shownAchievements.push(id);
+        });
+        
+        calculateStreak();
+        state.initialLoadComplete = true;
+        updateUI();
+    } catch (err) {
+        console.error('Load error:', err);
+    }
+}
+
+// Update entire UI
+function updateUI() {
+    updateProfile2025();
+    updateHome();
+    updateMonthDisplay();
+}
+
+// Update profile
+function updateProfile2025() {
+    if (!state.user) return;
+    const name = state.user.displayName || 'Utilizator';
+    const initial = name.charAt(0).toUpperCase();
+    
+    const el = (id) => document.getElementById(id);
+    if (el('headerAvatar')) el('headerAvatar').textContent = initial;
+    if (el('profilePic')) el('profilePic').textContent = initial;
+    if (el('profileName')) el('profileName').textContent = name;
+    if (el('profileEmail')) el('profileEmail').textContent = state.user.email || '';
+    if (el('currencySel')) el('currencySel').value = state.currency;
+    if (el('netWorthIn')) el('netWorthIn').value = state.netWorth || '';
+}
+
+// Update home view
+function updateHome() {
+    const trans = getMonthTransactions();
+    let income = 0, expense = 0;
+    trans.forEach(t => {
+        if (t.type === 'income') income += t.amount;
+        else if (t.type === 'expense') expense += t.amount;
+    });
+    const balance = income - expense;
+    state.savingsRate = income > 0 ? ((income - expense) / income * 100) : 0;
+    
+    const el = (id) => document.getElementById(id);
+    
+    // Hero card
+    const heroBalance = el('heroBalance');
+    if (heroBalance) {
+        heroBalance.textContent = formatMoney(balance);
+        heroBalance.className = 'hero-amount ' + (balance >= 0 ? 'positive' : 'negative');
+    }
+    if (el('heroIncome')) el('heroIncome').textContent = formatMoney(income);
+    if (el('heroExpense')) el('heroExpense').textContent = formatMoney(expense);
+    
+    // Quick stats
+    const days = new Date().getDate();
+    const dailyAvg = days > 0 ? expense / days : 0;
+    
+    const savingsEl = el('statSavings');
+    if (savingsEl) {
+        savingsEl.textContent = state.savingsRate.toFixed(0) + '%';
+        savingsEl.className = 'stat-value ' + (state.savingsRate >= 20 ? 'good' : state.savingsRate > 0 ? 'warn' : 'bad');
+    }
+    if (el('statDaily')) el('statDaily').textContent = Math.round(dailyAvg);
+    if (el('statStreak')) el('statStreak').textContent = state.streak + '🔥';
+    
+    // Welcome
+    updateWelcome();
+    
+    // Recent transactions
+    renderRecentTx();
+}
+
+// Update welcome message
+function updateWelcome() {
+    if (!state.user) return;
+    const hour = new Date().getHours();
+    const name = state.user.displayName?.split(' ')[0] || 'prietene';
+    let greet = 'Bună seara';
+    if (hour < 12) greet = 'Bună dimineața';
+    else if (hour < 18) greet = 'Bună ziua';
+    
+    const welcomeText = document.getElementById('welcomeText');
+    const welcomeSub = document.getElementById('welcomeSub');
+    if (welcomeText) welcomeText.textContent = `${greet}, ${name}! 👋`;
+    if (welcomeSub) {
+        const trans = getMonthTransactions();
+        if (trans.length === 0) welcomeSub.textContent = 'Începe să adaugi tranzacții';
+        else if (state.savingsRate >= 20) welcomeSub.textContent = 'Luna merge excelent! 💪';
+        else if (state.savingsRate > 0) welcomeSub.textContent = 'Ești pe plus luna asta';
+        else welcomeSub.textContent = 'Atenție la cheltuieli!';
+    }
+}
+
+// Update month display
+function updateMonthDisplay() {
+    const text = months[state.month].substring(0, 3) + ' ' + state.year;
+    const el1 = document.getElementById('monthText');
+    const el2 = document.getElementById('txMonthText');
+    if (el1) el1.textContent = text;
+    if (el2) el2.textContent = text;
+}
+
+// Month navigation
+function prevMonth() {
+    if (state.month === 0) { state.month = 11; state.year--; }
+    else state.month--;
+    updateMonthDisplay();
+    updateHome();
+    if (document.getElementById('transactionsView')?.classList.contains('active')) renderAllTx();
+}
+
+function nextMonth() {
+    if (state.month === 11) { state.month = 0; state.year++; }
+    else state.month++;
+    updateMonthDisplay();
+    updateHome();
+    if (document.getElementById('transactionsView')?.classList.contains('active')) renderAllTx();
+}
+
+// Format money
+function formatMoney(n) {
+    return Math.abs(n).toLocaleString('ro-RO', { maximumFractionDigits: 0 }) + ' ' + state.currency;
+}
+
+// Get month transactions
+function getMonthTransactions() {
+    return state.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === state.month && d.getFullYear() === state.year;
+    });
+}
+
+// Render recent transactions
+function renderRecentTx() {
+    const container = document.getElementById('recentTx');
+    if (!container) return;
+    
+    const trans = getMonthTransactions().slice(0, 5);
+    if (trans.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📝</div><p class="empty-text">Nicio tranzacție încă</p><button class="empty-btn" onclick="openTxModal()">+ Adaugă prima</button></div>`;
+        return;
+    }
+    
+    container.innerHTML = trans.map(t => txHTML(t)).join('');
+}
+
+// Render all transactions
+
+function renderAllTx() {
+    const container = document.getElementById('allTx');
+    if (!container) return;
+    
+    let trans = getMonthTransactions();
+    
+    if (filterType !== 'all') trans = trans.filter(t => t.type === filterType);
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        trans = trans.filter(t => {
+            const cat = findCategory(t.type, t.category);
+            return (cat?.name || '').toLowerCase().includes(q) || 
+                   (t.subcategory || '').toLowerCase().includes(q) ||
+                   (t.note || '').toLowerCase().includes(q);
+        });
+    }
+    
+    trans.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (trans.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><p class="empty-text">${searchQuery ? 'Nicio tranzacție găsită' : 'Nicio tranzacție în această lună'}</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = trans.map(t => txHTML(t)).join('');
+}
+
+// Transaction HTML
+function txHTML(t) {
+    const cat = findCategory(t.type, t.category);
+    return `
+        <div class="tx-item" onclick="editTx('${t.id}')">
+            <div class="tx-icon" style="background:${cat?.color || '#666'}20">${cat?.icon || '📦'}</div>
+            <div class="tx-info">
+                <div class="tx-name">${cat?.name || t.category}</div>
+                <div class="tx-meta">${t.subcategory || ''} · ${formatDate(t.date)}</div>
+            </div>
+            <div class="tx-amount ${t.type}">${t.type === 'expense' ? '-' : '+'}${formatMoney(t.amount)}</div>
+        </div>
+    `;
+}
+
+// Format date
+function formatDate(d) {
+    const date = new Date(d);
+    return date.getDate() + ' ' + months[date.getMonth()].substring(0, 3);
+}
+
+// Search
+function doSearch() {
+    searchQuery = document.getElementById('searchInput')?.value || '';
+    renderAllTx();
+}
+
+// Filter
+function setFilter(f) {
+    filterType = f;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.f === f));
+    renderAllTx();
+}
+
+// Navigation
+function goTo(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(view + 'View')?.classList.add('active');
+    
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.v === view));
+    
+    const titles = { home: 'Budget Pro', transactions: 'Tranzacții', analytics: 'Analiză', menu: 'Cont' };
+    const headerTitle = document.getElementById('headerTitle');
+    if (headerTitle) headerTitle.textContent = titles[view] || 'Budget Pro';
+    
+    // Render view content
+    if (view === 'home') updateHome();
+    if (view === 'transactions') { updateMonthDisplay(); renderAllTx(); }
+    if (view === 'analytics') renderAnalytics();
+    if (view === 'goals') renderGoals();
+    if (view === 'budgets') renderBudgetsView();
+    if (view === 'accounts') renderAccounts();
+    if (view === 'debts') renderDebts();
+    if (view === 'utilities') renderUtilitiesView();
+    if (view === 'reminders') renderReminders();
+    if (view === 'achievements') renderAchievementsView();
+}
+
+// Render Analytics
+function renderAnalytics() {
+    const health = calculateHealthScore();
+    const el = (id) => document.getElementById(id);
+    
+    if (el('scoreNum')) el('scoreNum').textContent = health;
+    if (el('scoreFill')) el('scoreFill').style.width = health + '%';
+    
+    const fire = calculateFIRE();
+    if (el('metricFire')) el('metricFire').textContent = fire.progress.toFixed(1) + '%';
+    if (el('metricYears')) el('metricYears').textContent = fire.yearsToFire > 100 ? '∞' : fire.yearsToFire.toFixed(0);
+    
+    renderTips();
+    renderTrendChart2025();
+}
+
+// Render tips
+function renderTips() {
+    const container = document.getElementById('tipsList');
+    if (!container) return;
+    
+    const tips = generateSmartTips();
+    if (!tips || tips.length === 0) {
+        container.innerHTML = '<div class="tip-item"><div class="tip-icon">🎉</div><div class="tip-content"><div class="tip-title">Excelent!</div><div class="tip-text">Finanțele tale arată bine!</div></div></div>';
+        return;
+    }
+    
+    container.innerHTML = tips.slice(0, 3).map(t => `
+        <div class="tip-item">
+            <div class="tip-icon">${t.icon}</div>
+            <div class="tip-content">
+                <div class="tip-title">${t.title}</div>
+                <div class="tip-text">${t.message}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render trend chart
+function renderTrendChart2025() {
+    const ctx = document.getElementById('trendCanvas');
+    if (!ctx) return;
+    
+    if (state.trendChart) state.trendChart.destroy();
+    
+    const data = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const trans = state.transactions.filter(t => {
+            const td = new Date(t.date);
+            return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+        });
+        let inc = 0, exp = 0;
+        trans.forEach(t => { if (t.type === 'income') inc += t.amount; else if (t.type === 'expense') exp += t.amount; });
+        data.push({ m: months[d.getMonth()].substring(0, 3), inc, exp });
+    }
+    
+    state.trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.m),
+            datasets: [
+                { label: 'Venituri', data: data.map(d => d.inc), borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,0.1)', fill: true, tension: 0.4 },
+                { label: 'Cheltuieli', data: data.map(d => d.exp), borderColor: '#ff4757', backgroundColor: 'rgba(255,71,87,0.1)', fill: true, tension: 0.4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#555' } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555' } }
+            }
+        }
+    });
+}
+
+// Modal functions
+function openModal(id) {
+    document.getElementById(id)?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+    document.getElementById(id)?.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// Open AI
+function openAI() { openModal('aiModal'); }
+
+// Open transaction modal
+function openTxModal(type = 'expense') {
+    state.editingId = null;
+    document.getElementById('txId').value = '';
+    document.getElementById('txForm')?.reset();
+    document.getElementById('txModalTitle').textContent = 'Tranzacție nouă';
+    document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+    setTxType(type);
+    openModal('txModal');
+}
+
+// Set transaction type
+function setTxType(type) {
+    document.getElementById('txType').value = type;
+    document.querySelectorAll('#txModal .type-tab').forEach(tab => {
+        const isActive = tab.dataset.t === type;
+        tab.classList.toggle('active', isActive);
+        tab.classList.toggle('expense', isActive && type === 'expense');
+        tab.classList.toggle('income', isActive && type === 'income');
+    });
+    loadCats(type);
+}
+
+// Load categories
+function loadCats(type) {
+    const sel = document.getElementById('txCat');
+    if (!sel) return;
+    const cats = categories[type] || [];
+    sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+    loadSubcats();
+}
+
+// Load subcategories
+function loadSubcats() {
+    const type = document.getElementById('txType')?.value;
+    const catId = document.getElementById('txCat')?.value;
+    const sel = document.getElementById('txSubcat');
+    if (!sel) return;
+    const cat = categories[type]?.find(c => c.id === catId);
+    sel.innerHTML = '<option value="">-- Selectează --</option>' + (cat?.subs || []).map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+// Save transaction
+async function saveTx(e) {
+    e.preventDefault();
+    const data = {
+        type: document.getElementById('txType').value,
+        amount: parseFloat(document.getElementById('txAmount').value),
+        category: document.getElementById('txCat').value,
+        subcategory: document.getElementById('txSubcat')?.value || '',
+        date: document.getElementById('txDate').value,
+        note: document.getElementById('txNote')?.value || '',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        const ref = db.collection('users').doc(state.user.uid).collection('transactions');
+        if (state.editingId) {
+            await ref.doc(state.editingId).update(data);
+            const idx = state.transactions.findIndex(t => t.id === state.editingId);
+            if (idx >= 0) state.transactions[idx] = { ...state.transactions[idx], ...data };
+            toast('Actualizat!', 'success');
+        } else {
+            const doc = await ref.add(data);
+            state.transactions.unshift({ id: doc.id, ...data });
+            toast('Adăugat!', 'success');
+        }
+        closeModal('txModal');
+        updateHome();
+        checkAchievements();
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
+    }
+}
+
+// Edit transaction
+function editTx(id) {
+    const t = state.transactions.find(x => x.id === id);
+    if (!t) return;
+    
+    state.editingId = id;
+    document.getElementById('txId').value = id;
+    document.getElementById('txModalTitle').textContent = 'Editează';
+    setTxType(t.type);
+    document.getElementById('txCat').value = t.category;
+    loadSubcats();
+    document.getElementById('txSubcat').value = t.subcategory || '';
+    document.getElementById('txAmount').value = t.amount;
+    document.getElementById('txDate').value = t.date;
+    document.getElementById('txNote').value = t.note || '';
+    openModal('txModal');
+}
+
+// Set debt type
+function setDebtType(type) {
+    document.getElementById('debtType').value = type;
+    document.querySelectorAll('#debtModal .type-tab').forEach(tab => {
+        const isActive = tab.dataset.t === type;
+        tab.classList.toggle('active', isActive);
+        tab.classList.toggle('expense', isActive && type === 'owe');
+        tab.classList.toggle('income', isActive && type === 'owed');
+    });
+}
+
+// Set currency
+function setCurrency(c) {
+    state.currency = c;
+    if (state.user) db.collection('users').doc(state.user.uid).update({ currency: c });
+    updateHome();
+}
+
+// Toast
+function toast(msg, type = 'info') {
+    const container = document.getElementById('toasts');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'toast ' + type;
+    div.textContent = msg;
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
+}
+
+// Logout
+function logout() {
+    auth.signOut();
+    toast('Deconectat', 'info');
+}
+
+// Export all functions to window
+window.showAuthTab = showAuthTab;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.goTo = goTo;
+window.prevMonth = prevMonth;
+window.nextMonth = nextMonth;
+window.openTxModal = openTxModal;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.openAI = openAI;
+window.setTxType = setTxType;
+window.loadSubcats = loadSubcats;
+window.saveTx = saveTx;
+window.editTx = editTx;
+window.doSearch = doSearch;
+window.setFilter = setFilter;
+window.setDebtType = setDebtType;
+window.setCurrency = setCurrency;
+window.logout = logout;
+window.toast = toast;
+window.askAI = askAI;
+window.sendAI = sendAiMessage;
+window.openGoalModal = openGoalModal;
+window.saveGoal = handleGoalSubmit;
+window.openBudgetModal = openBudgetModal;
+window.saveBudget = handleBudgetSubmit;
+window.openAccountModal = openAccountModal;
+window.saveAccount = handleAccountSubmit;
+window.openDebtModal = openDebtModal;
+window.saveDebt = handleDebtSubmit;
+window.openReminderModal = openReminderModal;
+window.saveReminder = handleReminderSubmit;
+window.openUtilityModal = openUtilityModal;
+window.saveUtility = saveUtility;
+window.exportJSON = exportJSON;
+window.exportCSV = exportCSV;
+window.saveNetWorth = saveNetWorth;
+window.clearAllData = clearAllData;
+window.handlePDF = handlePdfUpload;

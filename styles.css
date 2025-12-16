@@ -461,3 +461,42 @@ body {
 .toast.error { background: var(--red); color: #fff; }
 
 .hide { display: none !important; }
+
+/* Calendar */
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.cal-day-name { text-align: center; font-size: 11px; color: var(--text3); padding: 8px 0; font-weight: 600; }
+.cal-day {
+  aspect-ratio: 1; background: var(--card); border-radius: var(--r2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; position: relative;
+}
+.cal-day.empty { background: transparent; cursor: default; }
+.cal-day.pos { background: rgba(0,212,170,0.15); }
+.cal-day.neg { background: rgba(255,71,87,0.15); }
+.cal-day:not(.empty):hover { background: var(--card2); }
+.cal-day-num { font-size: 14px; font-weight: 600; }
+.cal-day-dot {
+  position: absolute; bottom: 4px; width: 18px; height: 18px;
+  background: var(--accent); border-radius: 50%;
+  font-size: 9px; display: flex; align-items: center; justify-content: center;
+  color: #000; font-weight: 700;
+}
+
+/* Insights */
+.insight-card {
+  background: var(--card); border-radius: var(--r2);
+  padding: 16px; margin-bottom: 10px; display: flex; gap: 14px; align-items: center;
+}
+.insight-icon { font-size: 32px; flex-shrink: 0; }
+.insight-text { font-size: 14px; line-height: 1.5; }
+
+/* Challenge cards */
+.challenge-card {
+  background: var(--card); border-radius: var(--r);
+  padding: 20px; margin-bottom: 12px; text-align: center; cursor: pointer;
+  transition: background 0.2s;
+}
+.challenge-card:active { background: var(--card2); }
+.challenge-icon { font-size: 40px; margin-bottom: 10px; }
+.challenge-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.challenge-desc { font-size: 13px; color: var(--text2); }

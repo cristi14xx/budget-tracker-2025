@@ -110,6 +110,7 @@
         <div class="search-box">
           <span>🔍</span>
           <input type="text" id="searchIn" placeholder="Caută..." oninput="doSearch()">
+          <button onclick="nav('calendar')" style="background:var(--card2);border:none;color:var(--text);padding:8px;border-radius:8px;cursor:pointer;">📅</button>
         </div>
         <div class="filters">
           <button class="flt-btn on" data-f="all" onclick="setFilter('all')">Toate</button>
@@ -179,6 +180,17 @@
             <button class="menu-item" onclick="nav('goals')"><span class="menu-icon">🎯</span><span class="menu-txt">Obiective</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('accounts')"><span class="menu-icon">🏦</span><span class="menu-txt">Conturi</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('debts')"><span class="menu-icon">🤝</span><span class="menu-txt">Datorii</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('recurring')"><span class="menu-icon">🔄</span><span class="menu-txt">Recurente</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('subscriptions')"><span class="menu-icon">📱</span><span class="menu-txt">Abonamente</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('challenges')"><span class="menu-icon">🎯</span><span class="menu-txt">Provocări</span><span class="menu-arr">›</span></button>
+          </div>
+        </div>
+
+        <div class="menu-sec">
+          <div class="menu-lbl">Analiză</div>
+          <div class="menu-grp">
+            <button class="menu-item" onclick="nav('netWorth')"><span class="menu-icon">📈</span><span class="menu-txt">Evoluție Patrimoniu</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('insights')"><span class="menu-icon">🤖</span><span class="menu-txt">AI Insights</span><span class="menu-arr">›</span></button>
           </div>
         </div>
 
@@ -328,6 +340,70 @@
           </div>
         </div>
       </section>
+
+      <!-- RECURRING -->
+      <section id="recurringView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">Tranzacții Recurente</h2>
+          <button class="add-btn" onclick="openRecurringModal()">+</button>
+        </div>
+        <div id="recurringList"></div>
+      </section>
+
+      <!-- SUBSCRIPTIONS -->
+      <section id="subscriptionsView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">Abonamente</h2>
+        </div>
+        <div id="subsList"></div>
+      </section>
+
+      <!-- CALENDAR -->
+      <section id="calendarView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('transactions')">←</button>
+          <h2 class="sub-title">Calendar</h2>
+        </div>
+        <div class="month-nav">
+          <button class="month-btn" onclick="prevMonth();renderCalendar()">‹</button>
+          <span class="month-txt" id="calMonthTxt">Dec 2024</span>
+          <button class="month-btn" onclick="nextMonth();renderCalendar()">›</button>
+        </div>
+        <div id="calendarGrid"></div>
+      </section>
+
+      <!-- NET WORTH TIMELINE -->
+      <section id="netWorthView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('analytics')">←</button>
+          <h2 class="sub-title">Evoluție Patrimoniu</h2>
+          <button class="add-btn" onclick="saveNetWorthSnapshot()">+</button>
+        </div>
+        <div class="chart-box" style="height:240px">
+          <canvas id="netWorthChart"></canvas>
+        </div>
+      </section>
+
+      <!-- CHALLENGES -->
+      <section id="challengesView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">Provocări Economisire</h2>
+          <button class="add-btn" onclick="openChallengeModal()">+</button>
+        </div>
+        <div id="challengesList"></div>
+      </section>
+
+      <!-- INSIGHTS -->
+      <section id="insightsView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('analytics')">←</button>
+          <h2 class="sub-title">AI Insights</h2>
+        </div>
+        <div id="advancedInsights"></div>
+      </section>
     </main>
 
     <!-- Bottom Nav - 5 butoane principale -->
@@ -382,6 +458,10 @@
           <div class="form-row">
             <label class="form-lbl">Data</label>
             <input type="date" id="txDate" class="form-input" required>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Tags (opțional)</label>
+            <input type="text" id="txTagsInput" class="form-input" placeholder="Ex: #vacanta, #business">
           </div>
           <div class="form-row">
             <label class="form-lbl">Notă (opțional)</label>
@@ -531,6 +611,78 @@
           <div class="form-row"><label class="form-lbl">Sumă</label><input type="number" id="utilityAmount" class="form-input" required></div>
           <button type="submit" class="submit-btn">Salvează</button>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recurring Transaction Modal -->
+  <div id="recurringModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('recurringModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">🔄 Tranzacție Recurentă</span><button class="modal-x" onclick="closeModal('recurringModal')">✕</button></div>
+      <div class="modal-body">
+        <div class="type-tabs">
+          <button class="type-tab exp on" data-t="expense" onclick="setRecurType('expense')">💸 Cheltuială</button>
+          <button class="type-tab inc" data-t="income" onclick="setRecurType('income')">💵 Venit</button>
+        </div>
+        <form id="recurringForm" onsubmit="saveRecurring(event)">
+          <input type="hidden" id="recurType" value="expense">
+          <div class="form-row">
+            <label class="form-lbl">Sumă</label>
+            <input type="number" class="form-input" id="recurAmount" required>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Categorie</label>
+            <select id="recurCat" class="form-select" required onchange="loadSubcats()"></select>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Subcategorie</label>
+            <select id="recurSubcat" class="form-select"></select>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Frecvență</label>
+            <select id="recurFreq" class="form-select" required>
+              <option value="daily">Zilnic</option>
+              <option value="weekly">Săptămânal</option>
+              <option value="monthly">Lunar</option>
+              <option value="yearly">Anual</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Data început</label>
+            <input type="date" id="recurStart" class="form-input" required>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Notă</label>
+            <input type="text" id="recurNote" class="form-input" placeholder="Ex: Chirie">
+          </div>
+          <button type="submit" class="submit-btn">Salvează</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Challenge Modal -->
+  <div id="challengeModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('challengeModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">🎯 Alege Provocare</span><button class="modal-x" onclick="closeModal('challengeModal')">✕</button></div>
+      <div class="modal-body">
+        <div id="challengeTemplates"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day Transactions Modal -->
+  <div id="dayTxModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('dayTxModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title" id="dayTxDate">Tranzacții</span><button class="modal-x" onclick="closeModal('dayTxModal')">✕</button></div>
+      <div class="modal-body">
+        <div id="dayTxList"></div>
       </div>
     </div>
   </div>

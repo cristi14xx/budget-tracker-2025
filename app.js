@@ -57,6 +57,14 @@ const achievementsList = [
 
 const months = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
 
+// Savings Challenges Templates
+const challengeTemplates = [
+    { id: '52week', name: '52 Săptămâni', icon: '📅', desc: 'Economisește crescător fiecare săptămână', duration: 52, weeklyIncrease: 10 },
+    { id: 'noSpend', name: 'Weekend Zero', icon: '🚫', desc: 'Un weekend fără cheltuieli', duration: 2, target: 0 },
+    { id: 'roundUp', name: 'Rotunjește', icon: '🔄', desc: 'Rotunjește cheltuielile, economisește diferența', duration: 30, target: 500 },
+    { id: '1percent', name: '1% pe zi', icon: '📈', desc: 'Economisește 1% din venit zilnic', duration: 30 }
+];
+
 // State
 let state = {
     user: null,
@@ -69,6 +77,11 @@ let state = {
     utilities: [],
     achievements: [],
     shownAchievements: [],
+    recurring: [], // NEW: Recurring transactions
+    subscriptions: [], // NEW: Detected subscriptions
+    challenges: [], // NEW: Active challenges
+    netWorthHistory: [], // NEW: Net worth timeline
+    tags: [], // NEW: Custom tags
     month: new Date().getMonth(),
     year: new Date().getFullYear(),
     currency: 'RON',
@@ -77,8 +90,11 @@ let state = {
     savingsRate: 0,
     editingId: null,
     trendChart: null,
+    netWorthChart: null,
     filter: 'all',
-    search: ''
+    search: '',
+    viewMode: 'list', // list or calendar
+    selectedDate: new Date()
 };
 
 // DOM helpers
@@ -166,7 +182,7 @@ async function loadData() {
     if (!state.user) return;
     const uid = state.user.uid;
     try {
-        const [txSnap, goalsSnap, debtsSnap, accSnap, budSnap, remSnap, utilSnap, userDoc] = await Promise.all([
+        const [txSnap, goalsSnap, debtsSnap, accSnap, budSnap, remSnap, utilSnap, recurSnap, chalSnap, userDoc] = await Promise.all([
             db.collection('users').doc(uid).collection('transactions').orderBy('date', 'desc').get(),
             db.collection('users').doc(uid).collection('goals').get(),
             db.collection('users').doc(uid).collection('debts').get(),
@@ -174,6 +190,8 @@ async function loadData() {
             db.collection('users').doc(uid).collection('budgets').get(),
             db.collection('users').doc(uid).collection('reminders').get(),
             db.collection('users').doc(uid).collection('utilities').get(),
+            db.collection('users').doc(uid).collection('recurring').get(),
+            db.collection('users').doc(uid).collection('challenges').get(),
             db.collection('users').doc(uid).get()
         ]);
         
@@ -184,6 +202,8 @@ async function loadData() {
         state.budgets = budSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         state.reminders = remSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         state.utilities = utilSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.recurring = recurSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.challenges = chalSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         
         if (userDoc.exists) {
             const data = userDoc.data();
@@ -191,8 +211,12 @@ async function loadData() {
             state.shownAchievements = data.shownAchievements || [...state.achievements];
             state.netWorth = data.netWorth || 0;
             state.currency = data.currency || 'RON';
+            state.tags = data.tags || [];
+            state.netWorthHistory = data.netWorthHistory || [];
         }
         
+        detectSubscriptions();
+        processRecurring();
         calcStreak();
         updateUI();
     } catch (err) {
@@ -292,7 +316,19 @@ function nav(view) {
     
     $$('.nav-btn').forEach(btn => btn.classList.toggle('on', btn.dataset.v === view));
     
-    const titles = { home: 'Budget Pro', transactions: 'Tranzacții', analytics: 'Analiză', budgets: 'Bugete', menu: 'Cont' };
+    const titles = { 
+        home: 'Budget Pro', 
+        transactions: 'Tranzacții', 
+        analytics: 'Analiză', 
+        budgets: 'Bugete', 
+        menu: 'Cont',
+        calendar: 'Calendar',
+        recurring: 'Recurente',
+        subscriptions: 'Abonamente',
+        challenges: 'Provocări',
+        netWorth: 'Patrimoniu',
+        insights: 'AI Insights'
+    };
     if ($('hdrTitle')) $('hdrTitle').textContent = titles[view] || 'Budget Pro';
     
     // Render content
@@ -306,6 +342,12 @@ function nav(view) {
     if (view === 'utilities') renderUtilities();
     if (view === 'reminders') renderReminders();
     if (view === 'achievements') renderAchievements();
+    if (view === 'calendar') { updateMonthText(); renderCalendar(); }
+    if (view === 'recurring') renderRecurring();
+    if (view === 'subscriptions') { detectSubscriptions(); renderSubscriptions(); }
+    if (view === 'challenges') renderChallenges();
+    if (view === 'netWorth') renderNetWorthTimeline();
+    if (view === 'insights') renderAdvancedInsights();
 }
 
 function prevMonth() {
@@ -440,6 +482,9 @@ function loadSubcats() {
 
 async function saveTx(e) {
     e.preventDefault();
+    const tagsInput = $('txTagsInput')?.value || '';
+    const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t);
+    
     const data = {
         type: $('txType').value,
         amount: parseFloat($('txAmount').value),
@@ -447,6 +492,7 @@ async function saveTx(e) {
         subcategory: $('txSubcat')?.value || '',
         date: $('txDate').value,
         note: $('txNote')?.value || '',
+        tags: tags,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
@@ -485,6 +531,7 @@ function editTx(id) {
     $('txAmount').value = t.amount;
     $('txDate').value = t.date;
     $('txNote').value = t.note || '';
+    $('txTagsInput').value = (t.tags || []).join(', ');
     $('txDeleteBtn').style.display = 'block';
     openModal('txModal');
 }
@@ -1326,6 +1373,417 @@ function calcStreak() {
     if (streak >= 30) checkAchievement('month_streak');
 }
 
+// ═══════════════════════════════════════════
+// NEW FEATURES
+// ═══════════════════════════════════════════
+
+// 1. RECURRING TRANSACTIONS
+async function processRecurring() {
+    const today = new Date().toISOString().split('T')[0];
+    for (const r of state.recurring) {
+        if (!r.nextDate || r.nextDate <= today) {
+            // Create transaction
+            const data = {
+                type: r.type,
+                amount: r.amount,
+                category: r.category,
+                subcategory: r.subcategory || '',
+                date: today,
+                note: r.note + ' (Recurent)',
+                recurring: true,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            const doc = await db.collection('users').doc(state.user.uid).collection('transactions').add(data);
+            state.transactions.unshift({ id: doc.id, ...data });
+            
+            // Update next date
+            const next = new Date(r.nextDate || today);
+            if (r.frequency === 'daily') next.setDate(next.getDate() + 1);
+            else if (r.frequency === 'weekly') next.setDate(next.getDate() + 7);
+            else if (r.frequency === 'monthly') next.setMonth(next.getMonth() + 1);
+            else if (r.frequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
+            
+            await db.collection('users').doc(state.user.uid).collection('recurring').doc(r.id).update({
+                nextDate: next.toISOString().split('T')[0]
+            });
+        }
+    }
+}
+
+function renderRecurring() {
+    const container = $('recurringList');
+    if (!container) return;
+    if (state.recurring.length === 0) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">🔄</div><p class="empty-txt">Nicio tranzacție recurentă</p><button class="empty-btn" onclick="openRecurringModal()">+ Adaugă</button></div>`;
+        return;
+    }
+    const freq = { daily: 'Zilnic', weekly: 'Săptămânal', monthly: 'Lunar', yearly: 'Anual' };
+    container.innerHTML = state.recurring.map(r => {
+        const cat = findCat(r.type, r.category);
+        return `
+            <div class="item-card">
+                <div class="item-row">
+                    <div class="item-emoji">${cat?.icon || '🔄'}</div>
+                    <div class="item-info">
+                        <div class="item-name">${cat?.name || r.category} - ${freq[r.frequency]}</div>
+                        <div class="item-sub">${fmt(r.amount)} · Next: ${r.nextDate}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="item-btn" onclick="deleteRecurring('${r.id}')">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openRecurringModal() {
+    state.editingId = null;
+    $('recurringForm')?.reset();
+    setRecurType('expense');
+    $('recurStart').value = new Date().toISOString().split('T')[0];
+    openModal('recurringModal');
+}
+
+function setRecurType(type) {
+    $('recurType').value = type;
+    $$('#recurringModal .type-tab').forEach(tab => {
+        const isActive = tab.dataset.t === type;
+        tab.classList.toggle('on', isActive);
+        tab.classList.toggle('exp', isActive && type === 'expense');
+        tab.classList.toggle('inc', isActive && type === 'income');
+    });
+    // Load categories for recurring
+    const sel = $('recurCat');
+    if (!sel) return;
+    const cats = categories[type] || [];
+    sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+}
+
+async function saveRecurring(e) {
+    e.preventDefault();
+    const data = {
+        type: $('recurType').value,
+        amount: parseFloat($('recurAmount').value),
+        category: $('recurCat').value,
+        subcategory: $('recurSubcat')?.value || '',
+        note: $('recurNote')?.value || '',
+        frequency: $('recurFreq').value,
+        nextDate: $('recurStart').value
+    };
+    try {
+        const doc = await db.collection('users').doc(state.user.uid).collection('recurring').add(data);
+        state.recurring.push({ id: doc.id, ...data });
+        closeModal('recurringModal');
+        renderRecurring();
+        toast('Salvat!', 'success');
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+async function deleteRecurring(id) {
+    if (!confirm('Ștergi tranzacția recurentă?')) return;
+    try {
+        await db.collection('users').doc(state.user.uid).collection('recurring').doc(id).delete();
+        state.recurring = state.recurring.filter(r => r.id !== id);
+        renderRecurring();
+        toast('Șters!', 'success');
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+// 2. SUBSCRIPTION TRACKER
+function detectSubscriptions() {
+    const subs = {};
+    state.transactions.filter(t => t.type === 'expense' && t.category === 'subscriptions').forEach(t => {
+        const key = t.subcategory || t.note || 'Unknown';
+        if (!subs[key]) subs[key] = { name: key, amount: 0, count: 0, dates: [] };
+        subs[key].amount += t.amount;
+        subs[key].count++;
+        subs[key].dates.push(t.date);
+    });
+    
+    state.subscriptions = Object.values(subs).filter(s => s.count >= 2).map(s => ({
+        name: s.name,
+        monthlyAvg: s.amount / s.count,
+        count: s.count
+    }));
+}
+
+function renderSubscriptions() {
+    const container = $('subsList');
+    if (!container) return;
+    if (state.subscriptions.length === 0) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">📱</div><p class="empty-txt">Niciun abonament detectat</p></div>`;
+        return;
+    }
+    const total = state.subscriptions.reduce((s, sub) => s + sub.monthlyAvg, 0);
+    container.innerHTML = `
+        <div class="item-card" style="background:linear-gradient(135deg,#a855f7,#8b5cf6);color:#fff;margin-bottom:12px">
+            <div style="font-size:13px;opacity:0.9">Total abonamente/lună</div>
+            <div style="font-size:28px;font-weight:700;margin-top:4px">${fmt(total)}</div>
+        </div>
+    ` + state.subscriptions.map(s => `
+        <div class="item-card">
+            <div class="item-row">
+                <div class="item-emoji">📱</div>
+                <div class="item-info">
+                    <div class="item-name">${s.name}</div>
+                    <div class="item-sub">${fmt(s.monthlyAvg)}/lună · ${s.count} plăți</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 3. TAGS
+function renderTags() {
+    const sel = $('txTags');
+    if (!sel) return;
+    sel.innerHTML = state.tags.map(t => `<option value="${t}">${t}</option>`).join('');
+}
+
+async function addTag(tag) {
+    if (!tag || state.tags.includes(tag)) return;
+    state.tags.push(tag);
+    await db.collection('users').doc(state.user.uid).update({ tags: state.tags });
+    renderTags();
+}
+
+// 4. CALENDAR VIEW
+function renderCalendar() {
+    const container = $('calendarGrid');
+    if (!container) return;
+    
+    // Update month text
+    const text = months[state.month].substring(0, 3) + ' ' + state.year;
+    if ($('calMonthTxt')) $('calMonthTxt').textContent = text;
+    
+    const year = state.year;
+    const month = state.month;
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    let html = '<div class="cal-grid">';
+    ['D', 'L', 'M', 'M', 'J', 'V', 'S'].forEach(d => html += `<div class="cal-day-name">${d}</div>`);
+    
+    for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayTx = state.transactions.filter(t => t.date === date);
+        const total = dayTx.reduce((s, t) => s + (t.type === 'expense' ? -t.amount : t.amount), 0);
+        const cls = total > 0 ? 'pos' : total < 0 ? 'neg' : '';
+        html += `
+            <div class="cal-day ${cls}" onclick="showDayTx('${date}')">
+                <div class="cal-day-num">${day}</div>
+                ${dayTx.length > 0 ? `<div class="cal-day-dot">${dayTx.length}</div>` : ''}
+            </div>
+        `;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function showDayTx(date) {
+    state.selectedDate = new Date(date);
+    const dayTx = state.transactions.filter(t => t.date === date);
+    const modal = $('dayTxModal');
+    if (!modal) return;
+    $('dayTxDate').textContent = new Date(date).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' });
+    $('dayTxList').innerHTML = dayTx.length > 0 ? dayTx.map(t => txHTML(t)).join('') : '<div class="empty-txt">Nicio tranzacție</div>';
+    openModal('dayTxModal');
+}
+
+// 5. NET WORTH TIMELINE
+async function saveNetWorthSnapshot() {
+    const snap = {
+        date: new Date().toISOString().split('T')[0],
+        value: state.netWorth,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    state.netWorthHistory.push(snap);
+    await db.collection('users').doc(state.user.uid).update({ netWorthHistory: state.netWorthHistory });
+}
+
+function renderNetWorthTimeline() {
+    const ctx = $('netWorthChart');
+    if (!ctx || state.netWorthHistory.length === 0) return;
+    
+    if (state.netWorthChart) state.netWorthChart.destroy();
+    
+    const sorted = [...state.netWorthHistory].sort((a, b) => a.date.localeCompare(b.date));
+    
+    state.netWorthChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: sorted.map(s => new Date(s.date).toLocaleDateString('ro-RO', { month: 'short' })),
+            datasets: [{
+                label: 'Patrimoniu',
+                data: sorted.map(s => s.value),
+                borderColor: '#00d4aa',
+                backgroundColor: 'rgba(0,212,170,0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#555' } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555' } }
+            }
+        }
+    });
+}
+
+// 6. SAVINGS CHALLENGES
+function renderChallenges() {
+    const container = $('challengesList');
+    if (!container) return;
+    
+    if (state.challenges.length === 0) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><p class="empty-txt">Nicio provocare activă</p><button class="empty-btn" onclick="openChallengeModal()">+ Începe</button></div>`;
+        return;
+    }
+    
+    container.innerHTML = state.challenges.map(c => {
+        const tpl = challengeTemplates.find(t => t.id === c.templateId);
+        const progress = c.target > 0 ? Math.min((c.saved / c.target) * 100, 100) : 0;
+        const daysLeft = Math.ceil((new Date(c.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+        return `
+            <div class="item-card">
+                <div class="item-row">
+                    <div class="item-emoji">${tpl?.icon || '🎯'}</div>
+                    <div class="item-info">
+                        <div class="item-name">${tpl?.name || c.name}</div>
+                        <div class="item-sub">${fmt(c.saved)} / ${fmt(c.target)} · ${daysLeft} zile</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="item-btn" onclick="deleteChallenge('${c.id}')">🗑️</button>
+                    </div>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openChallengeModal() {
+    const modal = $('challengeModal');
+    if (!modal) return;
+    $('challengeTemplates').innerHTML = challengeTemplates.map(t => `
+        <div class="challenge-card" onclick="startChallenge('${t.id}')">
+            <div class="challenge-icon">${t.icon}</div>
+            <div class="challenge-name">${t.name}</div>
+            <div class="challenge-desc">${t.desc}</div>
+        </div>
+    `).join('');
+    openModal('challengeModal');
+}
+
+async function startChallenge(templateId) {
+    const tpl = challengeTemplates.find(t => t.id === templateId);
+    if (!tpl) return;
+    
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + tpl.duration);
+    
+    const data = {
+        templateId,
+        name: tpl.name,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        target: tpl.target || (tpl.weeklyIncrease ? tpl.duration * (tpl.duration + 1) / 2 * tpl.weeklyIncrease : 500),
+        saved: 0
+    };
+    
+    try {
+        const doc = await db.collection('users').doc(state.user.uid).collection('challenges').add(data);
+        state.challenges.push({ id: doc.id, ...data });
+        closeModal('challengeModal');
+        renderChallenges();
+        toast(`Provocare începută: ${tpl.name}!`, 'success');
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+async function deleteChallenge(id) {
+    if (!confirm('Ștergi provocarea?')) return;
+    try {
+        await db.collection('users').doc(state.user.uid).collection('challenges').doc(id).delete();
+        state.challenges = state.challenges.filter(c => c.id !== id);
+        renderChallenges();
+        toast('Șters!', 'success');
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+// 7. AI INSIGHTS ADVANCED
+function generateAdvancedInsights() {
+    const insights = [];
+    
+    // Day of week analysis
+    const daySpending = {};
+    state.transactions.filter(t => t.type === 'expense').forEach(t => {
+        const day = new Date(t.date).getDay();
+        daySpending[day] = (daySpending[day] || 0) + t.amount;
+    });
+    const maxDay = Object.keys(daySpending).reduce((a, b) => daySpending[a] > daySpending[b] ? a : b);
+    const days = ['Duminica', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbăta'];
+    insights.push({ icon: '📅', text: `Cheltuiești cel mai mult ${days[maxDay]}: ${fmt(daySpending[maxDay])}` });
+    
+    // Compare to last month
+    const lastMonth = state.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === (state.month - 1 + 12) % 12 && d.getFullYear() === state.year;
+    });
+    const lastMonthExp = lastMonth.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const thisMonthExp = getMonthTx().filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const diff = ((thisMonthExp - lastMonthExp) / lastMonthExp * 100) || 0;
+    if (Math.abs(diff) > 5) {
+        insights.push({ icon: diff > 0 ? '📈' : '📉', text: `${diff > 0 ? '+' : ''}${diff.toFixed(0)}% față de luna trecută` });
+    }
+    
+    // Category trends
+    const catSpending = {};
+    getMonthTx().filter(t => t.type === 'expense').forEach(t => {
+        catSpending[t.category] = (catSpending[t.category] || 0) + t.amount;
+    });
+    const topCat = Object.keys(catSpending).reduce((a, b) => catSpending[a] > catSpending[b] ? a : b, null);
+    if (topCat) {
+        const cat = findCat('expense', topCat);
+        insights.push({ icon: '🏆', text: `Categoria top: ${cat?.name || topCat} (${fmt(catSpending[topCat])})` });
+    }
+    
+    // Prediction
+    const dayNum = new Date().getDate();
+    const avgDaily = thisMonthExp / days;
+    const dayNumInMonth = new Date(state.year, state.month + 1, 0).getDate();
+    const predicted = avgDaily * daysInMonth;
+    insights.push({ icon: '🔮', text: `Predicție: ~${fmt(predicted)} cheltuieli luna asta` });
+    
+    return insights;
+}
+
+function renderAdvancedInsights() {
+    const container = $('advancedInsights');
+    if (!container) return;
+    const insights = generateAdvancedInsights();
+    container.innerHTML = insights.map(i => `
+        <div class="insight-card">
+            <div class="insight-icon">${i.icon}</div>
+            <div class="insight-text">${i.text}</div>
+        </div>
+    `).join('');
+}
+
 // Export functions to window
 window.showTab = showTab;
 window.doLogin = doLogin;
@@ -1372,3 +1830,14 @@ window.setCurrency = setCurrency;
 window.saveNetWorth = saveNetWorth;
 window.exportData = exportData;
 window.clearData = clearData;
+// NEW exports
+window.openRecurringModal = openRecurringModal;
+window.setRecurType = setRecurType;
+window.saveRecurring = saveRecurring;
+window.deleteRecurring = deleteRecurring;
+window.renderCalendar = renderCalendar;
+window.showDayTx = showDayTx;
+window.openChallengeModal = openChallengeModal;
+window.startChallenge = startChallenge;
+window.deleteChallenge = deleteChallenge;
+window.saveNetWorthSnapshot = saveNetWorthSnapshot;

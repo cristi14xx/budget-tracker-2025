@@ -315,6 +315,42 @@ function doLogout() {
     toast('Deconectat');
 }
 
+// Google Sign-In
+async function doGoogleLogin() {
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({
+            prompt: 'select_account'
+        });
+        
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        
+        // Check if user exists in Firestore, if not create profile
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (!userDoc.exists) {
+            await db.collection('users').doc(user.uid).set({
+                name: user.displayName || 'User',
+                email: user.email,
+                photoURL: user.photoURL || '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                provider: 'google'
+            });
+        }
+        
+        toast('Conectat cu Google!', 'success');
+    } catch (err) {
+        console.error('Google Sign-In error:', err);
+        if (err.code === 'auth/popup-closed-by-user') {
+            toast('Autentificare anulată', 'error');
+        } else if (err.code === 'auth/popup-blocked') {
+            toast('Popup blocat! Permite popup-urile.', 'error');
+        } else {
+            toast('Eroare: ' + err.message, 'error');
+        }
+    }
+}
+
 // ═══════════════════════════════════════════
 // DATA LOADING
 // ═══════════════════════════════════════════
@@ -378,8 +414,26 @@ function updateProfile() {
     if (!state.user) return;
     const name = state.user.displayName || 'Utilizator';
     const initial = name.charAt(0).toUpperCase();
-    if ($('hdrAvatar')) $('hdrAvatar').textContent = initial;
-    if ($('profilePic')) $('profilePic').textContent = initial;
+    const photoURL = state.user.photoURL;
+    
+    // Header avatar
+    if ($('hdrAvatar')) {
+        if (photoURL) {
+            $('hdrAvatar').innerHTML = `<img src="${photoURL}" alt="${initial}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        } else {
+            $('hdrAvatar').textContent = initial;
+        }
+    }
+    
+    // Profile section avatar
+    if ($('profilePic')) {
+        if (photoURL) {
+            $('profilePic').innerHTML = `<img src="${photoURL}" alt="${initial}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        } else {
+            $('profilePic').textContent = initial;
+        }
+    }
+    
     if ($('profileName')) $('profileName').textContent = name;
     if ($('profileEmail')) $('profileEmail').textContent = state.user.email || '';
     if ($('currSel')) $('currSel').value = state.currency;
@@ -1552,85 +1606,97 @@ async function sendAI() {
     // Add typing indicator
     chat.innerHTML += `<div class="ai-msg" id="aiTyping"><div class="ai-pic">🧠</div><div class="ai-bubble typing">
         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        Analizez datele tale financiare...
+        Analizez și gândesc...
     </div></div>`;
     chat.scrollTop = chat.scrollHeight;
     
     checkAchievement('ai_user');
     
     try {
+        // Build financial context
         const context = buildFullFinancialContext();
         
-        const systemPrompt = `Ești un CONSILIER FINANCIAR PERSONAL de elită, expert în finanțe personale, investiții, FIRE (Financial Independence Retire Early), și psihologia banilor. 
+        // System prompt for Gemini
+        const systemPrompt = `Ești un CONSILIER FINANCIAR PERSONAL expert, prietenos și empatic. Numele tău e "Finley".
 
-PERSONALITATEA TA:
-• Ești prietenos, empatic și încurajator, dar și direct și onest
-• Folosești exemple concrete și numere specifice din datele utilizatorului
-• Ești pasionat de educație financiară și vrei să ajuți cu adevărat
-• Ai simțul umorului și faci conversația plăcută
-• Folosești emoji-uri moderat pentru a face răspunsurile mai engaging
+CONTEXT FINANCIAR AL UTILIZATORULUI:
+${context}
 
-STILUL TĂU DE RĂSPUNS:
-• Răspunsuri DETALIATE și COMPREHENSIVE - nu te limita la câteva propoziții
-• Structurezi răspunsurile clar cu bullet points și secțiuni când e cazul
-• Oferi SFATURI ACȚIONABILE și CONCRETE, nu generic
-• Când analizezi, folosești NUMERELE EXACTE din context
-• Faci comparații relevante (luna trecută, media, benchmarks)
-• Explici DE CE recomanzi ceva, nu doar CE recomanzi
-• Incluzi atât aspectele pozitive cât și cele de îmbunătățit
-• Termini cu 1-2 întrebări de follow-up pentru a continua conversația
+INSTRUCȚIUNI PENTRU RĂSPUNS:
+1. Răspunde NATURAL, ca într-o conversație reală - nu robotic
+2. Folosește DATELE CONCRETE de mai sus când sunt relevante
+3. Răspunde în ROMÂNĂ
+4. Fii detaliat dar nu plictisitor - adaptează lungimea la întrebare
+5. Folosește emoji-uri moderat 
+6. Dacă e o întrebare simplă (salut, ce faci, etc), răspunde simplu și prietenos
+7. Dacă e o întrebare despre finanțe, folosește datele de mai sus
+8. Dacă nu ai date suficiente, spune sincer și sugerează ce ar trebui să adauge
+9. Poți discuta ORICE temă, nu doar finanțe - ești un asistent complet
+10. Fii autentic, cu personalitate, nu generic
 
-EXPERTIZA TA INCLUDE:
-• Bugetare și tracking cheltuieli
-• Economisire și fondul de urgență
-• Investiții (acțiuni, ETF-uri, obligațiuni, crypto)
-• FIRE și independența financiară
-• Gestionarea datoriilor
-• Psihologia banilor și obiceiuri financiare
-• Optimizare fiscală (în limite legale)
-• Real estate și chirii
-• Side hustles și venituri pasive
+EXEMPLE DE TON:
+- "Hei! Văd că luna asta ai economisit 2,300 RON - super! 🎉"
+- "Hmm, observ că ai depășit bugetul la mâncare cu 15%. Hai să vedem ce putem face..."
+- "Bună întrebare! Din datele tale, aș zice că..."
 
-REGULI IMPORTANTE:
-• Răspunde ÎNTOTDEAUNA în română
-• Folosește datele REALE ale utilizatorului din context
-• Nu inventa numere - folosește doar ce există în context
-• Dacă nu ai suficiente date, spune ce informații ar mai fi utile
-• Personalizează sfaturile pentru situația specifică a utilizatorului
-• Fii încurajator dar realist
+Acum răspunde la întrebarea utilizatorului:`;
 
-${context}`;
-
+        console.log('Sending to Gemini API...');
+        console.log('User message:', msg);
+        
         const response = await fetch('/api/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 prompt: msg,
                 systemPrompt: systemPrompt,
-                maxTokens: 2048
+                maxTokens: 4096
             })
         });
         
         const data = await response.json();
-        let reply = data.response || generateGeniusLocalResponse(msg);
+        console.log('Gemini response:', data);
         
-        // Format response with markdown-like styling
-        reply = formatAIResponse(reply);
-        
-        // Remove typing, add response
+        // Remove typing indicator
         $('aiTyping')?.remove();
-        chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">🧠</div><div class="ai-bubble">${reply}</div></div>`;
+        
+        if (data.success && data.response) {
+            // Got real AI response
+            const reply = formatAIResponse(data.response);
+            chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">🧠</div><div class="ai-bubble">${reply}</div></div>`;
+        } else if (data.error) {
+            // API returned error
+            console.error('Gemini API error:', data.error);
+            chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">⚠️</div><div class="ai-bubble">
+                <strong>Eroare API:</strong> ${data.error}<br><br>
+                <em>Verifică dacă GEMINI_API_KEY e setat în Vercel.</em>
+            </div></div>`;
+        } else {
+            // Unknown response format
+            console.error('Unknown response:', data);
+            chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">⚠️</div><div class="ai-bubble">
+                Nu am primit răspuns de la AI. Încearcă din nou.
+            </div></div>`;
+        }
     } catch (err) {
         console.error('AI Error:', err);
         $('aiTyping')?.remove();
-        const fallback = generateGeniusLocalResponse(msg);
-        chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">🧠</div><div class="ai-bubble">${fallback}</div></div>`;
+        
+        // Show real error, not fake response
+        chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">⚠️</div><div class="ai-bubble">
+            <strong>Eroare de conexiune</strong><br><br>
+            Nu m-am putut conecta la serverul AI.<br>
+            Verifică conexiunea la internet și încearcă din nou.<br><br>
+            <em>Detalii: ${err.message}</em>
+        </div></div>`;
     }
     
     chat.scrollTop = chat.scrollHeight;
 }
 
 function formatAIResponse(text) {
+    if (!text) return '';
+    
     // Convert markdown-like formatting to HTML
     return text
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -1638,223 +1704,11 @@ function formatAIResponse(text) {
         .replace(/^### (.*$)/gm, '<h4>$1</h4>')
         .replace(/^## (.*$)/gm, '<h3>$1</h3>')
         .replace(/^# (.*$)/gm, '<h2>$1</h2>')
-        .replace(/^• /gm, '• ')
-        .replace(/^- /gm, '• ')
+        .replace(/^[•\-] /gm, '• ')
         .replace(/\n\n/g, '</p><p>')
         .replace(/\n/g, '<br>');
 }
 
-function generateGeniusLocalResponse(q) {
-    const monthTx = getMonthTx();
-    const income = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const expense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-    const balance = income - expense;
-    const savingsRate = income > 0 ? (balance / income * 100) : 0;
-    
-    // Category breakdown
-    const catBreakdown = {};
-    monthTx.filter(t => t.type === 'expense').forEach(t => {
-        const cat = findCat('expense', t.category)?.name || t.category;
-        catBreakdown[cat] = (catBreakdown[cat] || 0) + t.amount;
-    });
-    const topCats = Object.entries(catBreakdown).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    
-    // Predictions
-    const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
-    const currentDay = new Date().getDate();
-    const avgDaily = expense / currentDay;
-    const predicted = avgDaily * daysInMonth;
-    
-    q = q.toLowerCase();
-    
-    // COMPREHENSIVE RESPONSES
-    if (q.includes('anali') || q.includes('situati') || q.includes('cum stau') || q.includes('overview')) {
-        let response = `🎯 **ANALIZĂ FINANCIARĂ COMPLETĂ - ${months[state.month]} ${state.year}**\n\n`;
-        response += `📊 **Situația curentă:**\n`;
-        response += `• Venituri: ${fmt(income)}\n`;
-        response += `• Cheltuieli: ${fmt(expense)}\n`;
-        response += `• Balanță: ${balance >= 0 ? '+' : ''}${fmt(balance)} ${balance >= 0 ? '✅' : '⚠️'}\n`;
-        response += `• Rată economisire: ${savingsRate.toFixed(1)}%\n\n`;
-        
-        if (topCats.length > 0) {
-            response += `💸 **Top cheltuieli:**\n`;
-            topCats.forEach(([cat, amount], i) => {
-                const percent = (amount / expense * 100).toFixed(1);
-                response += `${i + 1}. ${cat}: ${fmt(amount)} (${percent}%)\n`;
-            });
-            response += '\n';
-        }
-        
-        response += `🔮 **Predicție până la final de lună:**\n`;
-        response += `• Cheltuieli estimate: ~${fmt(predicted)}\n`;
-        response += `• Media zilnică: ${fmt(avgDaily)}\n\n`;
-        
-        if (savingsRate >= 20) {
-            response += `💪 **Verdict:** Excelent! Economisești peste 20% - ești pe drumul cel bun spre independența financiară!`;
-        } else if (savingsRate >= 10) {
-            response += `👍 **Verdict:** Bine! Economisești ${savingsRate.toFixed(0)}%. Pentru FIRE, țintește 20-30%.`;
-        } else if (savingsRate > 0) {
-            response += `⚠️ **Verdict:** Economisești doar ${savingsRate.toFixed(0)}%. Analizează top categoriile și vezi unde poți reduce.`;
-        } else {
-            response += `🚨 **Verdict:** Ești pe minus! Prioritatea #1: reduce cheltuielile sau crește veniturile.`;
-        }
-        
-        return response;
-    }
-    
-    if (q.includes('sfat') || q.includes('recomand') || q.includes('ajut') || q.includes('ce sa fac')) {
-        let response = `💡 **SFATURI PERSONALIZATE PENTRU TINE**\n\n`;
-        
-        // Based on savings rate
-        if (savingsRate < 10) {
-            response += `🎯 **Prioritate #1: Crește rata de economisire**\n`;
-            response += `Acum economisești doar ${savingsRate.toFixed(1)}%. Iată ce poți face:\n\n`;
-            
-            if (topCats.length > 0) {
-                response += `📉 **Analizează categoria "${topCats[0][0]}"**\n`;
-                response += `Aici cheltuiești cel mai mult (${fmt(topCats[0][1])}). Întreabă-te:\n`;
-                response += `• Sunt toate aceste cheltuieli necesare?\n`;
-                response += `• Pot găsi alternative mai ieftine?\n`;
-                response += `• Pot reduce frecvența?\n\n`;
-            }
-            
-            response += `💰 **Regula 50/30/20:**\n`;
-            response += `• 50% necesități (${fmt(income * 0.5)})\n`;
-            response += `• 30% dorințe (${fmt(income * 0.3)})\n`;
-            response += `• 20% economii (${fmt(income * 0.2)})\n\n`;
-        } else {
-            response += `✅ **Economisești bine (${savingsRate.toFixed(1)}%)!** Iată next steps:\n\n`;
-            response += `📈 **Investește surplusul:**\n`;
-            response += `• ETF-uri globale (ex: VWCE) pentru diversificare\n`;
-            response += `• Pilon 3 pensie pentru avantaje fiscale\n`;
-            response += `• Fond de urgență (3-6 luni cheltuieli = ${fmt(expense * 3)} - ${fmt(expense * 6)})\n\n`;
-        }
-        
-        response += `🎯 **Acțiuni concrete pentru săptămâna asta:**\n`;
-        response += `1. Setează bugete pentru top 3 categorii\n`;
-        response += `2. Înregistrează TOATE cheltuielile zilnic\n`;
-        response += `3. Revizuiește abonamentele - ai nevoie de toate?\n`;
-        
-        return response;
-    }
-    
-    if (q.includes('fire') || q.includes('independ') || q.includes('retrag')) {
-        const annualExpense = expense * 12;
-        const fireNumber = annualExpense * 25;
-        const progress = state.netWorth > 0 ? (state.netWorth / fireNumber * 100) : 0;
-        
-        let response = `🔥 **FIRE - INDEPENDENȚA FINANCIARĂ**\n\n`;
-        response += `📊 **Situația ta actuală:**\n`;
-        response += `• Cheltuieli lunare: ${fmt(expense)}\n`;
-        response += `• Cheltuieli anuale estimate: ${fmt(annualExpense)}\n`;
-        response += `• Patrimoniu actual: ${fmt(state.netWorth)}\n\n`;
-        
-        response += `🎯 **Numărul tău FIRE (regula 4%):**\n`;
-        response += `• Ai nevoie de: ${fmt(fireNumber)}\n`;
-        response += `• Progres actual: ${progress.toFixed(1)}%\n`;
-        response += `• Mai ai nevoie de: ${fmt(fireNumber - state.netWorth)}\n\n`;
-        
-        if (savingsRate > 0) {
-            const monthlySavings = income * savingsRate / 100;
-            const yearsToFire = Math.log((fireNumber / monthlySavings + 1) * 0.07 + 1) / Math.log(1.07);
-            response += `⏱️ **Timp estimat până la FIRE:**\n`;
-            response += `Cu economii de ${fmt(monthlySavings)}/lună și randament 7%/an:\n`;
-            response += `~${Math.ceil(yearsToFire)} ani\n\n`;
-        }
-        
-        response += `💡 **Cum să ajungi mai repede:**\n`;
-        response += `• Crește rata de economisire (fiecare 5% contează enorm!)\n`;
-        response += `• Investește în ETF-uri cu costuri mici\n`;
-        response += `• Caută surse de venit pasiv\n`;
-        response += `• Reduce cheltuielile fixe (chirie, abonamente)`;
-        
-        return response;
-    }
-    
-    if (q.includes('investi') || q.includes('actiuni') || q.includes('etf') || q.includes('crypto')) {
-        let response = `📈 **GHID DE INVESTIȚII PENTRU ÎNCEPĂTORI**\n\n`;
-        response += `💰 **Ai de investit:** ${fmt(balance > 0 ? balance : 0)}/lună\n\n`;
-        
-        response += `🎯 **Prioritatea investițiilor (în ordine):**\n\n`;
-        response += `**1. Fond de urgență** (primul pas!)\n`;
-        response += `• Target: 3-6 luni cheltuieli = ${fmt(expense * 3)} - ${fmt(expense * 6)}\n`;
-        response += `• Unde: cont de economii cu dobândă (ING, Revolut)\n\n`;
-        
-        response += `**2. Pilon 3 Pensie** (avantaje fiscale)\n`;
-        response += `• Deductibil până la 400€/an\n`;
-        response += `• Fonduri: NN, BRD, Generali\n\n`;
-        
-        response += `**3. ETF-uri globale** (pentru termen lung)\n`;
-        response += `• VWCE (Vanguard All-World) - diversificare maximă\n`;
-        response += `• Brokeri: XTB, Interactive Brokers, Trading 212\n\n`;
-        
-        response += `**4. Crypto** (opțional, max 5-10% din portofoliu)\n`;
-        response += `• Bitcoin, Ethereum pentru începători\n`;
-        response += `• DCA (Dollar Cost Averaging) - investește regulat\n\n`;
-        
-        response += `⚠️ **Reguli de aur:**\n`;
-        response += `• Nu investi bani de care ai nevoie în <5 ani\n`;
-        response += `• Diversifică - nu pune toate ouăle într-un coș\n`;
-        response += `• Investește regulat, nu încerca să "timing the market"`;
-        
-        return response;
-    }
-    
-    if (q.includes('buget') || q.includes('cheltu') || q.includes('reduce') || q.includes('econom')) {
-        let response = `💰 **STRATEGIE DE BUGETARE**\n\n`;
-        
-        response += `📊 **Situația actuală:**\n`;
-        response += `• Cheltuieli luna asta: ${fmt(expense)}\n`;
-        response += `• Media zilnică: ${fmt(avgDaily)}\n\n`;
-        
-        if (topCats.length > 0) {
-            response += `🔍 **Analiza pe categorii:**\n`;
-            topCats.forEach(([cat, amount]) => {
-                const percent = (amount / expense * 100).toFixed(1);
-                const perDay = (amount / currentDay).toFixed(0);
-                response += `\n**${cat}** - ${fmt(amount)} (${percent}%)\n`;
-                response += `• ${perDay} ${state.currency}/zi în medie\n`;
-                
-                // Category-specific tips
-                if (cat.toLowerCase().includes('mâncare') || cat.toLowerCase().includes('food')) {
-                    response += `• 💡 Tip: Meal prep, liste de cumpărături, mai puține livrări\n`;
-                } else if (cat.toLowerCase().includes('transport')) {
-                    response += `• 💡 Tip: Carpooling, transport public, bicicletă\n`;
-                } else if (cat.toLowerCase().includes('abonament') || cat.toLowerCase().includes('subscription')) {
-                    response += `• 💡 Tip: Audit lunar, share family plans, anulează ce nu folosești\n`;
-                } else if (cat.toLowerCase().includes('divertisment') || cat.toLowerCase().includes('entertainment')) {
-                    response += `• 💡 Tip: Alternative gratuite, reduceri, early bird\n`;
-                }
-            });
-        }
-        
-        response += `\n\n🎯 **Bugete recomandate (bazate pe veniturile tale):**\n`;
-        response += `• Locuință: max ${fmt(income * 0.3)} (30%)\n`;
-        response += `• Mâncare: max ${fmt(income * 0.15)} (15%)\n`;
-        response += `• Transport: max ${fmt(income * 0.1)} (10%)\n`;
-        response += `• Utilități: max ${fmt(income * 0.1)} (10%)\n`;
-        response += `• Economii: min ${fmt(income * 0.2)} (20%)`;
-        
-        return response;
-    }
-    
-    // Default comprehensive response
-    let response = `👋 **Salut! Sunt aici să te ajut cu finanțele!**\n\n`;
-    response += `📊 **Quick stats luna asta:**\n`;
-    response += `• Balanță: ${balance >= 0 ? '+' : ''}${fmt(balance)}\n`;
-    response += `• Economii: ${savingsRate.toFixed(1)}%\n`;
-    response += `• Streak: ${state.streak} zile 🔥\n\n`;
-    
-    response += `❓ **Întreabă-mă despre:**\n`;
-    response += `• "Analizează-mi situația financiară"\n`;
-    response += `• "Dă-mi sfaturi de economisire"\n`;
-    response += `• "Cum ajung la FIRE?"\n`;
-    response += `• "Cum să investesc?"\n`;
-    response += `• "Ajută-mă cu bugetul"\n`;
-    response += `• Sau orice altceva legat de bani! 💰`;
-    
-    return response;
-}
 
 // ═══════════════════════════════════════════
 // SETTINGS
@@ -2696,6 +2550,7 @@ window.showTab = showTab;
 window.doLogin = doLogin;
 window.doRegister = doRegister;
 window.doLogout = doLogout;
+window.doGoogleLogin = doGoogleLogin;
 window.nav = nav;
 window.prevMonth = prevMonth;
 window.nextMonth = nextMonth;

@@ -14,30 +14,170 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 db.enablePersistence().catch(() => {});
 
-// Categories
+// MEGA Categories - Extended Version cu keywords pentru AI
 const categories = {
     expense: [
-        { id: 'food', name: 'Mâncare', icon: '🍔', color: '#ef4444', subs: ['Supermarket', 'Restaurant', 'Livrare', 'Cafea', 'Fast-food'] },
-        { id: 'transport', name: 'Transport', icon: '🚗', color: '#f59e0b', subs: ['Benzină', 'Uber/Bolt', 'Transport public', 'Parcare', 'Service'] },
-        { id: 'housing', name: 'Locuință', icon: '🏠', color: '#8b5cf6', subs: ['Chirie', 'Întreținere', 'Reparații', 'Mobilă'] },
-        { id: 'utilities', name: 'Utilități', icon: '💡', color: '#3b82f6', subs: ['Electricitate', 'Gaz', 'Apă', 'Internet', 'Telefon'] },
-        { id: 'health', name: 'Sănătate', icon: '💊', color: '#10b981', subs: ['Medicamente', 'Doctor', 'Analize', 'Dentist'] },
-        { id: 'shopping', name: 'Cumpărături', icon: '🛍️', color: '#ec4899', subs: ['Haine', 'Electronice', 'Cosmetice', 'Cadouri'] },
-        { id: 'entertainment', name: 'Divertisment', icon: '🎬', color: '#06b6d4', subs: ['Cinema', 'Concerte', 'Jocuri', 'Sport'] },
-        { id: 'subscriptions', name: 'Abonamente', icon: '📱', color: '#a855f7', subs: ['Netflix', 'Spotify', 'YouTube', 'Software'] },
-        { id: 'education', name: 'Educație', icon: '📚', color: '#84cc16', subs: ['Cărți', 'Cursuri', 'Școală'] },
-        { id: 'other', name: 'Altele', icon: '📦', color: '#78716c', subs: ['Diverse', 'Neprevăzute'] }
+        // 🍔 MÂNCARE & BĂUTURI
+        { id: 'food', name: 'Mâncare & Băuturi', icon: '🍔', color: '#ef4444', 
+          keywords: ['mancare', 'food', 'meal', 'lunch', 'dinner', 'breakfast', 'mic dejun', 'pranz', 'cina'],
+          subs: ['Supermarket', 'Hypermarket', 'Magazin alimentar', 'Piață', 'Aprozar', 'Măcelărie', 'Brutărie', 'Patiserie', 'Cofetărie', 'Restaurant', 'Pizzerie', 'Fast-food', 'McDonalds', 'KFC', 'Subway', 'Burger King', 'Shaormerie', 'Chinezesc', 'Sushi', 'Italienesc', 'Grecesc', 'Românesc', 'Livrare mâncare', 'Glovo', 'Tazz', 'Bolt Food', 'Foodpanda', 'Cafea', 'Starbucks', 'Ted\'s Coffee', 'Cafenea', 'Ceainărie', 'Sucuri', 'Băuturi răcoritoare', 'Apă', 'Alcool', 'Bere', 'Vin', 'Spirtoase', 'Pub', 'Bar', 'Club', 'Gustări', 'Snacks', 'Dulciuri', 'Ciocolată', 'Înghețată', 'Fructe', 'Legume', 'Carne', 'Lactate', 'Ouă', 'Pâine', 'Conserve', 'Condimente', 'Mâncare bio', 'Vegan', 'Vegetarian'] },
+        
+        // 🚗 TRANSPORT
+        { id: 'transport', name: 'Transport', icon: '🚗', color: '#f59e0b',
+          keywords: ['transport', 'masina', 'car', 'benzina', 'motorina', 'uber', 'bolt', 'taxi', 'bus', 'metrou', 'tren'],
+          subs: ['Benzină', 'Motorină', 'GPL', 'Încărcare electrică', 'Tesla Supercharger', 'Uber', 'Bolt', 'Taxi', 'Transport public', 'STB', 'Metrorex', 'Abonament transport', 'Bilet autobuz', 'Bilet metrou', 'CFR', 'Tren', 'Interregio', 'Regio', 'Avion', 'Bilet avion', 'Wizz Air', 'Ryanair', 'Blue Air', 'Tarom', 'Parcare', 'Parcare mall', 'Parcare stradală', 'Parcare aeroport', 'Rovignetă', 'Taxa pod', 'Taxă drum', 'Autostradă', 'Service auto', 'ITP', 'Schimb ulei', 'Revizie', 'Frâne', 'Cauciucuri', 'Anvelope iarnă', 'Anvelope vară', 'Vulcanizare', 'Spălătorie auto', 'Detailing', 'Polish', 'Piese auto', 'Accesorii auto', 'Asigurare RCA', 'Asigurare CASCO', 'Leasing auto', 'Rată mașină', 'Chirie mașină', 'Rent a car', 'Car sharing', 'Amendă rutieră', 'Amendă parcare', 'Combustibil', 'OMV', 'Petrom', 'Rompetrol', 'MOL', 'Lukoil'] },
+        
+        // 🏠 LOCUINȚĂ
+        { id: 'housing', name: 'Locuință', icon: '🏠', color: '#8b5cf6',
+          keywords: ['casa', 'locuinta', 'chirie', 'rent', 'apartament', 'rata', 'intretinere', 'bloc'],
+          subs: ['Chirie apartament', 'Chirie casă', 'Chirie garsonieră', 'Chirie cameră', 'Rată ipotecară', 'Credit imobiliar', 'Dobândă credit', 'Întreținere', 'Asociație proprietari', 'Fond rulment', 'Fond reparații', 'Curățenie scară', 'Salubrizare', 'Reparații casă', 'Instalator', 'Electrician', 'Zugrav', 'Tâmplar', 'Lacătuș', 'Reparații urgente', 'Renovare', 'Amenajare', 'Decorațiuni', 'Mobilă', 'IKEA', 'JYSK', 'Dedeman', 'Hornbach', 'Leroy Merlin', 'Mobilier living', 'Mobilier dormitor', 'Mobilier bucătărie', 'Canapea', 'Pat', 'Masă', 'Scaune', 'Dulap', 'Birou', 'Electrocasnice', 'Frigider', 'Mașină spălat', 'Uscător', 'Aragaz', 'Cuptor', 'Hotă', 'Aspirator', 'Aer condiționat', 'Centrală termică', 'Boiler', 'Articole menaj', 'Vase', 'Tacâmuri', 'Oale', 'Lenjerie pat', 'Prosoape', 'Perdele', 'Draperii', 'Covoare', 'Plante', 'Grădinărit', 'Unelte grădină', 'Mobilier grădină', 'Piscină', 'Securitate', 'Alarmă', 'Cameră supraveghere', 'Interfon', 'Încuietoare smart', 'Asigurare locuință'] },
+        
+        // 💡 UTILITĂȚI
+        { id: 'utilities', name: 'Utilități', icon: '💡', color: '#3b82f6',
+          keywords: ['utilitate', 'curent', 'gaz', 'apa', 'electricitate', 'factura', 'enel', 'engie', 'digi', 'rds'],
+          subs: ['Electricitate', 'Enel', 'E.ON', 'Electrica', 'CEZ', 'Gaz', 'Engie', 'E.ON Gaz', 'Apă', 'Apă Nova', 'Apa Canal', 'Apă caldă', 'Apă rece', 'Canalizare', 'Gunoi', 'Salubritate', 'Încălzire', 'Termoficare', 'RADET', 'Lemne', 'Peleți', 'Cărbuni', 'Internet', 'Digi', 'RCS-RDS', 'Orange Home', 'Vodafone', 'Telekom', 'UPC', 'Fibră optică', 'Telefon fix', 'Telefon mobil', 'Abonament Orange', 'Abonament Vodafone', 'Abonament Telekom', 'Abonament Digi', 'Cartela prepaid', 'TV cablu', 'TV satelit', 'Digi TV', 'Orange TV', 'Telekom TV', 'Focus Sat', 'Întreținere bloc', 'Administrator bloc'] },
+        
+        // 💊 SĂNĂTATE
+        { id: 'health', name: 'Sănătate', icon: '💊', color: '#10b981',
+          keywords: ['sanatate', 'doctor', 'medic', 'farmacie', 'medicamente', 'spital', 'clinica', 'dentist', 'stomatolog'],
+          subs: ['Medicamente', 'Farmacie', 'Catena', 'Sensiblu', 'HelpNet', 'Dr. Max', 'Tei', 'Antibiotice', 'Vitamine', 'Suplimente', 'Consultație medic', 'Medic familie', 'Medic specialist', 'Cardiolog', 'Dermatolog', 'Ginecolog', 'Urolog', 'Neurolog', 'Oftalmolog', 'ORL', 'Psihiatru', 'Psiholog', 'Psihoterapeut', 'Analize medicale', 'Analize sânge', 'Ecografie', 'RMN', 'CT', 'Radiografie', 'EKG', 'Spital', 'Internare', 'Operație', 'Urgențe', 'Ambulanță', 'Stomatolog', 'Dentist', 'Implant dentar', 'Coroană dentară', 'Detartraj', 'Albire dinți', 'Aparat dentar', 'Ortodont', 'Oftalmolog', 'Ochelari', 'Lentile contact', 'Operație ochi', 'Kinetoterapie', 'Fizioterapie', 'Masaj terapeutic', 'Recuperare', 'Tratament spa', 'Vaccinuri', 'Vaccin gripal', 'Asigurare sănătate', 'Asigurare privată', 'Regina Maria', 'MedLife', 'Sanador', 'Memorial'] },
+        
+        // 🛍️ CUMPĂRĂTURI
+        { id: 'shopping', name: 'Cumpărături', icon: '🛍️', color: '#ec4899',
+          keywords: ['shopping', 'cumparaturi', 'mall', 'haine', 'incaltaminte', 'pantofi', 'geanta', 'accesorii', 'fashion'],
+          subs: ['Haine', 'Blugi', 'Pantaloni', 'Cămăși', 'Tricouri', 'Rochii', 'Fuste', 'Sacouri', 'Paltoane', 'Geci', 'Pulovere', 'Lenjerie intimă', 'Șosete', 'H&M', 'Zara', 'Reserved', 'C&A', 'New Yorker', 'Bershka', 'Pull&Bear', 'Mango', 'Stradivarius', 'Massimo Dutti', 'Încălțăminte', 'Pantofi', 'Adidași', 'Ghete', 'Sandale', 'Papuci', 'Cizme', 'deichmann', 'CCC', 'Office Shoes', 'Ecco', 'Geox', 'Nike', 'Adidas', 'Puma', 'Genți', 'Rucsacuri', 'Valize', 'Curele', 'Portofele', 'Bijuterii', 'Ceasuri', 'Ochelari soare', 'Accesorii', 'Eșarfe', 'Mănuși', 'Șepci', 'Pălării', 'Cosmetice', 'Machiaj', 'Parfumuri', 'Sephora', 'Douglas', 'Marionnaud', 'Îngrijire piele', 'Îngrijire păr', 'Electronice', 'Telefon', 'Laptop', 'Tabletă', 'Cască', 'eMAG', 'Altex', 'Flanco', 'MediaGalaxy', 'PCGarage', 'Apple', 'Samsung', 'Huawei', 'Xiaomi', 'Cadouri', 'Flori', 'Jucării', 'Decorațiuni'] },
+        
+        // 🎬 DIVERTISMENT
+        { id: 'entertainment', name: 'Divertisment', icon: '🎬', color: '#06b6d4',
+          keywords: ['divertisment', 'entertainment', 'film', 'cinema', 'concert', 'festival', 'teatru', 'muzeu', 'joc', 'game'],
+          subs: ['Cinema', 'Cinema City', 'Cinemax', 'IMAX', 'Bilet film', 'Popcorn', 'Teatru', 'Operă', 'Filarmonică', 'Concert', 'Festival', 'Untold', 'Electric Castle', 'Neversea', 'Summer Well', 'Muzeu', 'Expoziție', 'Galerie artă', 'Zoo', 'Grădină botanică', 'Parc distracții', 'Aqua park', 'Bowling', 'Biliard', 'Darts', 'Escape room', 'Karaoke', 'Club noapte', 'Discotecă', 'Casino', 'Pariuri', 'Loto', 'Jocuri video', 'PlayStation', 'Xbox', 'Nintendo', 'Gaming', 'Steam', 'Epic Games', 'Jocuri PC', 'Jocuri mobile', 'Board games', 'Jocuri societate', 'Puzzle', 'Sport', 'Fotbal', 'Baschet', 'Tenis', 'Golf', 'Înot', 'Ciclism', 'Alergare', 'Sală fitness', 'Gym', 'World Class', 'NextFit', 'SmartFit', 'Yoga', 'Pilates', 'CrossFit', 'Dans', 'Arte marțiale', 'Box', 'Schi', 'Snowboard', 'Patinaj', 'Echipament sport', 'Decathlon', 'Intersport', 'Hervis'] },
+        
+        // 📱 ABONAMENTE & STREAMING
+        { id: 'subscriptions', name: 'Abonamente', icon: '📱', color: '#a855f7',
+          keywords: ['abonament', 'subscription', 'netflix', 'spotify', 'youtube', 'hbo', 'disney', 'streaming'],
+          subs: ['Netflix', 'HBO Max', 'Disney+', 'Amazon Prime', 'Apple TV+', 'Hulu', 'Paramount+', 'Voyo', 'Spotify', 'Apple Music', 'YouTube Music', 'Deezer', 'Tidal', 'SoundCloud', 'YouTube Premium', 'Twitch', 'ChatGPT Plus', 'OpenAI', 'Claude Pro', 'Midjourney', 'Adobe Creative Cloud', 'Photoshop', 'Illustrator', 'Premiere', 'Microsoft 365', 'Office 365', 'Google One', 'iCloud', 'Dropbox', 'OneDrive', 'VPN', 'NordVPN', 'ExpressVPN', 'Antivirus', 'Kaspersky', 'Bitdefender', 'Norton', 'Gaming', 'PlayStation Plus', 'Xbox Game Pass', 'Nintendo Online', 'EA Play', 'Ubisoft+', 'Patreon', 'OnlyFans', 'Substack', 'Medium', 'Presă online', 'Digi24', 'HotNews', 'Ziare.com', 'The Economist', 'Financial Times', 'Kindle Unlimited', 'Audible', 'Scribd', 'Dating apps', 'Tinder', 'Bumble', 'LinkedIn Premium', 'Notion', 'Slack', 'Zoom', 'Canva Pro', 'Figma', 'Domain hosting', 'Website', 'Shopify', 'WordPress'] },
+        
+        // 📚 EDUCAȚIE
+        { id: 'education', name: 'Educație', icon: '📚', color: '#84cc16',
+          keywords: ['educatie', 'education', 'curs', 'course', 'carte', 'book', 'scoala', 'universitate', 'facultate'],
+          subs: ['Cărți', 'Cărți Online', 'eBooks', 'Kindle', 'Librărie', 'Cărturești', 'Elefant', 'Libris', 'Audiobooks', 'Audible', 'Cursuri online', 'Udemy', 'Coursera', 'LinkedIn Learning', 'Skillshare', 'MasterClass', 'Duolingo', 'Babbel', 'Engleza', 'Germană', 'Franceză', 'Spaniolă', 'Programare', 'Codecademy', 'FreeCodeCamp', 'Pluralsight', 'Certificări IT', 'AWS', 'Google Cloud', 'Azure', 'MBA', 'Executive education', 'Facultate', 'Universitate', 'Taxă școlarizare', 'Master', 'Doctorat', 'Liceu privat', 'Școală privată', 'Grădiniță', 'Afterschool', 'Meditații', 'Tutoring', 'Profesor particular', 'Pregătire BAC', 'Pregătire admitere', 'Rechizite', 'Caiete', 'Pixuri', 'Ghiozdan', 'Uniformă', 'Conferințe', 'Workshop', 'Seminar', 'Webinar', 'Training', 'Dezvoltare personală', 'Coaching'] },
+        
+        // 👨‍👩‍👧 FAMILIE & COPII
+        { id: 'family', name: 'Familie & Copii', icon: '👨‍👩‍👧', color: '#f97316',
+          keywords: ['familie', 'family', 'copil', 'copii', 'baby', 'kids', 'jucarii', 'scutece', 'lapte praf'],
+          subs: ['Scutece', 'Pampers', 'Huggies', 'Lapte praf', 'Mâncare bebeluși', 'Hipp', 'Nestle', 'Biberon', 'Suzeta', 'Haine copii', 'Haine bebeluși', 'Body', 'Salopete', 'Încălțăminte copii', 'Jucării', 'LEGO', 'Playmobil', 'Barbie', 'Hot Wheels', 'Păpuși', 'Mașinuțe', 'Jocuri educative', 'Puzzle copii', 'Cărți copii', 'Cărucior', 'Scaun auto', 'Pătuț', 'Leagăn', 'Baby monitor', 'Babysitter', 'Bonă', 'Grădiniță', 'Creșă', 'Afterschool', 'Tabără copii', 'Activități copii', 'Cursuri copii', 'Înot copii', 'Balet', 'Fotbal copii', 'Tenis copii', 'Petrecere copii', 'Animatori', 'Loc de joacă', 'Animale companie', 'Câine', 'Pisică', 'Hamster', 'Pește', 'Papagal', 'Mâncare animale', 'Royal Canin', 'Whiskas', 'Pedigree', 'Veterinar', 'Vaccin animal', 'Deparazitare', 'Frizerie animale', 'Pet shop', 'Accesorii animale', 'Cușcă', 'Lesa', 'Jucării animale'] },
+        
+        // 💆 PERSONAL & BEAUTY
+        { id: 'personal', name: 'Personal & Beauty', icon: '💆', color: '#14b8a6',
+          keywords: ['personal', 'beauty', 'frizerie', 'salon', 'coafor', 'manichiura', 'spa', 'masaj'],
+          subs: ['Frizerie', 'Coafor', 'Tunsoare', 'Vopsit păr', 'Coafură', 'Manichiură', 'Pedichiură', 'Unghii gel', 'Unghii acryl', 'Manichiură semipermanentă', 'Cosmetică', 'Tratament facial', 'Curățare ten', 'Epilare', 'Epilare laser', 'Epilare ceară', 'IPL', 'Masaj', 'Masaj relaxare', 'Masaj terapeutic', 'Masaj anticelulitic', 'SPA', 'Saună', 'Jacuzzi', 'Tratament corporal', 'Împachetări', 'Bronzare', 'Solar', 'Spray tan', 'Botox', 'Acid hialuronic', 'Lifting', 'Chirurgie estetică', 'Implant silicon', 'Liposucție', 'Tatuaj', 'Piercing', 'Microbladding', 'Extensii gene', 'Laminare gene', 'Barbershop', 'Bărbierit', 'Contur barbă', 'Tratament păr'] },
+        
+        // 🏛️ TAXE & IMPOZITE
+        { id: 'taxes', name: 'Taxe & Impozite', icon: '🏛️', color: '#64748b',
+          keywords: ['taxa', 'impozit', 'tax', 'anaf', 'stat', 'amenda', 'timbru', 'notar'],
+          subs: ['Impozit pe venit', 'Impozit salariu', 'CAS', 'CASS', 'Contribuții sociale', 'Impozit locuință', 'Impozit apartament', 'Impozit casă', 'Impozit teren', 'Impozit auto', 'Taxă auto', 'Timbru mediu', 'Taxe locale', 'Taxă gunoi', 'ANAF', 'Declarație unică', 'Amenzi', 'Amendă rutieră', 'Amendă parcare', 'Amendă circulație', 'Taxe notariale', 'Notar', 'Autentificare', 'Legalizare', 'Taxe consulare', 'Viză', 'Pașaport', 'Carte identitate', 'Permis conducere', 'Certificat naștere', 'Certificat căsătorie', 'Taxe judiciare', 'Avocat', 'Consultant juridic', 'Executor judecătoresc', 'Taxe înmatriculare', 'Radiere auto', 'Taxe cadastru', 'Intabulare'] },
+        
+        // 🛡️ ASIGURĂRI
+        { id: 'insurance', name: 'Asigurări', icon: '🛡️', color: '#0ea5e9',
+          keywords: ['asigurare', 'insurance', 'rca', 'casco', 'polita'],
+          subs: ['RCA', 'CASCO', 'Asigurare auto', 'Asigurare locuință', 'Asigurare casă', 'Asigurare apartament', 'Asigurare incendiu', 'Asigurare furt', 'Asigurare inundații', 'Asigurare viață', 'Asigurare deces', 'Asigurare sănătate', 'Asigurare privată sănătate', 'Asigurare călătorie', 'Asigurare accidente', 'Asigurare credit', 'Asigurare animale', 'Allianz', 'Generali', 'Omniasig', 'Groupama', 'Euroins', 'City Insurance', 'Asirom', 'Grawe'] },
+        
+        // 🏦 BANCAR & FINANCIAR
+        { id: 'banking', name: 'Bancar & Financiar', icon: '🏦', color: '#6366f1',
+          keywords: ['banca', 'bank', 'comision', 'transfer', 'card', 'credit', 'dobanda'],
+          subs: ['Comision administrare cont', 'Comision card', 'Comision transfer', 'Comision retragere', 'Comision interbancar', 'Comision schimb valutar', 'Comision ATM', 'Dobândă credit', 'Dobândă overdraft', 'Rată credit consum', 'Rată credit nevoi personale', 'Rată card credit', 'Rată overdraft', 'Comision acordare credit', 'Comision administrare credit', 'ING', 'BT', 'BCR', 'BRD', 'Raiffeisen', 'UniCredit', 'CEC Bank', 'Alpha Bank', 'OTP Bank', 'Revolut', 'N26', 'Wise', 'PayPal fees', 'Stripe fees', 'Investiții', 'Comision broker', 'Trading fees', 'XTB', 'eToro', 'Trading 212', 'IBKR', 'Crypto fees', 'Binance', 'Coinbase', 'Exchange fees'] },
+        
+        // ✈️ CĂLĂTORII & VACANȚE
+        { id: 'travel', name: 'Călătorii & Vacanțe', icon: '✈️', color: '#0891b2',
+          keywords: ['calatorie', 'travel', 'vacanta', 'vacation', 'hotel', 'avion', 'flight', 'booking'],
+          subs: ['Bilet avion', 'Wizz Air', 'Ryanair', 'Blue Air', 'Tarom', 'Lufthansa', 'Turkish Airlines', 'Hotel', 'Booking.com', 'Airbnb', 'Hotels.com', 'Expedia', 'Hostel', 'Pensiune', 'Resort', 'All inclusive', 'Cazare', 'Cazare munte', 'Cazare mare', 'City break', 'Weekend getaway', 'Croazieră', 'Pachet vacanță', 'Agenție turism', 'Paralela 45', 'TUI', 'Karpaten', 'Rent car vacanță', 'Transfer aeroport', 'Taxi aeroport', 'Excursie', 'Tur ghidat', 'Atracții turistice', 'Muzeu vacanță', 'Parc tematic', 'Disneyland', 'Plajă', 'Pârtie schi', 'Skipass', 'Echipament schi închiriat', 'Souvenir', 'Cadouri vacanță', 'Asigurare călătorie', 'Viză', 'Bagaj', 'Excess bagaj'] },
+        
+        // ❤️ DONAȚII & CARITATE
+        { id: 'charity', name: 'Donații & Caritate', icon: '❤️', color: '#f43f5e',
+          keywords: ['donatie', 'donation', 'caritate', 'charity', 'ajutor', 'ong'],
+          subs: ['Donație ONG', 'Crucea Roșie', 'UNICEF', 'Salvați Copiii', 'Habitat for Humanity', 'Donație biserică', 'Lumânări', 'Slujbe', 'Parastas', 'Donație spital', 'Donație școală', 'Donație animal', 'Crowdfunding', 'GoFundMe', 'Sponsorizare', 'Ajutor familie', 'Ajutor prieteni', 'Bacșiș', 'Tips', 'Cause sociale', 'Mediu', 'Reciclare'] },
+        
+        // 🎁 CADOURI & EVENIMENTE
+        { id: 'gifts', name: 'Cadouri & Evenimente', icon: '🎁', color: '#d946ef',
+          keywords: ['cadou', 'gift', 'aniversare', 'nunta', 'botez', 'craciun', 'paste', 'birthday'],
+          subs: ['Cadou ziua de naștere', 'Cadou aniversare', 'Cadou Crăciun', 'Cadou Paște', 'Cadou Valentine\'s Day', 'Cadou Dragobete', 'Cadou 8 Martie', 'Cadou 1 Iunie', 'Cadou absolvire', 'Cadou nuntă', 'Dar nuntă', 'Cadou botez', 'Cadou cumetrie', 'Flori', 'Buchet', 'Aranjament floral', 'Tort', 'Prăjituri', 'Ciocolată', 'Vin cadou', 'Șampanie', 'Parfum cadou', 'Bijuterii cadou', 'Ceas cadou', 'Voucher cadou', 'Gift card', 'Experiență cadou', 'Petrecere', 'Organizare eveniment', 'Decorațiuni petrecere', 'Baloane', 'Catering', 'DJ', 'Fotograf', 'Videograf'] },
+        
+        // 💼 BUSINESS & PROFESIONAL
+        { id: 'business', name: 'Business & Profesional', icon: '💼', color: '#eab308',
+          keywords: ['business', 'profesional', 'birou', 'office', 'firma', 'pfa', 'srl'],
+          subs: ['Echipamente birou', 'Laptop', 'Monitor', 'Tastatură', 'Mouse', 'Birou', 'Scaun ergonomic', 'Imprimantă', 'Scanner', 'Papetărie', 'Software', 'Licență Windows', 'Licență Office', 'Hosting', 'Domeniu web', 'Cloud services', 'AWS', 'Google Cloud', 'Marketing', 'Google Ads', 'Facebook Ads', 'Instagram Ads', 'LinkedIn Ads', 'SEO', 'Publicitate', 'Branding', 'Logo', 'Website', 'Contabilitate', 'Contabil', 'Consultant fiscal', 'Juridic', 'Avocat', 'Consultant', 'Coworking', 'Chirie birou', 'Spații comerciale', 'Deplasări business', 'Conferințe', 'Networking', 'Membership', 'Asociații profesionale', 'Cursuri business', 'Training angajați', 'Team building'] },
+        
+        // 📦 ALTELE
+        { id: 'other', name: 'Altele', icon: '📦', color: '#78716c',
+          keywords: ['altele', 'other', 'diverse', 'misc'],
+          subs: ['Diverse', 'Neprevăzute', 'Urgențe', 'Pierderi', 'Furturi', 'Daune', 'Reparații diverse', 'Servicii diverse', 'Comisioane diverse', 'ATM fees', 'Livrare colete', 'Curier', 'FAN Courier', 'Cargus', 'DPD', 'Poștă', 'Timbru', 'Fotocopii', 'Printare', 'Laminare', 'Xerox', 'Chei', 'Încuietori', 'Curățătorie haine', 'Spălătorie', 'Croitorie', 'Reparații încălțăminte', 'Ascuțit cuțite', 'Gravură', 'Personalizare'] }
     ],
+    
     income: [
-        { id: 'salary', name: 'Salariu', icon: '💼', color: '#10b981', subs: ['Salariu net', 'Bonusuri', 'Prime'] },
-        { id: 'freelance', name: 'Freelance', icon: '💻', color: '#06b6d4', subs: ['Proiecte', 'Consultanță'] },
-        { id: 'investments', name: 'Investiții', icon: '📈', color: '#22c55e', subs: ['Dividende', 'Dobânzi', 'Profit'] },
-        { id: 'rental', name: 'Chirii', icon: '🏢', color: '#0ea5e9', subs: ['Chirie apartament', 'Airbnb'] },
-        { id: 'gifts', name: 'Cadouri', icon: '🎁', color: '#ec4899', subs: ['Bani primiți', 'Moștenire'] },
-        { id: 'refunds', name: 'Rambursări', icon: '↩️', color: '#3b82f6', subs: ['Retururi', 'Cashback'] },
-        { id: 'other', name: 'Alte venituri', icon: '💰', color: '#84cc16', subs: ['Diverse'] }
+        // 💼 SALARIU & ANGAJARE
+        { id: 'salary', name: 'Salariu & Angajare', icon: '💼', color: '#10b981',
+          keywords: ['salariu', 'salary', 'leafă', 'plata', 'angajat', 'job', 'bonus'],
+          subs: ['Salariu net', 'Salariu brut', 'Avans salariu', 'Lichidare', 'Bonus performanță', 'Bonus anual', 'Al 13-lea salariu', 'Prime', 'Prima Paște', 'Prima Crăciun', 'Prima vacanță', 'Ore suplimentare', 'Overtime', 'Concediu plătit', 'Concediu medical plătit', 'Indemnizație deplasare', 'Diurnă', 'Decontări', 'Tichete masă', 'Tichete cadou', 'Tichete vacanță', 'Tichete creșă', 'Asigurare plătită de angajator', 'Abonament fitness plătit', 'Mașină de serviciu', 'Telefon de serviciu', 'Acțiuni companie', 'Stock options', 'RSU', 'ESPP', 'Profit sharing'] },
+        
+        // 💻 FREELANCE & CONSULTANȚĂ
+        { id: 'freelance', name: 'Freelance & Consultanță', icon: '💻', color: '#06b6d4',
+          keywords: ['freelance', 'consultant', 'proiect', 'project', 'client', 'pfa'],
+          subs: ['Proiecte freelance', 'Consultanță', 'Consultanță IT', 'Consultanță financiară', 'Consultanță marketing', 'Consultanță HR', 'Colaborări', 'Contract servicii', 'Retainer', 'Onorariu', 'Factură PFA', 'Factură SRL', 'Upwork', 'Fiverr', 'Toptal', 'Freelancer.com', 'Design freelance', 'Programare freelance', 'Scriere freelance', 'Traduceri', 'Copywriting', 'Content creation', 'Video editing', 'Grafică', 'Web design', 'Social media management', 'SEO services', 'Marketing freelance', 'Fotografie', 'Videografie', 'Muzică', 'Voiceover', 'Tutoring', 'Meditații', 'Training', 'Workshop-uri', 'Speaking fees', 'Podcast sponsorship'] },
+        
+        // 🏪 AFACERI & ANTREPRENORIAT
+        { id: 'business_income', name: 'Afaceri', icon: '🏪', color: '#8b5cf6',
+          keywords: ['afacere', 'business', 'vanzari', 'sales', 'profit', 'srl', 'firma'],
+          subs: ['Vânzări produse', 'Vânzări servicii', 'Profit business', 'Dividende SRL', 'PFA încasări', 'SRL încasări', 'E-commerce', 'Shopify', 'WooCommerce', 'eMag Marketplace', 'Amazon FBA', 'Dropshipping', 'Print on demand', 'Affiliate marketing', 'Comisioane afiliere', 'Google AdSense', 'YouTube monetizare', 'Sponsorizări YouTube', 'TikTok Creator Fund', 'Instagram sponsorship', 'Blog income', 'Newsletter sponsorship', 'Substack', 'Patreon income', 'OnlyFans income', 'Course sales', 'Vânzări cursuri', 'eBook sales', 'Software sales', 'SaaS revenue', 'App revenue', 'License fees', 'Franchise fees', 'Consulting business'] },
+        
+        // 📈 INVESTIȚII & PASIVE
+        { id: 'investments', name: 'Investiții & Pasive', icon: '📈', color: '#22c55e',
+          keywords: ['investitie', 'investment', 'dividend', 'dobanda', 'profit', 'actiuni', 'etf'],
+          subs: ['Dividende acțiuni', 'Dividende ETF', 'Dividende fonduri', 'Dobândă depozit', 'Dobândă cont economii', 'Dobândă obligațiuni', 'Cupon obligațiuni', 'Profit trading', 'Capital gains', 'Vânzare acțiuni', 'Vânzare ETF', 'Vânzare obligațiuni', 'Randament fonduri', 'Fonduri mutuale', 'Fonduri investiții', 'BT Asset Management', 'NN', 'Franklin Templeton', 'BRD Asset', 'Erste Asset', 'Pilonul 2', 'Pilonul 3', 'Pensie privată', 'ROI investiții', 'Real estate income', 'REITs', 'Crowdfunding returns', 'P2P lending returns', 'Mintos', 'Bondora', 'Robor', 'Euribor'] },
+        
+        // ₿ CRYPTO
+        { id: 'crypto', name: 'Crypto', icon: '₿', color: '#f7931a',
+          keywords: ['crypto', 'bitcoin', 'ethereum', 'btc', 'eth', 'binance', 'coinbase'],
+          subs: ['Profit crypto', 'Vânzare Bitcoin', 'Vânzare Ethereum', 'Vânzare altcoins', 'Staking rewards', 'Staking ETH', 'Staking SOL', 'Staking ADA', 'Mining', 'Mining Bitcoin', 'Mining Ethereum', 'Airdrops', 'DeFi yields', 'Yield farming', 'Liquidity mining', 'NFT sales', 'Vânzare NFT', 'Royalties NFT', 'Referral crypto', 'Binance referral', 'Coinbase referral', 'Cashback crypto', 'Crypto.com rewards', 'Binance cashback', 'Play to earn', 'Axie Infinity', 'GameFi', 'Learn to earn', 'Coinbase Earn'] },
+        
+        // 🏢 CHIRII & IMOBILIARE
+        { id: 'rental', name: 'Chirii & Imobiliare', icon: '🏢', color: '#0ea5e9',
+          keywords: ['chirie', 'rent', 'airbnb', 'imobiliar', 'apartament', 'casa'],
+          subs: ['Chirie apartament', 'Chirie garsonieră', 'Chirie cameră', 'Chirie casă', 'Chirie vilă', 'Airbnb', 'Booking.com host', 'Short term rental', 'Long term rental', 'Chirie spațiu comercial', 'Chirie birou', 'Chirie magazin', 'Chirie depozit', 'Chirie teren', 'Chirie parcare', 'Chirie garaj', 'Vânzare apartament', 'Vânzare casă', 'Vânzare teren', 'Profit imobiliar', 'Capital gains imobiliar', 'Comision imobiliar', 'Property management fees'] },
+        
+        // 👴 PENSIE & SOCIAL
+        { id: 'pension', name: 'Pensie & Social', icon: '👴', color: '#64748b',
+          keywords: ['pensie', 'pension', 'ajutor', 'social', 'alocatie', 'somaj', 'stat'],
+          subs: ['Pensie stat', 'Pensie limită vârstă', 'Pensie anticipată', 'Pensie invaliditate', 'Pensie urmaș', 'Pensie specială', 'Pensie militară', 'Pensie privată', 'Pilon 2 încasări', 'Pilon 3 încasări', 'Alocație copii', 'Alocație stat', 'Indemnizație creștere copil', 'Concediu maternitate', 'Concediu paternitate', 'Șomaj', 'Indemnizație șomaj', 'Ajutor social', 'VMG', 'Ajutor încălzire', 'Bursă școlară', 'Bursă studii', 'Bursă merit', 'Bursă socială', 'Grant', 'Subvenții', 'Subvenție agricolă', 'Fonduri europene', 'Start-Up Nation'] },
+        
+        // 🎁 CADOURI & MOȘTENIRI
+        { id: 'gifts_income', name: 'Cadouri Primite', icon: '🎁', color: '#ec4899',
+          keywords: ['cadou primit', 'gift', 'mostenire', 'dar', 'bani primiti'],
+          subs: ['Bani primiți cadou', 'Cadou ziua de naștere', 'Cadou Crăciun', 'Cadou nuntă', 'Dar nuntă', 'Bani nuntă', 'Cadou botez', 'Bani botez', 'Cadou absolvire', 'Moștenire', 'Moștenire casă', 'Moștenire teren', 'Moștenire bani', 'Donații primite', 'Sponsorizări primite', 'Premii', 'Premiu concurs', 'Premiu loterie', 'Tombola', 'Bani găsiți'] },
+        
+        // ↩️ RAMBURSĂRI & RETURURI
+        { id: 'refunds', name: 'Rambursări & Retururi', icon: '↩️', color: '#3b82f6',
+          keywords: ['rambursare', 'refund', 'retur', 'return', 'cashback', 'inapoi'],
+          subs: ['Retur produse', 'Rambursare', 'Refund', 'Garanție returnată', 'Depozit returnat', 'Cauțiune returnată', 'Decontări medicale', 'Rambursare CNAS', 'Rambursare asigurare', 'Rambursare taxe', 'Tax refund', 'Cashback', 'Cashback card', 'Revolut cashback', 'ING cashback', 'George cashback', 'Cashback shopping', 'Rebates', 'Discount recuperat', 'Voucher folosit', 'Credit note', 'Compensație', 'Despăgubire'] },
+        
+        // 🏷️ VÂNZĂRI PERSONALE
+        { id: 'sales', name: 'Vânzări Personale', icon: '🏷️', color: '#f97316',
+          keywords: ['vanzare', 'sale', 'olx', 'marketplace', 'second hand'],
+          subs: ['OLX', 'Facebook Marketplace', 'Lajumate', 'Publi24', 'Vinted', 'Second hand', 'Vânzare haine', 'Vânzare telefon', 'Vânzare laptop', 'Vânzare electronice', 'Vânzare mobilă', 'Vânzare auto', 'Vânzare mașină', 'Vânzare motocicletă', 'Vânzare bicicletă', 'Garage sale', 'Vânzare cărți', 'Vânzare jucării', 'Vânzare echipament sport', 'Vânzare instrumente', 'Antichități', 'Colecții'] },
+        
+        // 🎰 CÂȘTIGURI & NOROC
+        { id: 'winnings', name: 'Câștiguri & Noroc', icon: '🎰', color: '#eab308',
+          keywords: ['castig', 'winning', 'loto', 'pariuri', 'noroc', 'premiu'],
+          subs: ['Loto', '6/49', 'Joker', 'Loto 5/40', 'Noroc', 'Super Noroc', 'Euromillions', 'Pariuri sportive', 'Betano', 'Superbet', 'Unibet', 'Fortuna', 'Poker', 'Casino online', 'Slot machines', 'Blackjack', 'Ruletă', 'Concursuri', 'Premiu concurs', 'Giveaway', 'Tombola', 'Raffle'] },
+        
+        // 💰 ALTE VENITURI
+        { id: 'other_income', name: 'Alte Venituri', icon: '💰', color: '#84cc16',
+          keywords: ['venit', 'income', 'altele', 'other', 'diverse'],
+          subs: ['Diverse', 'Venituri ocazionale', 'Side hustle', 'Gig economy', 'Uber driver', 'Bolt driver', 'Glovo curier', 'Tazz curier', 'Livrări', 'Task Rabbit', 'Fiver gigs', 'Babysitting', 'Pet sitting', 'House sitting', 'Mystery shopping', 'Sondaje plătite', 'User testing', 'Beta testing', 'Focus groups', 'Închiriere echipamente', 'Închiriere unelte', 'Închiriere costum', 'Împrumuturi returnate', 'Bani înapoi', 'Datorii recuperate', 'Depozite recuperate'] }
     ]
 };
+
+// Custom categories (loaded from user data)
+let customCategories = { expense: [], income: [] };
 
 // Achievements
 const achievementsList = [
@@ -213,6 +353,7 @@ async function loadData() {
             state.currency = data.currency || 'RON';
             state.tags = data.tags || [];
             state.netWorthHistory = data.netWorthHistory || [];
+            customCategories = data.customCategories || { expense: [], income: [] };
         }
         
         detectSubscriptions();
@@ -327,7 +468,8 @@ function nav(view) {
         subscriptions: 'Abonamente',
         challenges: 'Provocări',
         netWorth: 'Patrimoniu',
-        insights: 'AI Insights'
+        insights: 'AI Insights',
+        customcats: 'Categorii Custom'
     };
     if ($('hdrTitle')) $('hdrTitle').textContent = titles[view] || 'Budget Pro';
     
@@ -348,6 +490,7 @@ function nav(view) {
     if (view === 'challenges') renderChallenges();
     if (view === 'netWorth') renderNetWorthTimeline();
     if (view === 'insights') renderAdvancedInsights();
+    if (view === 'customcats') renderCustomCategories();
 }
 
 function prevMonth() {
@@ -466,7 +609,7 @@ function setTxType(type) {
 function loadCats(type) {
     const sel = $('txCat');
     if (!sel) return;
-    const cats = categories[type] || [];
+    const cats = getAllCategories(type);
     sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
     loadSubcats();
 }
@@ -476,7 +619,7 @@ function loadSubcats() {
     const catId = $('txCat')?.value;
     const sel = $('txSubcat');
     if (!sel) return;
-    const cat = categories[type]?.find(c => c.id === catId);
+    const cat = getAllCategories(type).find(c => c.id === catId);
     sel.innerHTML = '<option value="">-- Selectează --</option>' + (cat?.subs || []).map(s => `<option value="${s}">${s}</option>`).join('');
 }
 
@@ -1343,7 +1486,7 @@ function fmtDate(d) {
 }
 
 function findCat(type, id) {
-    return categories[type]?.find(c => c.id === id);
+    return getAllCategories(type).find(c => c.id === id);
 }
 
 function calcStreak() {
@@ -1784,6 +1927,308 @@ function renderAdvancedInsights() {
     `).join('');
 }
 
+// ═══════════════════════════════════════════
+// AI AUTO-CATEGORIZATION
+// ═══════════════════════════════════════════
+
+function aiCategorize(text) {
+    text = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Try to extract amount
+    const amountMatch = text.match(/(\d+(?:[.,]\d+)?)/);
+    const amount = amountMatch ? parseFloat(amountMatch[1].replace(',', '.')) : null;
+    
+    // Remove amount from text for better matching
+    const cleanText = text.replace(/\d+(?:[.,]\d+)?/g, '').trim();
+    
+    // Determine type (expense vs income)
+    const incomeKeywords = ['salariu', 'salary', 'venit', 'income', 'primit', 'castig', 'dividend', 'chirie primita', 'freelance', 'bonus', 'prima'];
+    let type = 'expense';
+    for (const kw of incomeKeywords) {
+        if (cleanText.includes(kw)) {
+            type = 'income';
+            break;
+        }
+    }
+    
+    // Find category
+    const allCats = [...categories[type], ...customCategories[type]];
+    let bestCat = null;
+    let bestSub = '';
+    let maxScore = 0;
+    
+    for (const cat of allCats) {
+        // Check category keywords
+        for (const kw of (cat.keywords || [])) {
+            if (cleanText.includes(kw.toLowerCase())) {
+                const score = kw.length;
+                if (score > maxScore) {
+                    maxScore = score;
+                    bestCat = cat;
+                }
+            }
+        }
+        
+        // Check subcategories
+        for (const sub of cat.subs) {
+            const subLower = sub.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            if (cleanText.includes(subLower)) {
+                const score = sub.length + 10; // Bonus for exact sub match
+                if (score > maxScore) {
+                    maxScore = score;
+                    bestCat = cat;
+                    bestSub = sub;
+                }
+            }
+            // Partial match
+            const words = subLower.split(' ');
+            for (const word of words) {
+                if (word.length > 3 && cleanText.includes(word)) {
+                    const score = word.length;
+                    if (score > maxScore) {
+                        maxScore = score;
+                        bestCat = cat;
+                        bestSub = sub;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Default if nothing found
+    if (!bestCat) {
+        bestCat = allCats.find(c => c.id === 'other') || allCats[0];
+    }
+    
+    return {
+        type,
+        amount,
+        category: bestCat?.id,
+        subcategory: bestSub,
+        categoryName: bestCat?.name,
+        icon: bestCat?.icon,
+        confidence: maxScore > 0 ? Math.min(maxScore / 20 * 100, 100) : 0
+    };
+}
+
+// Smart input - parse "50 cafea" or "salariu 5000"
+function parseSmartInput(text) {
+    const result = aiCategorize(text);
+    
+    // Also try to get note (remaining text after removing recognized parts)
+    let note = text;
+    if (result.amount) note = note.replace(result.amount.toString(), '');
+    if (result.subcategory) note = note.replace(new RegExp(result.subcategory, 'i'), '');
+    note = note.replace(/\s+/g, ' ').trim();
+    
+    result.note = note.length > 2 && note.length < 50 ? note : '';
+    
+    return result;
+}
+
+// Open smart add modal
+function openSmartAdd() {
+    openModal('smartAddModal');
+    $('smartInput')?.focus();
+}
+
+// Process smart input
+function processSmartInput() {
+    const input = $('smartInput')?.value;
+    if (!input) return;
+    
+    const result = parseSmartInput(input);
+    
+    // Show preview
+    const preview = $('smartPreview');
+    if (preview) {
+        preview.innerHTML = `
+            <div class="smart-result">
+                <div class="smart-icon">${result.icon || '📦'}</div>
+                <div class="smart-info">
+                    <div class="smart-type">${result.type === 'expense' ? '💸 Cheltuială' : '💵 Venit'}</div>
+                    <div class="smart-cat">${result.categoryName || 'Altele'} ${result.subcategory ? '→ ' + result.subcategory : ''}</div>
+                    <div class="smart-amount">${result.amount ? fmt(result.amount) : 'Sumă lipsă'}</div>
+                    ${result.confidence > 0 ? `<div class="smart-conf">Încredere: ${result.confidence.toFixed(0)}%</div>` : ''}
+                </div>
+            </div>
+        `;
+        preview.classList.remove('hide');
+    }
+    
+    // Store result for saving
+    window.smartResult = result;
+}
+
+// Save from smart input
+async function saveSmartTx() {
+    const result = window.smartResult;
+    if (!result || !result.amount) {
+        toast('Introdu o sumă!', 'error');
+        return;
+    }
+    
+    const data = {
+        type: result.type,
+        amount: result.amount,
+        category: result.category,
+        subcategory: result.subcategory || '',
+        date: new Date().toISOString().split('T')[0],
+        note: result.note || $('smartInput')?.value || '',
+        tags: [],
+        smart: true, // Flag that it was added via smart input
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        const doc = await db.collection('users').doc(state.user.uid).collection('transactions').add(data);
+        state.transactions.unshift({ id: doc.id, ...data });
+        closeModal('smartAddModal');
+        $('smartInput').value = '';
+        $('smartPreview')?.classList.add('hide');
+        updateHome();
+        toast(`${result.icon} ${fmt(result.amount)} adăugat!`, 'success');
+        checkAchievement('first_tx');
+    } catch (err) {
+        toast('Eroare la salvare', 'error');
+    }
+}
+
+// ═══════════════════════════════════════════
+// CUSTOM CATEGORIES
+// ═══════════════════════════════════════════
+
+async function loadCustomCategories() {
+    if (!state.user) return;
+    try {
+        const doc = await db.collection('users').doc(state.user.uid).get();
+        if (doc.exists && doc.data().customCategories) {
+            customCategories = doc.data().customCategories;
+        }
+    } catch (err) {
+        console.error('Error loading custom categories:', err);
+    }
+}
+
+function renderCustomCategories() {
+    const container = $('customCatsList');
+    if (!container) return;
+    
+    const all = [...customCategories.expense.map(c => ({...c, type: 'expense'})), 
+                 ...customCategories.income.map(c => ({...c, type: 'income'}))];
+    
+    if (all.length === 0) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">🏷️</div><p class="empty-txt">Nicio categorie personalizată</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = all.map(c => `
+        <div class="item-card">
+            <div class="item-row">
+                <div class="item-emoji">${c.icon}</div>
+                <div class="item-info">
+                    <div class="item-name">${c.name}</div>
+                    <div class="item-sub">${c.type === 'expense' ? 'Cheltuială' : 'Venit'} · ${c.subs.length} subcategorii</div>
+                </div>
+                <div class="item-actions">
+                    <button class="item-btn" onclick="editCustomCat('${c.type}', '${c.id}')">✏️</button>
+                    <button class="item-btn" onclick="deleteCustomCat('${c.type}', '${c.id}')">🗑️</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openCustomCatModal() {
+    state.editingId = null;
+    $('customCatForm')?.reset();
+    $('customCatSubs').value = '';
+    openModal('customCatModal');
+}
+
+function editCustomCat(type, id) {
+    const cat = customCategories[type].find(c => c.id === id);
+    if (!cat) return;
+    
+    state.editingId = id;
+    state.editingType = type;
+    $('customCatType').value = type;
+    $('customCatName').value = cat.name;
+    $('customCatIcon').value = cat.icon;
+    $('customCatColor').value = cat.color;
+    $('customCatSubs').value = cat.subs.join(', ');
+    $('customCatKeywords').value = (cat.keywords || []).join(', ');
+    openModal('customCatModal');
+}
+
+async function saveCustomCat(e) {
+    e.preventDefault();
+    
+    const type = $('customCatType').value;
+    const name = $('customCatName').value;
+    const icon = $('customCatIcon').value || '📦';
+    const color = $('customCatColor').value || '#78716c';
+    const subsText = $('customCatSubs').value;
+    const keywordsText = $('customCatKeywords').value;
+    
+    const subs = subsText.split(',').map(s => s.trim()).filter(s => s);
+    const keywords = keywordsText.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
+    
+    const cat = {
+        id: state.editingId || 'custom_' + Date.now(),
+        name,
+        icon,
+        color,
+        subs,
+        keywords,
+        custom: true
+    };
+    
+    if (state.editingId) {
+        const idx = customCategories[state.editingType].findIndex(c => c.id === state.editingId);
+        if (idx >= 0) customCategories[state.editingType][idx] = cat;
+    } else {
+        customCategories[type].push(cat);
+    }
+    
+    try {
+        await db.collection('users').doc(state.user.uid).update({ customCategories });
+        closeModal('customCatModal');
+        renderCustomCategories();
+        toast('Categorie salvată!', 'success');
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+async function deleteCustomCat(type, id) {
+    if (!confirm('Ștergi categoria?')) return;
+    
+    customCategories[type] = customCategories[type].filter(c => c.id !== id);
+    
+    try {
+        await db.collection('users').doc(state.user.uid).update({ customCategories });
+        renderCustomCategories();
+        toast('Șters!', 'success');
+    } catch (err) {
+        toast('Eroare', 'error');
+    }
+}
+
+// Get all categories (default + custom)
+function getAllCategories(type) {
+    return [...categories[type], ...customCategories[type]];
+}
+
+// Update loadCats to include custom categories
+function loadCatsWithCustom(type) {
+    const sel = $('txCat');
+    if (!sel) return;
+    const cats = getAllCategories(type);
+    sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+    loadSubcats();
+}
+
 // Export functions to window
 window.showTab = showTab;
 window.doLogin = doLogin;
@@ -1841,3 +2286,12 @@ window.openChallengeModal = openChallengeModal;
 window.startChallenge = startChallenge;
 window.deleteChallenge = deleteChallenge;
 window.saveNetWorthSnapshot = saveNetWorthSnapshot;
+// AI & Custom Categories exports
+window.openSmartAdd = openSmartAdd;
+window.processSmartInput = processSmartInput;
+window.saveSmartTx = saveSmartTx;
+window.openCustomCatModal = openCustomCatModal;
+window.editCustomCat = editCustomCat;
+window.saveCustomCat = saveCustomCat;
+window.deleteCustomCat = deleteCustomCat;
+window.getAllCategories = getAllCategories;

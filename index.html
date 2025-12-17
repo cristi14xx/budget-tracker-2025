@@ -195,6 +195,13 @@
         </div>
 
         <div class="menu-sec">
+          <div class="menu-lbl">Personalizare</div>
+          <div class="menu-grp">
+            <button class="menu-item" onclick="nav('customcats')"><span class="menu-icon">🏷️</span><span class="menu-txt">Categorii Custom</span><span class="menu-arr">›</span></button>
+          </div>
+        </div>
+
+        <div class="menu-sec">
           <div class="menu-lbl">Casă</div>
           <div class="menu-grp">
             <button class="menu-item" onclick="nav('utilities')"><span class="menu-icon">💡</span><span class="menu-txt">Utilități</span><span class="menu-arr">›</span></button>
@@ -404,6 +411,15 @@
         </div>
         <div id="advancedInsights"></div>
       </section>
+      <!-- CUSTOM CATEGORIES -->
+      <section id="customcatsView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">Categorii Custom</h2>
+          <button class="add-btn" onclick="openCustomCatModal()">+</button>
+        </div>
+        <div id="customCatsList"></div>
+      </section>
     </main>
 
     <!-- Bottom Nav - 5 butoane principale -->
@@ -414,7 +430,7 @@
       <button class="nav-btn" data-v="transactions" onclick="nav('transactions')">
         <span class="nav-icon">📋</span>Istoric
       </button>
-      <button class="nav-btn fab" onclick="openTxModal()">
+      <button class="nav-btn fab" onclick="openSmartAdd()">
         <div class="fab-btn">+</div>
       </button>
       <button class="nav-btn" data-v="budgets" onclick="nav('budgets')">
@@ -427,6 +443,69 @@
   </div>
 
   <!-- MODALS -->
+  
+  <!-- Smart Add Modal - AI Categorization -->
+  <div id="smartAddModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('smartAddModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <span class="modal-title">✨ Adaugă Rapid</span>
+        <button class="modal-x" onclick="closeModal('smartAddModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="smart-hint">Scrie natural, de ex: "50 cafea" sau "salariu 5000"</div>
+        <input type="text" id="smartInput" class="form-input big" placeholder="50 cafea..." oninput="processSmartInput()" autocomplete="off">
+        <div id="smartPreview" class="hide" style="margin-top:16px"></div>
+        <div class="smart-btns">
+          <button class="submit-btn" onclick="saveSmartTx()">💾 Salvează</button>
+          <button class="submit-btn" style="background:var(--card2);color:var(--text);margin-top:8px" onclick="closeModal('smartAddModal');openTxModal()">📝 Formular Complet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Category Modal -->
+  <div id="customCatModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('customCatModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><span class="modal-title">🏷️ Categorie Nouă</span><button class="modal-x" onclick="closeModal('customCatModal')">✕</button></div>
+      <div class="modal-body">
+        <form id="customCatForm" onsubmit="saveCustomCat(event)">
+          <div class="form-row">
+            <label class="form-lbl">Tip</label>
+            <select id="customCatType" class="form-select" required>
+              <option value="expense">💸 Cheltuială</option>
+              <option value="income">💵 Venit</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Nume categorie</label>
+            <input type="text" id="customCatName" class="form-input" required placeholder="Ex: Freelance Design">
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Emoji/Icon</label>
+            <input type="text" id="customCatIcon" class="form-input" placeholder="🎨" maxlength="2">
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Culoare</label>
+            <input type="color" id="customCatColor" class="form-input" value="#8b5cf6" style="height:44px;padding:4px">
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Subcategorii (separate prin virgulă)</label>
+            <input type="text" id="customCatSubs" class="form-input" placeholder="Logo, Banner, UI/UX, Ilustrații">
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Keywords pentru AI (separate prin virgulă)</label>
+            <input type="text" id="customCatKeywords" class="form-input" placeholder="design, grafica, logo, banner">
+          </div>
+          <button type="submit" class="submit-btn">Salvează</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Transaction Modal -->
   <div id="txModal" class="modal">
     <div class="modal-bg" onclick="closeModal('txModal')"></div>

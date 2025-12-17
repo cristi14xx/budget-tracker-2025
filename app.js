@@ -1383,214 +1383,210 @@ function askAI(q) {
 // ═══════════════════════════════════════════
 
 function buildFullFinancialContext() {
+    // Safe helper for numbers
+    const safeNum = (n) => (n === undefined || n === null || isNaN(n)) ? 0 : n;
+    const safeFmt = (n) => safeNum(n).toLocaleString('ro-RO');
+    
     // === TRANZACȚII LUNA CURENTĂ ===
-    const monthTx = getMonthTx();
-    const monthIncome = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const monthTx = getMonthTx() || [];
+    const monthIncome = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + safeNum(t.amount), 0);
+    const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + safeNum(t.amount), 0);
     const monthBalance = monthIncome - monthExpense;
     
     // === TRANZACȚII LUNA TRECUTĂ ===
     const lastMonth = state.month === 0 ? 11 : state.month - 1;
     const lastYear = state.month === 0 ? state.year - 1 : state.year;
-    const lastMonthTx = state.transactions.filter(t => {
+    const allTx = state.transactions || [];
+    const lastMonthTx = allTx.filter(t => {
         const d = new Date(t.date);
         return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
     });
-    const lastMonthExpense = lastMonthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-    const lastMonthIncome = lastMonthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const lastMonthExpense = lastMonthTx.filter(t => t.type === 'expense').reduce((s, t) => s + safeNum(t.amount), 0);
+    const lastMonthIncome = lastMonthTx.filter(t => t.type === 'income').reduce((s, t) => s + safeNum(t.amount), 0);
     
     // === ANALIZĂ PE CATEGORII ===
     const categoryBreakdown = {};
     monthTx.filter(t => t.type === 'expense').forEach(t => {
         const cat = findCat('expense', t.category);
-        const catName = cat?.name || t.category;
-        if (!categoryBreakdown[catName]) categoryBreakdown[catName] = { total: 0, count: 0, items: [] };
-        categoryBreakdown[catName].total += t.amount;
+        const catName = cat?.name || t.category || 'Altele';
+        if (!categoryBreakdown[catName]) categoryBreakdown[catName] = { total: 0, count: 0 };
+        categoryBreakdown[catName].total += safeNum(t.amount);
         categoryBreakdown[catName].count++;
-        categoryBreakdown[catName].items.push({ amount: t.amount, sub: t.subcategory, date: t.date });
     });
     
     // Top categorii
     const topCategories = Object.entries(categoryBreakdown)
         .sort((a, b) => b[1].total - a[1].total)
         .slice(0, 5)
-        .map(([name, data]) => `${name}: ${data.total} ${state.currency} (${data.count} tranzacții)`);
+        .map(([name, data]) => `${name}: ${safeFmt(data.total)} ${state.currency || 'RON'} (${data.count} tranzacții)`);
     
     // === TENDINȚE PE 6 LUNI ===
     const monthlyTrends = [];
     for (let i = 5; i >= 0; i--) {
         const m = new Date();
         m.setMonth(m.getMonth() - i);
-        const mTx = state.transactions.filter(t => {
+        const mTx = allTx.filter(t => {
             const d = new Date(t.date);
             return d.getMonth() === m.getMonth() && d.getFullYear() === m.getFullYear();
         });
-        const mInc = mTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-        const mExp = mTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+        const mInc = mTx.filter(t => t.type === 'income').reduce((s, t) => s + safeNum(t.amount), 0);
+        const mExp = mTx.filter(t => t.type === 'expense').reduce((s, t) => s + safeNum(t.amount), 0);
         monthlyTrends.push({
-            month: months[m.getMonth()],
+            month: months[m.getMonth()] || 'N/A',
             income: mInc,
             expense: mExp,
             savings: mInc - mExp,
-            savingsRate: mInc > 0 ? ((mInc - mExp) / mInc * 100).toFixed(1) : 0
+            savingsRate: mInc > 0 ? ((mInc - mExp) / mInc * 100).toFixed(1) : '0'
         });
     }
     
     // === ZIUA DIN SĂPTĂMÂNĂ ===
     const daySpending = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-    state.transactions.filter(t => t.type === 'expense').forEach(t => {
+    allTx.filter(t => t.type === 'expense').forEach(t => {
         const day = new Date(t.date).getDay();
-        daySpending[day] += t.amount;
+        daySpending[day] += safeNum(t.amount);
     });
     const dayNames = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
-    const maxSpendingDay = Object.entries(daySpending).sort((a, b) => b[1] - a[1])[0];
+    const sortedDays = Object.entries(daySpending).sort((a, b) => b[1] - a[1]);
+    const maxSpendingDay = sortedDays[0] || ['0', 0];
     
     // === OBIECTIVE ===
-    const goalsStatus = state.goals.map(g => ({
-        name: g.name,
-        target: g.target,
-        current: g.current,
-        progress: ((g.current / g.target) * 100).toFixed(1),
-        remaining: g.target - g.current
+    const goals = state.goals || [];
+    const goalsStatus = goals.map(g => ({
+        name: g.name || 'Obiectiv',
+        target: safeNum(g.target),
+        current: safeNum(g.current),
+        progress: g.target > 0 ? ((safeNum(g.current) / safeNum(g.target)) * 100).toFixed(1) : '0',
+        remaining: safeNum(g.target) - safeNum(g.current)
     }));
     
     // === BUGETE ===
-    const budgetStatus = state.budgets.map(b => {
+    const budgets = state.budgets || [];
+    const budgetStatus = budgets.map(b => {
         const spent = monthTx.filter(t => t.type === 'expense' && t.category === b.category)
-            .reduce((s, t) => s + t.amount, 0);
+            .reduce((s, t) => s + safeNum(t.amount), 0);
+        const limit = safeNum(b.limit) || 1;
         return {
-            category: findCat('expense', b.category)?.name || b.category,
-            limit: b.limit,
+            category: findCat('expense', b.category)?.name || b.category || 'Categorie',
+            limit: limit,
             spent: spent,
-            remaining: b.limit - spent,
-            percentUsed: ((spent / b.limit) * 100).toFixed(1)
+            remaining: limit - spent,
+            percentUsed: ((spent / limit) * 100).toFixed(1)
         };
     });
     
     // === DATORII ===
-    const debtsStatus = state.debts.map(d => ({
-        name: d.name,
-        total: d.amount,
-        remaining: d.remaining || d.amount,
-        type: d.type
+    const debts = state.debts || [];
+    const debtsStatus = debts.map(d => ({
+        name: d.name || 'Datorie',
+        total: safeNum(d.amount),
+        remaining: safeNum(d.remaining || d.amount),
+        type: d.type || 'owed'
     }));
     const totalDebt = debtsStatus.filter(d => d.type === 'owed').reduce((s, d) => s + d.remaining, 0);
     const totalOwedToMe = debtsStatus.filter(d => d.type === 'lent').reduce((s, d) => s + d.remaining, 0);
     
     // === CONTURI ===
-    const accountsStatus = state.accounts.map(a => ({
-        name: a.name,
-        balance: a.balance,
-        type: a.type
+    const accounts = state.accounts || [];
+    const accountsStatus = accounts.map(a => ({
+        name: a.name || 'Cont',
+        balance: safeNum(a.balance),
+        type: a.type || 'checking'
     }));
     const totalAccounts = accountsStatus.reduce((s, a) => s + a.balance, 0);
     
     // === ABONAMENTE ===
-    const subscriptionsTotal = state.subscriptions.reduce((s, sub) => s + sub.monthlyAvg, 0);
+    const subs = state.subscriptions || [];
+    const subscriptionsTotal = subs.reduce((s, sub) => s + safeNum(sub.monthlyAvg), 0);
     
     // === PROVOCĂRI ACTIVE ===
-    const activeChallenges = state.challenges.map(c => {
-        const tpl = challengeTemplates.find(t => t.id === c.templateId);
+    const challenges = state.challenges || [];
+    const activeChallenges = challenges.map(c => {
+        const tpl = (typeof challengeTemplates !== 'undefined' ? challengeTemplates : []).find(t => t.id === c.templateId);
         return {
-            name: tpl?.name || c.name,
-            target: c.target,
-            saved: c.saved,
-            progress: ((c.saved / c.target) * 100).toFixed(1)
+            name: tpl?.name || c.name || 'Provocare',
+            target: safeNum(c.target),
+            saved: safeNum(c.saved),
+            progress: c.target > 0 ? ((safeNum(c.saved) / safeNum(c.target)) * 100).toFixed(1) : '0'
         };
     });
     
     // === PREDICȚII ===
     const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
-    const currentDay = new Date().getDate();
+    const currentDay = new Date().getDate() || 1;
     const avgDailyExpense = monthExpense / currentDay;
     const predictedMonthExpense = avgDailyExpense * daysInMonth;
     const avgDailyIncome = monthIncome / currentDay;
     const predictedMonthIncome = avgDailyIncome * daysInMonth;
     
     // === FIRE METRICS ===
+    const netWorth = safeNum(state.netWorth);
     const annualExpense = monthExpense * 12;
-    const fireNumber = annualExpense * 25;
-    const fireProgress = state.netWorth > 0 ? ((state.netWorth / fireNumber) * 100).toFixed(1) : 0;
-    const yearsToFire = state.savingsRate > 0 ? Math.log(1 + (fireNumber - state.netWorth) / (monthIncome * state.savingsRate / 100 * 12)) / Math.log(1.07) : 999;
+    const fireNumber = annualExpense * 25 || 1;
+    const fireProgress = netWorth > 0 ? ((netWorth / fireNumber) * 100).toFixed(1) : '0';
+    const savingsRate = safeNum(state.savingsRate);
+    const yearsToFire = savingsRate > 0 && monthIncome > 0 ? 
+        Math.log(1 + (fireNumber - netWorth) / (monthIncome * savingsRate / 100 * 12 || 1)) / Math.log(1.07) : 999;
     
     // === HEALTH SCORE ===
     let healthScore = 50;
-    if (state.savingsRate >= 20) healthScore += 20;
-    else if (state.savingsRate >= 10) healthScore += 10;
+    if (savingsRate >= 20) healthScore += 20;
+    else if (savingsRate >= 10) healthScore += 10;
     if (monthBalance >= 0) healthScore += 10;
-    if (state.streak >= 7) healthScore += 10;
-    if (budgetStatus.every(b => parseFloat(b.percentUsed) <= 100)) healthScore += 10;
+    if (safeNum(state.streak) >= 7) healthScore += 10;
+    if (budgetStatus.length === 0 || budgetStatus.every(b => parseFloat(b.percentUsed) <= 100)) healthScore += 10;
     healthScore = Math.min(100, healthScore);
+    
+    const currency = state.currency || 'RON';
     
     // === BUILD CONTEXT STRING ===
     return `
-═══════════════════════════════════════════════════════════
-PROFILUL FINANCIAR COMPLET AL UTILIZATORULUI
-═══════════════════════════════════════════════════════════
+PROFILUL FINANCIAR AL UTILIZATORULUI
+=====================================
 
-📅 LUNA CURENTĂ (${months[state.month]} ${state.year}):
-• Venituri: ${monthIncome.toLocaleString()} ${state.currency}
-• Cheltuieli: ${monthExpense.toLocaleString()} ${state.currency}
-• Balanță: ${monthBalance >= 0 ? '+' : ''}${monthBalance.toLocaleString()} ${state.currency}
+📅 LUNA CURENTĂ (${months[state.month] || 'N/A'} ${state.year}):
+• Venituri: ${safeFmt(monthIncome)} ${currency}
+• Cheltuieli: ${safeFmt(monthExpense)} ${currency}
+• Balanță: ${monthBalance >= 0 ? '+' : ''}${safeFmt(monthBalance)} ${currency}
 • Rată economisire: ${monthIncome > 0 ? ((monthBalance / monthIncome) * 100).toFixed(1) : 0}%
-• Ziua curentă: ${currentDay}/${daysInMonth}
 
 📊 COMPARAȚIE CU LUNA TRECUTĂ:
-• Cheltuieli luna trecută: ${lastMonthExpense.toLocaleString()} ${state.currency}
-• Venituri luna trecută: ${lastMonthIncome.toLocaleString()} ${state.currency}
-• Diferență cheltuieli: ${monthExpense > lastMonthExpense ? '+' : ''}${((monthExpense - lastMonthExpense) / (lastMonthExpense || 1) * 100).toFixed(1)}%
+• Cheltuieli luna trecută: ${safeFmt(lastMonthExpense)} ${currency}
+• Venituri luna trecută: ${safeFmt(lastMonthIncome)} ${currency}
 
-🏆 TOP 5 CATEGORII CHELTUIELI LUNA ASTA:
-${topCategories.length > 0 ? topCategories.map((c, i) => `${i + 1}. ${c}`).join('\n') : '• Nicio cheltuială înregistrată'}
+🏆 TOP CATEGORII CHELTUIELI:
+${topCategories.length > 0 ? topCategories.join('\n') : '• Nicio cheltuială înregistrată'}
 
-📈 TENDINȚE ULTIMELE 6 LUNI:
-${monthlyTrends.map(m => `• ${m.month}: Venituri ${m.income.toLocaleString()}, Cheltuieli ${m.expense.toLocaleString()}, Economii ${m.savings.toLocaleString()} (${m.savingsRate}%)`).join('\n')}
+📈 TENDINȚE 6 LUNI:
+${monthlyTrends.map(m => `• ${m.month}: V:${safeFmt(m.income)}, C:${safeFmt(m.expense)}, E:${safeFmt(m.savings)}`).join('\n')}
 
 📅 PATTERN ZILNIC:
-• Ziua cu cele mai mari cheltuieli: ${dayNames[maxSpendingDay[0]]} (${maxSpendingDay[1].toLocaleString()} ${state.currency} total)
+• Ziua cu cele mai mari cheltuieli: ${dayNames[parseInt(maxSpendingDay[0])] || 'N/A'} (${safeFmt(maxSpendingDay[1])} ${currency})
 
-🎯 OBIECTIVE FINANCIARE (${goalsStatus.length}):
-${goalsStatus.length > 0 ? goalsStatus.map(g => `• ${g.name}: ${g.current.toLocaleString()}/${g.target.toLocaleString()} ${state.currency} (${g.progress}%) - Mai ai nevoie de ${g.remaining.toLocaleString()} ${state.currency}`).join('\n') : '• Niciun obiectiv setat'}
+🎯 OBIECTIVE (${goalsStatus.length}):
+${goalsStatus.length > 0 ? goalsStatus.map(g => `• ${g.name}: ${safeFmt(g.current)}/${safeFmt(g.target)} ${currency} (${g.progress}%)`).join('\n') : '• Niciun obiectiv setat'}
 
 💰 BUGETE (${budgetStatus.length}):
-${budgetStatus.length > 0 ? budgetStatus.map(b => `• ${b.category}: ${b.spent.toLocaleString()}/${b.limit.toLocaleString()} ${state.currency} (${b.percentUsed}% folosit) - ${parseFloat(b.percentUsed) > 100 ? '⚠️ DEPĂȘIT!' : `Mai poți cheltui ${b.remaining.toLocaleString()} ${state.currency}`}`).join('\n') : '• Niciun buget setat'}
+${budgetStatus.length > 0 ? budgetStatus.map(b => `• ${b.category}: ${safeFmt(b.spent)}/${safeFmt(b.limit)} ${currency} (${b.percentUsed}%)`).join('\n') : '• Niciun buget setat'}
 
-🏦 CONTURI (${accountsStatus.length}):
-${accountsStatus.length > 0 ? accountsStatus.map(a => `• ${a.name}: ${a.balance.toLocaleString()} ${state.currency}`).join('\n') : '• Niciun cont înregistrat'}
-• TOTAL ÎN CONTURI: ${totalAccounts.toLocaleString()} ${state.currency}
+🏦 CONTURI: ${safeFmt(totalAccounts)} ${currency} total
+${accountsStatus.length > 0 ? accountsStatus.map(a => `• ${a.name}: ${safeFmt(a.balance)} ${currency}`).join('\n') : '• Niciun cont'}
 
-💳 DATORII:
-• Total de plătit: ${totalDebt.toLocaleString()} ${state.currency}
-• Total de recuperat: ${totalOwedToMe.toLocaleString()} ${state.currency}
-${debtsStatus.length > 0 ? debtsStatus.map(d => `• ${d.name}: ${d.remaining.toLocaleString()} ${state.currency} (${d.type === 'owed' ? 'de plătit' : 'de recuperat'})`).join('\n') : ''}
+💳 DATORII: ${safeFmt(totalDebt)} ${currency} de plătit, ${safeFmt(totalOwedToMe)} ${currency} de recuperat
 
-📱 ABONAMENTE LUNARE: ${subscriptionsTotal.toLocaleString()} ${state.currency}/lună
-${state.subscriptions.map(s => `• ${s.name}: ~${s.monthlyAvg.toLocaleString()} ${state.currency}`).join('\n') || '• Niciun abonament detectat'}
+📱 ABONAMENTE: ~${safeFmt(subscriptionsTotal)} ${currency}/lună
 
-🏆 PROVOCĂRI ACTIVE:
-${activeChallenges.length > 0 ? activeChallenges.map(c => `• ${c.name}: ${c.saved.toLocaleString()}/${c.target.toLocaleString()} ${state.currency} (${c.progress}%)`).join('\n') : '• Nicio provocare activă'}
-
-🔮 PREDICȚII LUNA ASTA:
-• Cheltuieli estimate până la final: ~${predictedMonthExpense.toLocaleString()} ${state.currency}
-• Venituri estimate până la final: ~${predictedMonthIncome.toLocaleString()} ${state.currency}
-• Economii estimate: ~${(predictedMonthIncome - predictedMonthExpense).toLocaleString()} ${state.currency}
-• Media zilnică cheltuieli: ${avgDailyExpense.toLocaleString()} ${state.currency}
-
-🔥 FIRE (Financial Independence):
-• Patrimoniu actual: ${state.netWorth.toLocaleString()} ${state.currency}
-• Număr FIRE necesar: ${fireNumber.toLocaleString()} ${state.currency}
-• Progres FIRE: ${fireProgress}%
-• Ani estimați până la FIRE: ${yearsToFire < 100 ? yearsToFire.toFixed(1) : 'N/A'}
+🔥 FIRE:
+• Patrimoniu: ${safeFmt(netWorth)} ${currency}
+• Număr FIRE necesar: ${safeFmt(fireNumber)} ${currency}
+• Progres: ${fireProgress}%
 
 💪 HEALTH SCORE: ${healthScore}/100
-• Streak actual: ${state.streak} zile consecutive
-
-📊 STATISTICI GENERALE:
-• Total tranzacții: ${state.transactions.length}
-• Total categorii custom: ${customCategories.expense.length + customCategories.income.length}
-• Monedă: ${state.currency}
-═══════════════════════════════════════════════════════════`;
+• Streak: ${safeNum(state.streak)} zile
+• Total tranzacții: ${allTx.length}
+`;
 }
+
 
 async function sendAI() {
     const input = $('aiInput');

@@ -1324,6 +1324,220 @@ function askAI(q) {
     sendAI();
 }
 
+// ═══════════════════════════════════════════
+// GENIUS AI - CONSILIER FINANCIAR PERSONAL
+// ═══════════════════════════════════════════
+
+function buildFullFinancialContext() {
+    // === TRANZACȚII LUNA CURENTĂ ===
+    const monthTx = getMonthTx();
+    const monthIncome = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const monthBalance = monthIncome - monthExpense;
+    
+    // === TRANZACȚII LUNA TRECUTĂ ===
+    const lastMonth = state.month === 0 ? 11 : state.month - 1;
+    const lastYear = state.month === 0 ? state.year - 1 : state.year;
+    const lastMonthTx = state.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
+    });
+    const lastMonthExpense = lastMonthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const lastMonthIncome = lastMonthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    
+    // === ANALIZĂ PE CATEGORII ===
+    const categoryBreakdown = {};
+    monthTx.filter(t => t.type === 'expense').forEach(t => {
+        const cat = findCat('expense', t.category);
+        const catName = cat?.name || t.category;
+        if (!categoryBreakdown[catName]) categoryBreakdown[catName] = { total: 0, count: 0, items: [] };
+        categoryBreakdown[catName].total += t.amount;
+        categoryBreakdown[catName].count++;
+        categoryBreakdown[catName].items.push({ amount: t.amount, sub: t.subcategory, date: t.date });
+    });
+    
+    // Top categorii
+    const topCategories = Object.entries(categoryBreakdown)
+        .sort((a, b) => b[1].total - a[1].total)
+        .slice(0, 5)
+        .map(([name, data]) => `${name}: ${data.total} ${state.currency} (${data.count} tranzacții)`);
+    
+    // === TENDINȚE PE 6 LUNI ===
+    const monthlyTrends = [];
+    for (let i = 5; i >= 0; i--) {
+        const m = new Date();
+        m.setMonth(m.getMonth() - i);
+        const mTx = state.transactions.filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === m.getMonth() && d.getFullYear() === m.getFullYear();
+        });
+        const mInc = mTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+        const mExp = mTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+        monthlyTrends.push({
+            month: months[m.getMonth()],
+            income: mInc,
+            expense: mExp,
+            savings: mInc - mExp,
+            savingsRate: mInc > 0 ? ((mInc - mExp) / mInc * 100).toFixed(1) : 0
+        });
+    }
+    
+    // === ZIUA DIN SĂPTĂMÂNĂ ===
+    const daySpending = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+    state.transactions.filter(t => t.type === 'expense').forEach(t => {
+        const day = new Date(t.date).getDay();
+        daySpending[day] += t.amount;
+    });
+    const dayNames = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+    const maxSpendingDay = Object.entries(daySpending).sort((a, b) => b[1] - a[1])[0];
+    
+    // === OBIECTIVE ===
+    const goalsStatus = state.goals.map(g => ({
+        name: g.name,
+        target: g.target,
+        current: g.current,
+        progress: ((g.current / g.target) * 100).toFixed(1),
+        remaining: g.target - g.current
+    }));
+    
+    // === BUGETE ===
+    const budgetStatus = state.budgets.map(b => {
+        const spent = monthTx.filter(t => t.type === 'expense' && t.category === b.category)
+            .reduce((s, t) => s + t.amount, 0);
+        return {
+            category: findCat('expense', b.category)?.name || b.category,
+            limit: b.limit,
+            spent: spent,
+            remaining: b.limit - spent,
+            percentUsed: ((spent / b.limit) * 100).toFixed(1)
+        };
+    });
+    
+    // === DATORII ===
+    const debtsStatus = state.debts.map(d => ({
+        name: d.name,
+        total: d.amount,
+        remaining: d.remaining || d.amount,
+        type: d.type
+    }));
+    const totalDebt = debtsStatus.filter(d => d.type === 'owed').reduce((s, d) => s + d.remaining, 0);
+    const totalOwedToMe = debtsStatus.filter(d => d.type === 'lent').reduce((s, d) => s + d.remaining, 0);
+    
+    // === CONTURI ===
+    const accountsStatus = state.accounts.map(a => ({
+        name: a.name,
+        balance: a.balance,
+        type: a.type
+    }));
+    const totalAccounts = accountsStatus.reduce((s, a) => s + a.balance, 0);
+    
+    // === ABONAMENTE ===
+    const subscriptionsTotal = state.subscriptions.reduce((s, sub) => s + sub.monthlyAvg, 0);
+    
+    // === PROVOCĂRI ACTIVE ===
+    const activeChallenges = state.challenges.map(c => {
+        const tpl = challengeTemplates.find(t => t.id === c.templateId);
+        return {
+            name: tpl?.name || c.name,
+            target: c.target,
+            saved: c.saved,
+            progress: ((c.saved / c.target) * 100).toFixed(1)
+        };
+    });
+    
+    // === PREDICȚII ===
+    const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+    const currentDay = new Date().getDate();
+    const avgDailyExpense = monthExpense / currentDay;
+    const predictedMonthExpense = avgDailyExpense * daysInMonth;
+    const avgDailyIncome = monthIncome / currentDay;
+    const predictedMonthIncome = avgDailyIncome * daysInMonth;
+    
+    // === FIRE METRICS ===
+    const annualExpense = monthExpense * 12;
+    const fireNumber = annualExpense * 25;
+    const fireProgress = state.netWorth > 0 ? ((state.netWorth / fireNumber) * 100).toFixed(1) : 0;
+    const yearsToFire = state.savingsRate > 0 ? Math.log(1 + (fireNumber - state.netWorth) / (monthIncome * state.savingsRate / 100 * 12)) / Math.log(1.07) : 999;
+    
+    // === HEALTH SCORE ===
+    let healthScore = 50;
+    if (state.savingsRate >= 20) healthScore += 20;
+    else if (state.savingsRate >= 10) healthScore += 10;
+    if (monthBalance >= 0) healthScore += 10;
+    if (state.streak >= 7) healthScore += 10;
+    if (budgetStatus.every(b => parseFloat(b.percentUsed) <= 100)) healthScore += 10;
+    healthScore = Math.min(100, healthScore);
+    
+    // === BUILD CONTEXT STRING ===
+    return `
+═══════════════════════════════════════════════════════════
+PROFILUL FINANCIAR COMPLET AL UTILIZATORULUI
+═══════════════════════════════════════════════════════════
+
+📅 LUNA CURENTĂ (${months[state.month]} ${state.year}):
+• Venituri: ${monthIncome.toLocaleString()} ${state.currency}
+• Cheltuieli: ${monthExpense.toLocaleString()} ${state.currency}
+• Balanță: ${monthBalance >= 0 ? '+' : ''}${monthBalance.toLocaleString()} ${state.currency}
+• Rată economisire: ${monthIncome > 0 ? ((monthBalance / monthIncome) * 100).toFixed(1) : 0}%
+• Ziua curentă: ${currentDay}/${daysInMonth}
+
+📊 COMPARAȚIE CU LUNA TRECUTĂ:
+• Cheltuieli luna trecută: ${lastMonthExpense.toLocaleString()} ${state.currency}
+• Venituri luna trecută: ${lastMonthIncome.toLocaleString()} ${state.currency}
+• Diferență cheltuieli: ${monthExpense > lastMonthExpense ? '+' : ''}${((monthExpense - lastMonthExpense) / (lastMonthExpense || 1) * 100).toFixed(1)}%
+
+🏆 TOP 5 CATEGORII CHELTUIELI LUNA ASTA:
+${topCategories.length > 0 ? topCategories.map((c, i) => `${i + 1}. ${c}`).join('\n') : '• Nicio cheltuială înregistrată'}
+
+📈 TENDINȚE ULTIMELE 6 LUNI:
+${monthlyTrends.map(m => `• ${m.month}: Venituri ${m.income.toLocaleString()}, Cheltuieli ${m.expense.toLocaleString()}, Economii ${m.savings.toLocaleString()} (${m.savingsRate}%)`).join('\n')}
+
+📅 PATTERN ZILNIC:
+• Ziua cu cele mai mari cheltuieli: ${dayNames[maxSpendingDay[0]]} (${maxSpendingDay[1].toLocaleString()} ${state.currency} total)
+
+🎯 OBIECTIVE FINANCIARE (${goalsStatus.length}):
+${goalsStatus.length > 0 ? goalsStatus.map(g => `• ${g.name}: ${g.current.toLocaleString()}/${g.target.toLocaleString()} ${state.currency} (${g.progress}%) - Mai ai nevoie de ${g.remaining.toLocaleString()} ${state.currency}`).join('\n') : '• Niciun obiectiv setat'}
+
+💰 BUGETE (${budgetStatus.length}):
+${budgetStatus.length > 0 ? budgetStatus.map(b => `• ${b.category}: ${b.spent.toLocaleString()}/${b.limit.toLocaleString()} ${state.currency} (${b.percentUsed}% folosit) - ${parseFloat(b.percentUsed) > 100 ? '⚠️ DEPĂȘIT!' : `Mai poți cheltui ${b.remaining.toLocaleString()} ${state.currency}`}`).join('\n') : '• Niciun buget setat'}
+
+🏦 CONTURI (${accountsStatus.length}):
+${accountsStatus.length > 0 ? accountsStatus.map(a => `• ${a.name}: ${a.balance.toLocaleString()} ${state.currency}`).join('\n') : '• Niciun cont înregistrat'}
+• TOTAL ÎN CONTURI: ${totalAccounts.toLocaleString()} ${state.currency}
+
+💳 DATORII:
+• Total de plătit: ${totalDebt.toLocaleString()} ${state.currency}
+• Total de recuperat: ${totalOwedToMe.toLocaleString()} ${state.currency}
+${debtsStatus.length > 0 ? debtsStatus.map(d => `• ${d.name}: ${d.remaining.toLocaleString()} ${state.currency} (${d.type === 'owed' ? 'de plătit' : 'de recuperat'})`).join('\n') : ''}
+
+📱 ABONAMENTE LUNARE: ${subscriptionsTotal.toLocaleString()} ${state.currency}/lună
+${state.subscriptions.map(s => `• ${s.name}: ~${s.monthlyAvg.toLocaleString()} ${state.currency}`).join('\n') || '• Niciun abonament detectat'}
+
+🏆 PROVOCĂRI ACTIVE:
+${activeChallenges.length > 0 ? activeChallenges.map(c => `• ${c.name}: ${c.saved.toLocaleString()}/${c.target.toLocaleString()} ${state.currency} (${c.progress}%)`).join('\n') : '• Nicio provocare activă'}
+
+🔮 PREDICȚII LUNA ASTA:
+• Cheltuieli estimate până la final: ~${predictedMonthExpense.toLocaleString()} ${state.currency}
+• Venituri estimate până la final: ~${predictedMonthIncome.toLocaleString()} ${state.currency}
+• Economii estimate: ~${(predictedMonthIncome - predictedMonthExpense).toLocaleString()} ${state.currency}
+• Media zilnică cheltuieli: ${avgDailyExpense.toLocaleString()} ${state.currency}
+
+🔥 FIRE (Financial Independence):
+• Patrimoniu actual: ${state.netWorth.toLocaleString()} ${state.currency}
+• Număr FIRE necesar: ${fireNumber.toLocaleString()} ${state.currency}
+• Progres FIRE: ${fireProgress}%
+• Ani estimați până la FIRE: ${yearsToFire < 100 ? yearsToFire.toFixed(1) : 'N/A'}
+
+💪 HEALTH SCORE: ${healthScore}/100
+• Streak actual: ${state.streak} zile consecutive
+
+📊 STATISTICI GENERALE:
+• Total tranzacții: ${state.transactions.length}
+• Total categorii custom: ${customCategories.expense.length + customCategories.income.length}
+• Monedă: ${state.currency}
+═══════════════════════════════════════════════════════════`;
+}
+
 async function sendAI() {
     const input = $('aiInput');
     const chat = $('aiChat');
@@ -1336,62 +1550,310 @@ async function sendAI() {
     chat.scrollTop = chat.scrollHeight;
     
     // Add typing indicator
-    chat.innerHTML += `<div class="ai-msg" id="aiTyping"><div class="ai-pic">🤖</div><div class="ai-bubble">Se gândește...</div></div>`;
+    chat.innerHTML += `<div class="ai-msg" id="aiTyping"><div class="ai-pic">🧠</div><div class="ai-bubble typing">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        Analizez datele tale financiare...
+    </div></div>`;
     chat.scrollTop = chat.scrollHeight;
     
     checkAchievement('ai_user');
     
     try {
-        // Build context
-        const trans = getMonthTx();
-        const income = trans.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-        const expense = trans.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+        const context = buildFullFinancialContext();
         
-        const context = `Date financiare: Venituri luna curentă: ${income} ${state.currency}, Cheltuieli: ${expense} ${state.currency}, Balanță: ${income - expense} ${state.currency}, Rată economisire: ${state.savingsRate.toFixed(1)}%, Streak: ${state.streak} zile.`;
-        
+        const systemPrompt = `Ești un CONSILIER FINANCIAR PERSONAL de elită, expert în finanțe personale, investiții, FIRE (Financial Independence Retire Early), și psihologia banilor. 
+
+PERSONALITATEA TA:
+• Ești prietenos, empatic și încurajator, dar și direct și onest
+• Folosești exemple concrete și numere specifice din datele utilizatorului
+• Ești pasionat de educație financiară și vrei să ajuți cu adevărat
+• Ai simțul umorului și faci conversația plăcută
+• Folosești emoji-uri moderat pentru a face răspunsurile mai engaging
+
+STILUL TĂU DE RĂSPUNS:
+• Răspunsuri DETALIATE și COMPREHENSIVE - nu te limita la câteva propoziții
+• Structurezi răspunsurile clar cu bullet points și secțiuni când e cazul
+• Oferi SFATURI ACȚIONABILE și CONCRETE, nu generic
+• Când analizezi, folosești NUMERELE EXACTE din context
+• Faci comparații relevante (luna trecută, media, benchmarks)
+• Explici DE CE recomanzi ceva, nu doar CE recomanzi
+• Incluzi atât aspectele pozitive cât și cele de îmbunătățit
+• Termini cu 1-2 întrebări de follow-up pentru a continua conversația
+
+EXPERTIZA TA INCLUDE:
+• Bugetare și tracking cheltuieli
+• Economisire și fondul de urgență
+• Investiții (acțiuni, ETF-uri, obligațiuni, crypto)
+• FIRE și independența financiară
+• Gestionarea datoriilor
+• Psihologia banilor și obiceiuri financiare
+• Optimizare fiscală (în limite legale)
+• Real estate și chirii
+• Side hustles și venituri pasive
+
+REGULI IMPORTANTE:
+• Răspunde ÎNTOTDEAUNA în română
+• Folosește datele REALE ale utilizatorului din context
+• Nu inventa numere - folosește doar ce există în context
+• Dacă nu ai suficiente date, spune ce informații ar mai fi utile
+• Personalizează sfaturile pentru situația specifică a utilizatorului
+• Fii încurajator dar realist
+
+${context}`;
+
         const response = await fetch('/api/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                prompt: `Context: ${context}\n\nÎntrebare: ${msg}\n\nRăspunde scurt și util în română, maxim 3 propoziții.`
+                prompt: msg,
+                systemPrompt: systemPrompt,
+                maxTokens: 2048
             })
         });
         
         const data = await response.json();
-        const reply = data.response || 'Nu am putut genera un răspuns.';
+        let reply = data.response || generateGeniusLocalResponse(msg);
+        
+        // Format response with markdown-like styling
+        reply = formatAIResponse(reply);
         
         // Remove typing, add response
         $('aiTyping')?.remove();
-        chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">🤖</div><div class="ai-bubble">${reply}</div></div>`;
+        chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">🧠</div><div class="ai-bubble">${reply}</div></div>`;
     } catch (err) {
+        console.error('AI Error:', err);
         $('aiTyping')?.remove();
-        // Fallback response
-        const fallback = generateLocalResponse(msg);
-        chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">🤖</div><div class="ai-bubble">${fallback}</div></div>`;
+        const fallback = generateGeniusLocalResponse(msg);
+        chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">🧠</div><div class="ai-bubble">${fallback}</div></div>`;
     }
     
     chat.scrollTop = chat.scrollHeight;
 }
 
-function generateLocalResponse(q) {
-    const trans = getMonthTx();
-    const income = trans.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const expense = trans.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+function formatAIResponse(text) {
+    // Convert markdown-like formatting to HTML
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/^### (.*$)/gm, '<h4>$1</h4>')
+        .replace(/^## (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^# (.*$)/gm, '<h2>$1</h2>')
+        .replace(/^• /gm, '• ')
+        .replace(/^- /gm, '• ')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+}
+
+function generateGeniusLocalResponse(q) {
+    const monthTx = getMonthTx();
+    const income = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const expense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
     const balance = income - expense;
+    const savingsRate = income > 0 ? (balance / income * 100) : 0;
     
-    if (q.toLowerCase().includes('anali')) {
-        return `Luna asta ai cheltuit ${fmt(expense)} din ${fmt(income)} venituri. ${balance >= 0 ? 'Ești pe plus! 👍' : 'Atenție, ești pe minus!'}`;
+    // Category breakdown
+    const catBreakdown = {};
+    monthTx.filter(t => t.type === 'expense').forEach(t => {
+        const cat = findCat('expense', t.category)?.name || t.category;
+        catBreakdown[cat] = (catBreakdown[cat] || 0) + t.amount;
+    });
+    const topCats = Object.entries(catBreakdown).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    
+    // Predictions
+    const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+    const currentDay = new Date().getDate();
+    const avgDaily = expense / currentDay;
+    const predicted = avgDaily * daysInMonth;
+    
+    q = q.toLowerCase();
+    
+    // COMPREHENSIVE RESPONSES
+    if (q.includes('anali') || q.includes('situati') || q.includes('cum stau') || q.includes('overview')) {
+        let response = `🎯 **ANALIZĂ FINANCIARĂ COMPLETĂ - ${months[state.month]} ${state.year}**\n\n`;
+        response += `📊 **Situația curentă:**\n`;
+        response += `• Venituri: ${fmt(income)}\n`;
+        response += `• Cheltuieli: ${fmt(expense)}\n`;
+        response += `• Balanță: ${balance >= 0 ? '+' : ''}${fmt(balance)} ${balance >= 0 ? '✅' : '⚠️'}\n`;
+        response += `• Rată economisire: ${savingsRate.toFixed(1)}%\n\n`;
+        
+        if (topCats.length > 0) {
+            response += `💸 **Top cheltuieli:**\n`;
+            topCats.forEach(([cat, amount], i) => {
+                const percent = (amount / expense * 100).toFixed(1);
+                response += `${i + 1}. ${cat}: ${fmt(amount)} (${percent}%)\n`;
+            });
+            response += '\n';
+        }
+        
+        response += `🔮 **Predicție până la final de lună:**\n`;
+        response += `• Cheltuieli estimate: ~${fmt(predicted)}\n`;
+        response += `• Media zilnică: ${fmt(avgDaily)}\n\n`;
+        
+        if (savingsRate >= 20) {
+            response += `💪 **Verdict:** Excelent! Economisești peste 20% - ești pe drumul cel bun spre independența financiară!`;
+        } else if (savingsRate >= 10) {
+            response += `👍 **Verdict:** Bine! Economisești ${savingsRate.toFixed(0)}%. Pentru FIRE, țintește 20-30%.`;
+        } else if (savingsRate > 0) {
+            response += `⚠️ **Verdict:** Economisești doar ${savingsRate.toFixed(0)}%. Analizează top categoriile și vezi unde poți reduce.`;
+        } else {
+            response += `🚨 **Verdict:** Ești pe minus! Prioritatea #1: reduce cheltuielile sau crește veniturile.`;
+        }
+        
+        return response;
     }
-    if (q.toLowerCase().includes('economi') || q.toLowerCase().includes('sfat')) {
-        if (state.savingsRate < 10) return 'Încearcă să reduci cheltuielile cu mâncare și divertisment. Setează un buget pentru fiecare categorie!';
-        return 'Economisești bine! Continuă așa și gândește-te la investiții pe termen lung.';
+    
+    if (q.includes('sfat') || q.includes('recomand') || q.includes('ajut') || q.includes('ce sa fac')) {
+        let response = `💡 **SFATURI PERSONALIZATE PENTRU TINE**\n\n`;
+        
+        // Based on savings rate
+        if (savingsRate < 10) {
+            response += `🎯 **Prioritate #1: Crește rata de economisire**\n`;
+            response += `Acum economisești doar ${savingsRate.toFixed(1)}%. Iată ce poți face:\n\n`;
+            
+            if (topCats.length > 0) {
+                response += `📉 **Analizează categoria "${topCats[0][0]}"**\n`;
+                response += `Aici cheltuiești cel mai mult (${fmt(topCats[0][1])}). Întreabă-te:\n`;
+                response += `• Sunt toate aceste cheltuieli necesare?\n`;
+                response += `• Pot găsi alternative mai ieftine?\n`;
+                response += `• Pot reduce frecvența?\n\n`;
+            }
+            
+            response += `💰 **Regula 50/30/20:**\n`;
+            response += `• 50% necesități (${fmt(income * 0.5)})\n`;
+            response += `• 30% dorințe (${fmt(income * 0.3)})\n`;
+            response += `• 20% economii (${fmt(income * 0.2)})\n\n`;
+        } else {
+            response += `✅ **Economisești bine (${savingsRate.toFixed(1)}%)!** Iată next steps:\n\n`;
+            response += `📈 **Investește surplusul:**\n`;
+            response += `• ETF-uri globale (ex: VWCE) pentru diversificare\n`;
+            response += `• Pilon 3 pensie pentru avantaje fiscale\n`;
+            response += `• Fond de urgență (3-6 luni cheltuieli = ${fmt(expense * 3)} - ${fmt(expense * 6)})\n\n`;
+        }
+        
+        response += `🎯 **Acțiuni concrete pentru săptămâna asta:**\n`;
+        response += `1. Setează bugete pentru top 3 categorii\n`;
+        response += `2. Înregistrează TOATE cheltuielile zilnic\n`;
+        response += `3. Revizuiește abonamentele - ai nevoie de toate?\n`;
+        
+        return response;
     }
-    if (q.toLowerCase().includes('predic')) {
-        const avgDaily = expense / new Date().getDate();
-        const predicted = avgDaily * new Date(state.year, state.month + 1, 0).getDate();
-        return `La ritmul actual, vei cheltui ~${fmt(predicted)} luna asta.`;
+    
+    if (q.includes('fire') || q.includes('independ') || q.includes('retrag')) {
+        const annualExpense = expense * 12;
+        const fireNumber = annualExpense * 25;
+        const progress = state.netWorth > 0 ? (state.netWorth / fireNumber * 100) : 0;
+        
+        let response = `🔥 **FIRE - INDEPENDENȚA FINANCIARĂ**\n\n`;
+        response += `📊 **Situația ta actuală:**\n`;
+        response += `• Cheltuieli lunare: ${fmt(expense)}\n`;
+        response += `• Cheltuieli anuale estimate: ${fmt(annualExpense)}\n`;
+        response += `• Patrimoniu actual: ${fmt(state.netWorth)}\n\n`;
+        
+        response += `🎯 **Numărul tău FIRE (regula 4%):**\n`;
+        response += `• Ai nevoie de: ${fmt(fireNumber)}\n`;
+        response += `• Progres actual: ${progress.toFixed(1)}%\n`;
+        response += `• Mai ai nevoie de: ${fmt(fireNumber - state.netWorth)}\n\n`;
+        
+        if (savingsRate > 0) {
+            const monthlySavings = income * savingsRate / 100;
+            const yearsToFire = Math.log((fireNumber / monthlySavings + 1) * 0.07 + 1) / Math.log(1.07);
+            response += `⏱️ **Timp estimat până la FIRE:**\n`;
+            response += `Cu economii de ${fmt(monthlySavings)}/lună și randament 7%/an:\n`;
+            response += `~${Math.ceil(yearsToFire)} ani\n\n`;
+        }
+        
+        response += `💡 **Cum să ajungi mai repede:**\n`;
+        response += `• Crește rata de economisire (fiecare 5% contează enorm!)\n`;
+        response += `• Investește în ETF-uri cu costuri mici\n`;
+        response += `• Caută surse de venit pasiv\n`;
+        response += `• Reduce cheltuielile fixe (chirie, abonamente)`;
+        
+        return response;
     }
-    return `Ai venituri de ${fmt(income)} și cheltuieli de ${fmt(expense)}. Balanța: ${fmt(balance)}.`;
+    
+    if (q.includes('investi') || q.includes('actiuni') || q.includes('etf') || q.includes('crypto')) {
+        let response = `📈 **GHID DE INVESTIȚII PENTRU ÎNCEPĂTORI**\n\n`;
+        response += `💰 **Ai de investit:** ${fmt(balance > 0 ? balance : 0)}/lună\n\n`;
+        
+        response += `🎯 **Prioritatea investițiilor (în ordine):**\n\n`;
+        response += `**1. Fond de urgență** (primul pas!)\n`;
+        response += `• Target: 3-6 luni cheltuieli = ${fmt(expense * 3)} - ${fmt(expense * 6)}\n`;
+        response += `• Unde: cont de economii cu dobândă (ING, Revolut)\n\n`;
+        
+        response += `**2. Pilon 3 Pensie** (avantaje fiscale)\n`;
+        response += `• Deductibil până la 400€/an\n`;
+        response += `• Fonduri: NN, BRD, Generali\n\n`;
+        
+        response += `**3. ETF-uri globale** (pentru termen lung)\n`;
+        response += `• VWCE (Vanguard All-World) - diversificare maximă\n`;
+        response += `• Brokeri: XTB, Interactive Brokers, Trading 212\n\n`;
+        
+        response += `**4. Crypto** (opțional, max 5-10% din portofoliu)\n`;
+        response += `• Bitcoin, Ethereum pentru începători\n`;
+        response += `• DCA (Dollar Cost Averaging) - investește regulat\n\n`;
+        
+        response += `⚠️ **Reguli de aur:**\n`;
+        response += `• Nu investi bani de care ai nevoie în <5 ani\n`;
+        response += `• Diversifică - nu pune toate ouăle într-un coș\n`;
+        response += `• Investește regulat, nu încerca să "timing the market"`;
+        
+        return response;
+    }
+    
+    if (q.includes('buget') || q.includes('cheltu') || q.includes('reduce') || q.includes('econom')) {
+        let response = `💰 **STRATEGIE DE BUGETARE**\n\n`;
+        
+        response += `📊 **Situația actuală:**\n`;
+        response += `• Cheltuieli luna asta: ${fmt(expense)}\n`;
+        response += `• Media zilnică: ${fmt(avgDaily)}\n\n`;
+        
+        if (topCats.length > 0) {
+            response += `🔍 **Analiza pe categorii:**\n`;
+            topCats.forEach(([cat, amount]) => {
+                const percent = (amount / expense * 100).toFixed(1);
+                const perDay = (amount / currentDay).toFixed(0);
+                response += `\n**${cat}** - ${fmt(amount)} (${percent}%)\n`;
+                response += `• ${perDay} ${state.currency}/zi în medie\n`;
+                
+                // Category-specific tips
+                if (cat.toLowerCase().includes('mâncare') || cat.toLowerCase().includes('food')) {
+                    response += `• 💡 Tip: Meal prep, liste de cumpărături, mai puține livrări\n`;
+                } else if (cat.toLowerCase().includes('transport')) {
+                    response += `• 💡 Tip: Carpooling, transport public, bicicletă\n`;
+                } else if (cat.toLowerCase().includes('abonament') || cat.toLowerCase().includes('subscription')) {
+                    response += `• 💡 Tip: Audit lunar, share family plans, anulează ce nu folosești\n`;
+                } else if (cat.toLowerCase().includes('divertisment') || cat.toLowerCase().includes('entertainment')) {
+                    response += `• 💡 Tip: Alternative gratuite, reduceri, early bird\n`;
+                }
+            });
+        }
+        
+        response += `\n\n🎯 **Bugete recomandate (bazate pe veniturile tale):**\n`;
+        response += `• Locuință: max ${fmt(income * 0.3)} (30%)\n`;
+        response += `• Mâncare: max ${fmt(income * 0.15)} (15%)\n`;
+        response += `• Transport: max ${fmt(income * 0.1)} (10%)\n`;
+        response += `• Utilități: max ${fmt(income * 0.1)} (10%)\n`;
+        response += `• Economii: min ${fmt(income * 0.2)} (20%)`;
+        
+        return response;
+    }
+    
+    // Default comprehensive response
+    let response = `👋 **Salut! Sunt aici să te ajut cu finanțele!**\n\n`;
+    response += `📊 **Quick stats luna asta:**\n`;
+    response += `• Balanță: ${balance >= 0 ? '+' : ''}${fmt(balance)}\n`;
+    response += `• Economii: ${savingsRate.toFixed(1)}%\n`;
+    response += `• Streak: ${state.streak} zile 🔥\n\n`;
+    
+    response += `❓ **Întreabă-mă despre:**\n`;
+    response += `• "Analizează-mi situația financiară"\n`;
+    response += `• "Dă-mi sfaturi de economisire"\n`;
+    response += `• "Cum ajung la FIRE?"\n`;
+    response += `• "Cum să investesc?"\n`;
+    response += `• "Ajută-mă cu bugetul"\n`;
+    response += `• Sau orice altceva legat de bani! 💰`;
+    
+    return response;
 }
 
 // ═══════════════════════════════════════════

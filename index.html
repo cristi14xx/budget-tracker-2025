@@ -554,28 +554,71 @@
   </div>
 
   <!-- AI Modal -->
-  <div id="aiModal" class="modal">
+  <div id="aiModal" class="modal fullscreen">
     <div class="modal-bg" onclick="closeModal('aiModal')"></div>
-    <div class="modal-sheet">
+    <div class="modal-sheet ai-sheet">
       <div class="modal-handle"></div>
       <div class="modal-head">
-        <span class="modal-title">🤖 Asistent AI</span>
+        <span class="modal-title">🧠 Consilier Financiar AI</span>
         <button class="modal-x" onclick="closeModal('aiModal')">✕</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body ai-body">
         <div class="ai-chat" id="aiChat">
           <div class="ai-msg">
-            <div class="ai-pic">🤖</div>
-            <div class="ai-bubble">Salut! Sunt asistentul tău financiar. Cu ce te pot ajuta?</div>
+            <div class="ai-pic">🧠</div>
+            <div class="ai-bubble">
+              <strong>Salut! Sunt consilierul tău financiar personal.</strong><br><br>
+              Am acces la toate datele tale financiare și pot să te ajut cu:
+              <br>• Analiza detaliată a cheltuielilor
+              <br>• Sfaturi personalizate de economisire
+              <br>• Strategii de investiții
+              <br>• Calculul FIRE (independența financiară)
+              <br>• Optimizarea bugetului
+              <br><br>
+              <em>Întreabă-mă orice despre finanțele tale! 💰</em>
+            </div>
           </div>
         </div>
-        <div class="ai-quick">
-          <button class="ai-qbtn" onclick="askAI('Analizează cheltuielile mele')">📊 Analiză</button>
-          <button class="ai-qbtn" onclick="askAI('Cum pot economisi mai mult?')">💡 Sfaturi</button>
-          <button class="ai-qbtn" onclick="askAI('Predicție pentru luna asta')">🔮 Predicție</button>
+        <div class="ai-quick-grid">
+          <button class="ai-qbtn full" onclick="askAI('Analizează-mi complet situația financiară')">
+            <span class="qbtn-icon">📊</span>
+            <span class="qbtn-text">Analiză completă</span>
+          </button>
+          <button class="ai-qbtn" onclick="askAI('Dă-mi sfaturi personalizate de economisire')">
+            <span class="qbtn-icon">💡</span>
+            <span class="qbtn-text">Sfaturi</span>
+          </button>
+          <button class="ai-qbtn" onclick="askAI('Cum ajung la independența financiară (FIRE)?')">
+            <span class="qbtn-icon">🔥</span>
+            <span class="qbtn-text">FIRE</span>
+          </button>
+          <button class="ai-qbtn" onclick="askAI('Cum ar trebui să investesc banii?')">
+            <span class="qbtn-icon">📈</span>
+            <span class="qbtn-text">Investiții</span>
+          </button>
+          <button class="ai-qbtn" onclick="askAI('Ajută-mă să-mi optimizez bugetul')">
+            <span class="qbtn-icon">💰</span>
+            <span class="qbtn-text">Buget</span>
+          </button>
+          <button class="ai-qbtn" onclick="askAI('Ce predicții ai pentru luna asta?')">
+            <span class="qbtn-icon">🔮</span>
+            <span class="qbtn-text">Predicții</span>
+          </button>
+          <button class="ai-qbtn" onclick="askAI('Care sunt cele mai mari probleme în finanțele mele?')">
+            <span class="qbtn-icon">⚠️</span>
+            <span class="qbtn-text">Probleme</span>
+          </button>
+          <button class="ai-qbtn" onclick="askAI('Compară-mi luna asta cu luna trecută')">
+            <span class="qbtn-icon">📅</span>
+            <span class="qbtn-text">Comparație</span>
+          </button>
+          <button class="ai-qbtn" onclick="askAI('Ce abonamente am și merită păstrate?')">
+            <span class="qbtn-icon">📱</span>
+            <span class="qbtn-text">Abonamente</span>
+          </button>
         </div>
         <div class="ai-row">
-          <input type="text" class="ai-input" id="aiInput" placeholder="Scrie un mesaj..." onkeypress="if(event.key==='Enter')sendAI()">
+          <input type="text" class="ai-input" id="aiInput" placeholder="Întreabă orice despre finanțele tale..." onkeypress="if(event.key==='Enter')sendAI()">
           <button class="ai-send" onclick="sendAI()">➤</button>
         </div>
       </div>

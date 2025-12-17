@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { prompt, maxTokens = 4000 } = req.body;
+        const { prompt, systemPrompt, maxTokens = 4096 } = req.body;
 
         if (!prompt) {
             return res.status(400).json({ 
@@ -36,23 +36,32 @@ export default async function handler(req, res) {
             });
         }
 
-        // Official Gemini API endpoint - using gemini-2.5-flash (available on free tier)
-        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        // Official Gemini API endpoint - using gemini-2.0-flash for best performance
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-        // Request body according to official documentation
+        // Request body with system instruction support
         const requestBody = {
             contents: [{
                 parts: [{ text: prompt }]
             }],
             generationConfig: {
-                temperature: 0.7,
+                temperature: 0.8,
                 maxOutputTokens: maxTokens,
-                topP: 0.8,
+                topP: 0.9,
                 topK: 40
             }
         };
 
-        console.log('Calling Gemini API with model: gemini-2.5-flash');
+        // Add system instruction if provided
+        if (systemPrompt) {
+            requestBody.systemInstruction = {
+                parts: [{ text: systemPrompt }]
+            };
+        }
+
+        console.log('Calling Gemini API with model: gemini-2.0-flash');
+        console.log('System prompt length:', systemPrompt?.length || 0);
+        console.log('User prompt:', prompt.substring(0, 100) + '...');
 
         const response = await fetch(GEMINI_URL, {
             method: 'POST',

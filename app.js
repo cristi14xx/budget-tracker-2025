@@ -179,6 +179,998 @@ const categories = {
 // Custom categories (loaded from user data)
 let customCategories = { expense: [], income: [] };
 
+// ═══════════════════════════════════════════════════════════════
+// 🧠 GENIUS ANALYTICS ENGINE - Advanced Financial Intelligence
+// ═══════════════════════════════════════════════════════════════
+
+const GeniusEngine = {
+    // 🔮 SPENDING PREDICTIONS - ML-like prediction engine
+    predictSpending: function() {
+        const allTx = state.transactions || [];
+        if (allTx.length < 5) return null;
+        
+        // Get last 6 months data
+        const monthlyData = {};
+        const categoryMonthly = {};
+        
+        for (let i = 0; i < 6; i++) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = `${d.getFullYear()}-${d.getMonth()}`;
+            const monthTx = allTx.filter(t => {
+                const td = new Date(t.date);
+                return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+            });
+            
+            monthlyData[key] = {
+                income: monthTx.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0),
+                expense: monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0)
+            };
+            
+            // Category breakdown
+            monthTx.filter(t => t.type === 'expense').forEach(t => {
+                const cat = t.category || 'other';
+                if (!categoryMonthly[cat]) categoryMonthly[cat] = [];
+                categoryMonthly[cat].push({ month: key, amount: t.amount || 0 });
+            });
+        }
+        
+        // Calculate trends
+        const values = Object.values(monthlyData);
+        const avgExpense = values.reduce((s, v) => s + v.expense, 0) / values.length;
+        const avgIncome = values.reduce((s, v) => s + v.income, 0) / values.length;
+        
+        // Weighted average (recent months matter more)
+        const weights = [0.3, 0.25, 0.2, 0.12, 0.08, 0.05];
+        let weightedExpense = 0;
+        let weightedIncome = 0;
+        values.forEach((v, i) => {
+            weightedExpense += v.expense * (weights[i] || 0.05);
+            weightedIncome += v.income * (weights[i] || 0.05);
+        });
+        
+        // Trend detection (going up or down?)
+        const recentAvg = (values[0]?.expense + values[1]?.expense) / 2;
+        const olderAvg = (values[3]?.expense + values[4]?.expense) / 2;
+        const trend = olderAvg > 0 ? ((recentAvg - olderAvg) / olderAvg * 100) : 0;
+        
+        // Category predictions
+        const categoryPredictions = {};
+        Object.entries(categoryMonthly).forEach(([cat, data]) => {
+            const catAvg = data.reduce((s, d) => s + d.amount, 0) / Math.max(data.length, 1);
+            const catRecent = data.filter((d, i) => i < 2).reduce((s, d) => s + d.amount, 0) / 2;
+            categoryPredictions[cat] = {
+                predicted: Math.round((catAvg + catRecent) / 2),
+                trend: catAvg > 0 ? ((catRecent - catAvg) / catAvg * 100) : 0
+            };
+        });
+        
+        // Seasonality check (is this month typically higher?)
+        const currentMonth = new Date().getMonth();
+        const seasonalFactor = [1.1, 0.95, 1.0, 1.0, 1.0, 1.05, 1.1, 0.9, 1.15, 1.0, 1.1, 1.3][currentMonth]; // Dec is highest
+        
+        return {
+            nextMonth: {
+                expense: Math.round(weightedExpense * seasonalFactor),
+                income: Math.round(weightedIncome),
+                savings: Math.round(weightedIncome - weightedExpense * seasonalFactor)
+            },
+            trend: trend,
+            trendDirection: trend > 5 ? 'up' : trend < -5 ? 'down' : 'stable',
+            confidence: Math.min(85, 50 + allTx.length / 2),
+            categoryPredictions,
+            seasonalFactor,
+            avgExpense: Math.round(avgExpense),
+            avgIncome: Math.round(avgIncome)
+        };
+    },
+
+    // ⚠️ ANOMALY DETECTION - Find unusual spending
+    detectAnomalies: function() {
+        const allTx = state.transactions || [];
+        if (allTx.length < 10) return [];
+        
+        const anomalies = [];
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+        
+        // Get this month's transactions
+        const monthTx = allTx.filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === thisMonth && d.getFullYear() === thisYear && t.type === 'expense';
+        });
+        
+        // Calculate category averages from history
+        const categoryHistory = {};
+        allTx.filter(t => t.type === 'expense').forEach(t => {
+            const cat = t.category || 'other';
+            if (!categoryHistory[cat]) categoryHistory[cat] = [];
+            categoryHistory[cat].push(t.amount || 0);
+        });
+        
+        const categoryStats = {};
+        Object.entries(categoryHistory).forEach(([cat, amounts]) => {
+            const avg = amounts.reduce((s, a) => s + a, 0) / amounts.length;
+            const variance = amounts.reduce((s, a) => s + Math.pow(a - avg, 2), 0) / amounts.length;
+            const stdDev = Math.sqrt(variance);
+            categoryStats[cat] = { avg, stdDev, count: amounts.length };
+        });
+        
+        // Check for anomalies
+        // 1. Single large transactions (> 3x average for category)
+        monthTx.forEach(t => {
+            const cat = t.category || 'other';
+            const stats = categoryStats[cat];
+            if (stats && t.amount > stats.avg * 3 && t.amount > 100) {
+                anomalies.push({
+                    type: 'large_transaction',
+                    severity: 'high',
+                    icon: '🚨',
+                    title: 'Tranzacție mare neobișnuită',
+                    message: `${t.amount} ${state.currency} la ${t.subcategory || findCat('expense', cat)?.name || cat} - de ${(t.amount / stats.avg).toFixed(1)}x mai mult decât de obicei!`,
+                    transaction: t,
+                    suggestion: 'Verifică dacă această cheltuială era planificată'
+                });
+            }
+        });
+        
+        // 2. Category overspending (> 150% of average)
+        const monthCategoryTotals = {};
+        monthTx.forEach(t => {
+            const cat = t.category || 'other';
+            monthCategoryTotals[cat] = (monthCategoryTotals[cat] || 0) + (t.amount || 0);
+        });
+        
+        Object.entries(monthCategoryTotals).forEach(([cat, total]) => {
+            const stats = categoryStats[cat];
+            const monthlyAvg = stats ? (stats.avg * stats.count / 6) : 0; // Rough monthly average
+            if (monthlyAvg > 0 && total > monthlyAvg * 1.5 && total > 200) {
+                const catInfo = findCat('expense', cat);
+                anomalies.push({
+                    type: 'category_overspend',
+                    severity: total > monthlyAvg * 2 ? 'high' : 'medium',
+                    icon: '⚠️',
+                    title: `Depășire ${catInfo?.name || cat}`,
+                    message: `Ai cheltuit ${total} ${state.currency} luna asta - ${((total / monthlyAvg - 1) * 100).toFixed(0)}% mai mult decât media!`,
+                    category: cat,
+                    suggestion: `Încearcă să reduci cheltuielile pe ${catInfo?.name || cat} în următoarele zile`
+                });
+            }
+        });
+        
+        // 3. Spending velocity (spending too fast this month)
+        const dayOfMonth = now.getDate();
+        const daysInMonth = new Date(thisYear, thisMonth + 1, 0).getDate();
+        const expectedProgress = dayOfMonth / daysInMonth;
+        const monthExpense = monthTx.reduce((s, t) => s + (t.amount || 0), 0);
+        const predictions = this.predictSpending();
+        
+        if (predictions && monthExpense > predictions.avgExpense * expectedProgress * 1.3) {
+            anomalies.push({
+                type: 'velocity',
+                severity: 'medium',
+                icon: '⏰',
+                title: 'Cheltuiești prea repede!',
+                message: `La ziua ${dayOfMonth} ai cheltuit deja ${monthExpense} ${state.currency}. La acest ritm vei ajunge la ${Math.round(monthExpense / expectedProgress)} ${state.currency}!`,
+                suggestion: 'Încearcă să reduci ritmul cheltuielilor în următoarele zile'
+            });
+        }
+        
+        // 4. Weekend overspending
+        const weekendTx = monthTx.filter(t => {
+            const d = new Date(t.date).getDay();
+            return d === 0 || d === 6;
+        });
+        const weekdayTx = monthTx.filter(t => {
+            const d = new Date(t.date).getDay();
+            return d > 0 && d < 6;
+        });
+        
+        const weekendAvg = weekendTx.length > 0 ? weekendTx.reduce((s, t) => s + t.amount, 0) / weekendTx.length : 0;
+        const weekdayAvg = weekdayTx.length > 0 ? weekdayTx.reduce((s, t) => s + t.amount, 0) / weekdayTx.length : 0;
+        
+        if (weekendAvg > weekdayAvg * 2 && weekendAvg > 50) {
+            anomalies.push({
+                type: 'weekend',
+                severity: 'low',
+                icon: '📅',
+                title: 'Cheltuiești mult în weekend',
+                message: `Media în weekend: ${Math.round(weekendAvg)} ${state.currency}/tranzacție vs ${Math.round(weekdayAvg)} ${state.currency} în timpul săptămânii`,
+                suggestion: 'Planifică activități gratuite sau ieftine pentru weekend'
+            });
+        }
+        
+        return anomalies.sort((a, b) => {
+            const severity = { high: 0, medium: 1, low: 2 };
+            return severity[a.severity] - severity[b.severity];
+        });
+    },
+
+    // 💰 WHAT-IF SIMULATOR
+    simulateScenario: function(changes) {
+        const predictions = this.predictSpending();
+        if (!predictions) return null;
+        
+        let newExpense = predictions.nextMonth.expense;
+        let newIncome = predictions.nextMonth.income;
+        const impacts = [];
+        
+        // Process changes
+        if (changes.cutSubscription) {
+            const subTotal = (state.subscriptions || []).reduce((s, sub) => s + (sub.monthlyAvg || 0), 0);
+            newExpense -= subTotal * (changes.cutSubscription / 100);
+            impacts.push({
+                icon: '📱',
+                text: `Reducere abonamente ${changes.cutSubscription}%`,
+                monthly: -Math.round(subTotal * changes.cutSubscription / 100),
+                yearly: -Math.round(subTotal * changes.cutSubscription / 100 * 12)
+            });
+        }
+        
+        if (changes.reduceFoodDelivery) {
+            const foodEstimate = predictions.categoryPredictions?.food?.predicted || predictions.avgExpense * 0.25;
+            const deliveryEstimate = foodEstimate * 0.3; // Assume 30% is delivery
+            newExpense -= deliveryEstimate * (changes.reduceFoodDelivery / 100);
+            impacts.push({
+                icon: '🍔',
+                text: `Reducere livrări mâncare ${changes.reduceFoodDelivery}%`,
+                monthly: -Math.round(deliveryEstimate * changes.reduceFoodDelivery / 100),
+                yearly: -Math.round(deliveryEstimate * changes.reduceFoodDelivery / 100 * 12)
+            });
+        }
+        
+        if (changes.reduceEntertainment) {
+            const entEstimate = predictions.categoryPredictions?.entertainment?.predicted || predictions.avgExpense * 0.1;
+            newExpense -= entEstimate * (changes.reduceEntertainment / 100);
+            impacts.push({
+                icon: '🎬',
+                text: `Reducere divertisment ${changes.reduceEntertainment}%`,
+                monthly: -Math.round(entEstimate * changes.reduceEntertainment / 100),
+                yearly: -Math.round(entEstimate * changes.reduceEntertainment / 100 * 12)
+            });
+        }
+        
+        if (changes.additionalIncome) {
+            newIncome += changes.additionalIncome;
+            impacts.push({
+                icon: '💼',
+                text: `Venit suplimentar`,
+                monthly: changes.additionalIncome,
+                yearly: changes.additionalIncome * 12
+            });
+        }
+        
+        if (changes.reduceTransport) {
+            const transportEstimate = predictions.categoryPredictions?.transport?.predicted || predictions.avgExpense * 0.15;
+            newExpense -= transportEstimate * (changes.reduceTransport / 100);
+            impacts.push({
+                icon: '🚗',
+                text: `Reducere transport ${changes.reduceTransport}%`,
+                monthly: -Math.round(transportEstimate * changes.reduceTransport / 100),
+                yearly: -Math.round(transportEstimate * changes.reduceTransport / 100 * 12)
+            });
+        }
+        
+        const newSavings = newIncome - newExpense;
+        const currentSavings = predictions.nextMonth.income - predictions.nextMonth.expense;
+        
+        return {
+            current: {
+                expense: predictions.nextMonth.expense,
+                income: predictions.nextMonth.income,
+                savings: currentSavings,
+                savingsRate: predictions.nextMonth.income > 0 ? (currentSavings / predictions.nextMonth.income * 100) : 0
+            },
+            simulated: {
+                expense: Math.round(newExpense),
+                income: Math.round(newIncome),
+                savings: Math.round(newSavings),
+                savingsRate: newIncome > 0 ? (newSavings / newIncome * 100) : 0
+            },
+            impacts,
+            totalMonthlyImpact: Math.round(newSavings - currentSavings),
+            totalYearlyImpact: Math.round((newSavings - currentSavings) * 12),
+            fireImpact: this.calculateFireImpact(newSavings - currentSavings)
+        };
+    },
+    
+    calculateFireImpact: function(additionalMonthlySavings) {
+        const currentNetWorth = state.netWorth || 0;
+        const monthlyExpense = this.predictSpending()?.avgExpense || 5000;
+        const fireNumber = monthlyExpense * 12 * 25;
+        
+        // Current years to FIRE
+        const currentMonthlySavings = (state.savingsRate || 10) / 100 * (this.predictSpending()?.avgIncome || 7000);
+        const currentYearsToFire = this.yearsToFire(currentNetWorth, currentMonthlySavings, fireNumber);
+        
+        // New years to FIRE
+        const newMonthlySavings = currentMonthlySavings + additionalMonthlySavings;
+        const newYearsToFire = this.yearsToFire(currentNetWorth, newMonthlySavings, fireNumber);
+        
+        return {
+            currentYears: currentYearsToFire,
+            newYears: newYearsToFire,
+            yearsSaved: currentYearsToFire - newYearsToFire
+        };
+    },
+    
+    yearsToFire: function(currentAmount, monthlySavings, target) {
+        if (monthlySavings <= 0) return 99;
+        const annualReturn = 0.07;
+        let years = 0;
+        let amount = currentAmount;
+        while (amount < target && years < 100) {
+            amount = amount * (1 + annualReturn) + monthlySavings * 12;
+            years++;
+        }
+        return years;
+    },
+
+    // ⏰ TIME ANALYSIS - When do you spend?
+    analyzeTimePatterns: function() {
+        const allTx = (state.transactions || []).filter(t => t.type === 'expense');
+        if (allTx.length < 10) return null;
+        
+        // Day of week analysis
+        const dayData = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+        const dayNames = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+        
+        // Week of month
+        const weekData = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+        
+        // Month analysis
+        const monthData = {};
+        
+        allTx.forEach(t => {
+            const d = new Date(t.date);
+            dayData[d.getDay()].push(t.amount || 0);
+            
+            const weekOfMonth = Math.ceil(d.getDate() / 7);
+            weekData[weekOfMonth].push(t.amount || 0);
+            
+            const monthKey = d.getMonth();
+            if (!monthData[monthKey]) monthData[monthKey] = [];
+            monthData[monthKey].push(t.amount || 0);
+        });
+        
+        // Calculate stats
+        const dayStats = Object.entries(dayData).map(([day, amounts]) => ({
+            day: parseInt(day),
+            name: dayNames[day],
+            total: amounts.reduce((s, a) => s + a, 0),
+            average: amounts.length > 0 ? amounts.reduce((s, a) => s + a, 0) / amounts.length : 0,
+            count: amounts.length
+        })).sort((a, b) => b.total - a.total);
+        
+        const weekStats = Object.entries(weekData).map(([week, amounts]) => ({
+            week: parseInt(week),
+            name: `Săptămâna ${week}`,
+            total: amounts.reduce((s, a) => s + a, 0),
+            average: amounts.length > 0 ? amounts.reduce((s, a) => s + a, 0) / amounts.length : 0,
+            count: amounts.length
+        }));
+        
+        // Find patterns
+        const highestDay = dayStats[0];
+        const lowestDay = dayStats[dayStats.length - 1];
+        const weekendTotal = dayStats.filter(d => d.day === 0 || d.day === 6).reduce((s, d) => s + d.total, 0);
+        const weekdayTotal = dayStats.filter(d => d.day > 0 && d.day < 6).reduce((s, d) => s + d.total, 0);
+        
+        return {
+            byDay: dayStats,
+            byWeek: weekStats,
+            insights: {
+                highestDay: { name: highestDay.name, amount: highestDay.total },
+                lowestDay: { name: lowestDay.name, amount: lowestDay.total },
+                weekendVsWeekday: {
+                    weekend: weekendTotal,
+                    weekday: weekdayTotal,
+                    ratio: weekdayTotal > 0 ? (weekendTotal / weekdayTotal * 100).toFixed(0) : 0
+                },
+                mostActiveWeek: weekStats.sort((a, b) => b.total - a.total)[0]
+            }
+        };
+    },
+
+    // 📝 AUTO-BUDGETING - AI creates optimal budgets
+    generateSmartBudgets: function() {
+        const predictions = this.predictSpending();
+        if (!predictions) return [];
+        
+        const targetSavingsRate = 0.20; // 20% savings target
+        const predictedIncome = predictions.avgIncome;
+        const maxSpend = predictedIncome * (1 - targetSavingsRate);
+        
+        const budgets = [];
+        const categoryPreds = predictions.categoryPredictions || {};
+        
+        // Sort categories by predicted spending
+        const sortedCats = Object.entries(categoryPreds)
+            .sort((a, b) => b[1].predicted - a[1].predicted);
+        
+        let totalAllocated = 0;
+        
+        sortedCats.forEach(([catId, data]) => {
+            const catInfo = findCat('expense', catId);
+            if (!catInfo) return;
+            
+            // Calculate recommended budget
+            let recommended = data.predicted;
+            
+            // If trending up, suggest slightly lower to curb spending
+            if (data.trend > 10) {
+                recommended = Math.round(data.predicted * 0.9);
+            }
+            
+            // Make sure we don't exceed total
+            if (totalAllocated + recommended > maxSpend) {
+                recommended = Math.max(0, maxSpend - totalAllocated);
+            }
+            
+            if (recommended > 50) { // Only suggest budgets > 50
+                budgets.push({
+                    category: catId,
+                    categoryName: catInfo.name,
+                    icon: catInfo.icon,
+                    recommended: Math.round(recommended),
+                    currentAvg: data.predicted,
+                    trend: data.trend,
+                    trendDirection: data.trend > 5 ? 'up' : data.trend < -5 ? 'down' : 'stable',
+                    priority: data.trend > 10 ? 'high' : 'normal'
+                });
+                totalAllocated += recommended;
+            }
+        });
+        
+        return {
+            budgets,
+            summary: {
+                totalBudgeted: totalAllocated,
+                predictedIncome,
+                targetSavings: Math.round(predictedIncome * targetSavingsRate),
+                savingsRate: targetSavingsRate * 100
+            }
+        };
+    },
+
+    // 🎯 SMART GOALS - AI suggests achievable goals
+    suggestSmartGoals: function() {
+        const predictions = this.predictSpending();
+        if (!predictions) return [];
+        
+        const monthlySavings = predictions.nextMonth.savings;
+        const goals = [];
+        
+        // Emergency Fund
+        const emergencyTarget = predictions.avgExpense * 6;
+        const currentEmergency = (state.goals || []).find(g => g.name?.toLowerCase().includes('urgență'))?.current || 0;
+        if (currentEmergency < emergencyTarget) {
+            goals.push({
+                icon: '🛡️',
+                name: 'Fond de Urgență',
+                target: emergencyTarget,
+                current: currentEmergency,
+                monthly: Math.round(emergencyTarget / 12),
+                months: Math.ceil((emergencyTarget - currentEmergency) / Math.max(monthlySavings * 0.5, 100)),
+                priority: 'high',
+                reason: '6 luni de cheltuieli pentru siguranță financiară'
+            });
+        }
+        
+        // Vacation fund
+        const vacationTarget = predictions.avgExpense * 2;
+        goals.push({
+            icon: '✈️',
+            name: 'Vacanță',
+            target: vacationTarget,
+            current: 0,
+            monthly: Math.round(vacationTarget / 6),
+            months: Math.ceil(vacationTarget / Math.max(monthlySavings * 0.3, 100)),
+            priority: 'medium',
+            reason: 'O vacanță de 2 săptămâni'
+        });
+        
+        // Investment start
+        if (monthlySavings > 500) {
+            goals.push({
+                icon: '📈',
+                name: 'Start Investiții',
+                target: 5000,
+                current: 0,
+                monthly: Math.round(5000 / 10),
+                months: Math.ceil(5000 / Math.max(monthlySavings * 0.4, 100)),
+                priority: 'medium',
+                reason: 'Capital inițial pentru investiții în ETF-uri'
+            });
+        }
+        
+        // New phone/laptop
+        goals.push({
+            icon: '📱',
+            name: 'Telefon/Laptop nou',
+            target: 4000,
+            current: 0,
+            monthly: Math.round(4000 / 8),
+            months: Math.ceil(4000 / Math.max(monthlySavings * 0.25, 100)),
+            priority: 'low',
+            reason: 'Upgrade tehnologie'
+        });
+        
+        // Sort by achievability
+        return goals.sort((a, b) => a.months - b.months);
+    },
+
+    // ⚡ DAILY SPENDING COACH - Personalized tips
+    getDailyCoachTip: function() {
+        const anomalies = this.detectAnomalies();
+        const predictions = this.predictSpending();
+        const timePatterns = this.analyzeTimePatterns();
+        const tips = [];
+        
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const dayOfMonth = today.getDate();
+        const dayNames = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+        
+        // High-severity anomaly tip
+        const highAnomaly = anomalies.find(a => a.severity === 'high');
+        if (highAnomaly) {
+            tips.push({
+                icon: highAnomaly.icon,
+                title: 'Alertă Importantă',
+                message: highAnomaly.message,
+                action: highAnomaly.suggestion,
+                priority: 1
+            });
+        }
+        
+        // Weekend tip (Friday)
+        if (dayOfWeek === 5) {
+            const weekendSpending = timePatterns?.insights?.weekendVsWeekday;
+            if (weekendSpending && parseInt(weekendSpending.ratio) > 100) {
+                tips.push({
+                    icon: '🎉',
+                    title: 'Weekend aproape!',
+                    message: `De obicei cheltuiești ${weekendSpending.ratio}% din media săptămânii în weekend.`,
+                    action: 'Planifică activități gratuite: plimbări, gătit acasă, seri de film',
+                    priority: 2
+                });
+            }
+        }
+        
+        // End of month tip
+        if (dayOfMonth > 25) {
+            const monthTx = getMonthTx().filter(t => t.type === 'expense');
+            const spent = monthTx.reduce((s, t) => s + (t.amount || 0), 0);
+            const predicted = predictions?.nextMonth?.expense || spent;
+            const remaining = predicted - spent;
+            
+            tips.push({
+                icon: '📅',
+                title: 'Final de lună',
+                message: `Mai ai ~${Math.round(remaining)} ${state.currency} buget până la finalul lunii.`,
+                action: remaining > 0 ? 'Ești pe drumul cel bun!' : 'Încearcă să reduci cheltuielile zilele astea',
+                priority: 3
+            });
+        }
+        
+        // Payday tip (1st or 15th)
+        if (dayOfMonth === 1 || dayOfMonth === 15) {
+            tips.push({
+                icon: '💰',
+                title: 'Zi de salariu?',
+                message: 'Acum e momentul perfect să pui deoparte economiile!',
+                action: 'Transferă 20% din salariu într-un cont de economii înainte să cheltuiești',
+                priority: 2
+            });
+        }
+        
+        // Motivational based on streak
+        if (state.streak >= 7) {
+            tips.push({
+                icon: '🔥',
+                title: `${state.streak} zile streak!`,
+                message: 'Continuă să-ți înregistrezi cheltuielile!',
+                action: 'Consistența e cheia succesului financiar',
+                priority: 4
+            });
+        }
+        
+        // Random financial wisdom
+        const wisdoms = [
+            { icon: '🧠', title: 'Sfatul zilei', message: 'Regula 24 de ore: Înainte de o achiziție mare, așteaptă 24h.', action: 'Previne cumpărăturile impulsive' },
+            { icon: '☕', title: 'Sfatul zilei', message: 'O cafea de 15 RON/zi = 5,475 RON/an!', action: 'Micile cheltuieli se adună' },
+            { icon: '🎯', title: 'Sfatul zilei', message: 'Plătește-te pe tine mai întâi - economisește înainte să cheltuiești.', action: 'Automatizează economiile' },
+            { icon: '📊', title: 'Sfatul zilei', message: 'Verifică-ți abonamentele lunar - plătești pentru ce nu folosești?', action: 'Anulează serviciile neutilizate' },
+            { icon: '🏦', title: 'Sfatul zilei', message: 'Fondul de urgență = liniște sufletească.', action: 'Țintește 3-6 luni de cheltuieli' }
+        ];
+        
+        tips.push({ ...wisdoms[dayOfMonth % wisdoms.length], priority: 5 });
+        
+        // Sort by priority and return top 3
+        return tips.sort((a, b) => a.priority - b.priority).slice(0, 3);
+    },
+
+    // 🏪 MERCHANT ANALYTICS - Where do you spend?
+    analyzeMerchants: function() {
+        const allTx = (state.transactions || []).filter(t => t.type === 'expense');
+        if (allTx.length < 5) return null;
+        
+        // Group by subcategory (merchant)
+        const merchants = {};
+        
+        allTx.forEach(t => {
+            const merchant = t.subcategory || t.note || findCat('expense', t.category)?.name || 'Altele';
+            if (!merchants[merchant]) {
+                merchants[merchant] = {
+                    name: merchant,
+                    category: t.category,
+                    transactions: [],
+                    total: 0,
+                    count: 0
+                };
+            }
+            merchants[merchant].transactions.push(t);
+            merchants[merchant].total += t.amount || 0;
+            merchants[merchant].count++;
+        });
+        
+        // Convert to array and sort
+        const merchantList = Object.values(merchants)
+            .map(m => ({
+                ...m,
+                average: m.total / m.count,
+                categoryInfo: findCat('expense', m.category),
+                frequency: m.count / 6 // per month average
+            }))
+            .sort((a, b) => b.total - a.total);
+        
+        // Top 10
+        const top10 = merchantList.slice(0, 10);
+        
+        // Find potential savings
+        const potentialSavings = merchantList
+            .filter(m => m.count >= 3 && (
+                m.name.toLowerCase().includes('glovo') ||
+                m.name.toLowerCase().includes('tazz') ||
+                m.name.toLowerCase().includes('uber') ||
+                m.name.toLowerCase().includes('bolt') ||
+                m.name.toLowerCase().includes('starbucks') ||
+                m.name.toLowerCase().includes('netflix') ||
+                m.name.toLowerCase().includes('spotify')
+            ))
+            .map(m => ({
+                ...m,
+                savingsPotential: Math.round(m.total * 0.5),
+                suggestion: `Reducerea cu 50% ar economisi ${Math.round(m.total * 0.5)} ${state.currency}`
+            }));
+        
+        return {
+            top10,
+            totalMerchants: merchantList.length,
+            potentialSavings,
+            insights: {
+                mostFrequent: merchantList.sort((a, b) => b.count - a.count)[0],
+                highestAverage: merchantList.filter(m => m.count >= 2).sort((a, b) => b.average - a.average)[0],
+                totalFromTop10: top10.reduce((s, m) => s + m.total, 0)
+            }
+        };
+    },
+
+    // 💪 FINANCIAL HEALTH SCORE - Comprehensive health assessment
+    calculateHealthScore: function() {
+        const predictions = this.predictSpending();
+        const anomalies = this.detectAnomalies();
+        const monthTx = getMonthTx();
+        const monthIncome = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0);
+        const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0);
+        
+        let score = 0;
+        const factors = [];
+        
+        // 1. Savings Rate (max 25 points)
+        const savingsRate = monthIncome > 0 ? ((monthIncome - monthExpense) / monthIncome * 100) : 0;
+        if (savingsRate >= 30) { score += 25; factors.push({ name: 'Economii excelente', score: 25, icon: '💰', status: 'excellent' }); }
+        else if (savingsRate >= 20) { score += 20; factors.push({ name: 'Economii foarte bune', score: 20, icon: '💰', status: 'good' }); }
+        else if (savingsRate >= 10) { score += 12; factors.push({ name: 'Economii moderate', score: 12, icon: '💰', status: 'ok' }); }
+        else if (savingsRate > 0) { score += 5; factors.push({ name: 'Economii mici', score: 5, icon: '💰', status: 'warning' }); }
+        else { factors.push({ name: 'Fără economii', score: 0, icon: '💰', status: 'bad' }); }
+        
+        // 2. Budget Adherence (max 20 points)
+        const budgets = state.budgets || [];
+        if (budgets.length > 0) {
+            const budgetAdherence = budgets.filter(b => {
+                const spent = monthTx.filter(t => t.type === 'expense' && t.category === b.category)
+                    .reduce((s, t) => s + (t.amount || 0), 0);
+                return spent <= b.limit;
+            }).length / budgets.length;
+            
+            const budgetScore = Math.round(budgetAdherence * 20);
+            score += budgetScore;
+            factors.push({ 
+                name: `Bugete respectate (${Math.round(budgetAdherence * 100)}%)`, 
+                score: budgetScore, 
+                icon: '📊',
+                status: budgetAdherence >= 0.8 ? 'good' : budgetAdherence >= 0.5 ? 'ok' : 'warning'
+            });
+        } else {
+            factors.push({ name: 'Setează bugete', score: 0, icon: '📊', status: 'warning' });
+        }
+        
+        // 3. Consistency/Streak (max 15 points)
+        const streak = state.streak || 0;
+        if (streak >= 30) { score += 15; factors.push({ name: 'Streak legendar', score: 15, icon: '🔥', status: 'excellent' }); }
+        else if (streak >= 14) { score += 12; factors.push({ name: 'Streak puternic', score: 12, icon: '🔥', status: 'good' }); }
+        else if (streak >= 7) { score += 8; factors.push({ name: 'Streak bun', score: 8, icon: '🔥', status: 'ok' }); }
+        else if (streak >= 3) { score += 4; factors.push({ name: 'Începi să fii consistent', score: 4, icon: '🔥', status: 'warning' }); }
+        else { factors.push({ name: 'Construiește un streak', score: 0, icon: '🔥', status: 'bad' }); }
+        
+        // 4. No Anomalies (max 15 points)
+        const highAnomalies = (anomalies || []).filter(a => a.severity === 'high').length;
+        if (highAnomalies === 0) { score += 15; factors.push({ name: 'Fără anomalii', score: 15, icon: '✅', status: 'excellent' }); }
+        else if (highAnomalies <= 1) { score += 8; factors.push({ name: '1 anomalie', score: 8, icon: '⚠️', status: 'ok' }); }
+        else { factors.push({ name: `${highAnomalies} anomalii`, score: 0, icon: '🚨', status: 'bad' }); }
+        
+        // 5. Emergency Fund Progress (max 15 points)
+        const emergencyTarget = (predictions?.avgExpense || monthExpense) * 6;
+        const emergencyGoal = (state.goals || []).find(g => 
+            g.name?.toLowerCase().includes('urgență') || g.name?.toLowerCase().includes('emergency')
+        );
+        const emergencyProgress = emergencyGoal ? (emergencyGoal.current / emergencyGoal.target) : 0;
+        
+        if (emergencyProgress >= 1) { score += 15; factors.push({ name: 'Fond urgență complet', score: 15, icon: '🛡️', status: 'excellent' }); }
+        else if (emergencyProgress >= 0.5) { score += 10; factors.push({ name: 'Fond urgență 50%+', score: 10, icon: '🛡️', status: 'good' }); }
+        else if (emergencyProgress > 0) { score += 5; factors.push({ name: 'Fond urgență început', score: 5, icon: '🛡️', status: 'ok' }); }
+        else { factors.push({ name: 'Creează fond urgență', score: 0, icon: '🛡️', status: 'warning' }); }
+        
+        // 6. Diversification & Goals (max 10 points)
+        const goalsProgress = (state.goals || []).filter(g => g.current >= g.target * 0.5).length;
+        if (goalsProgress >= 3) { score += 10; factors.push({ name: 'Multiple obiective', score: 10, icon: '🎯', status: 'excellent' }); }
+        else if (goalsProgress >= 1) { score += 5; factors.push({ name: 'Obiective active', score: 5, icon: '🎯', status: 'good' }); }
+        else { factors.push({ name: 'Setează obiective', score: 0, icon: '🎯', status: 'warning' }); }
+        
+        // Calculate grade
+        let grade, gradeColor, message;
+        if (score >= 90) { grade = 'A+'; gradeColor = '#00ff88'; message = 'Excelent! Ești un maestru al finanțelor!'; }
+        else if (score >= 80) { grade = 'A'; gradeColor = '#10b981'; message = 'Foarte bine! Finanțele tale sunt sănătoase.'; }
+        else if (score >= 70) { grade = 'B'; gradeColor = '#06b6d4'; message = 'Bine! Câteva îmbunătățiri și ești perfect.'; }
+        else if (score >= 60) { grade = 'C'; gradeColor = '#f59e0b'; message = 'OK. Ai potențial de îmbunătățire.'; }
+        else if (score >= 50) { grade = 'D'; gradeColor = '#ef4444'; message = 'Necesită atenție. Focus pe economii!'; }
+        else { grade = 'F'; gradeColor = '#dc2626'; message = 'Critic! Acționează acum pentru a îmbunătăți.'; }
+        
+        return {
+            score,
+            maxScore: 100,
+            grade,
+            gradeColor,
+            message,
+            factors,
+            savingsRate,
+            streak
+        };
+    },
+
+    // 📊 SPENDING VELOCITY - How fast are you spending?
+    getSpendingVelocity: function() {
+        const monthTx = getMonthTx().filter(t => t.type === 'expense');
+        const now = new Date();
+        const dayOfMonth = now.getDate();
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        
+        const spent = monthTx.reduce((s, t) => s + (t.amount || 0), 0);
+        const predictions = this.predictSpending();
+        const expectedMonthly = predictions?.avgExpense || spent;
+        
+        const expectedByNow = expectedMonthly * (dayOfMonth / daysInMonth);
+        const velocity = expectedByNow > 0 ? (spent / expectedByNow * 100) : 100;
+        
+        const projectedTotal = (spent / dayOfMonth) * daysInMonth;
+        const daysRemaining = daysInMonth - dayOfMonth;
+        const dailyBudgetRemaining = Math.max(0, (expectedMonthly - spent) / daysRemaining);
+        
+        return {
+            spent,
+            expectedByNow: Math.round(expectedByNow),
+            velocity: Math.round(velocity),
+            status: velocity <= 90 ? 'under' : velocity <= 110 ? 'on-track' : 'over',
+            projectedTotal: Math.round(projectedTotal),
+            daysRemaining,
+            dailyBudget: Math.round(dailyBudgetRemaining),
+            message: velocity <= 90 
+                ? `Ești ${Math.round(100 - velocity)}% sub buget! 🎉` 
+                : velocity <= 110 
+                    ? 'Ești pe track! 👍' 
+                    : `Ești ${Math.round(velocity - 100)}% peste buget! ⚠️`
+        };
+    },
+
+    // 🎯 PERSONALIZED RECOMMENDATIONS - AI-powered suggestions
+    getPersonalizedRecommendations: function() {
+        const health = this.calculateHealthScore();
+        const anomalies = this.detectAnomalies();
+        const predictions = this.predictSpending();
+        const velocity = this.getSpendingVelocity();
+        const merchants = this.analyzeMerchants();
+        
+        const recommendations = [];
+        
+        // Based on health score factors
+        health.factors.filter(f => f.status === 'bad' || f.status === 'warning').forEach(f => {
+            if (f.name.includes('economii') || f.name.includes('Economii')) {
+                recommendations.push({
+                    priority: 1,
+                    icon: '💰',
+                    title: 'Crește rata de economisire',
+                    description: 'Țintește minim 20% din venituri. Începe cu 10% și crește treptat.',
+                    action: 'Setează transfer automat în ziua de salariu',
+                    impact: 'high'
+                });
+            }
+            if (f.name.includes('Bugete') || f.name.includes('bugete')) {
+                recommendations.push({
+                    priority: 2,
+                    icon: '📊',
+                    title: 'Setează bugete pentru categorii',
+                    description: 'Bugetele te ajută să controlezi cheltuielile.',
+                    action: 'Creează bugete pentru top 5 categorii de cheltuieli',
+                    impact: 'medium'
+                });
+            }
+            if (f.name.includes('urgență')) {
+                recommendations.push({
+                    priority: 1,
+                    icon: '🛡️',
+                    title: 'Construiește fondul de urgență',
+                    description: `Ținta: ${(predictions?.avgExpense || 5000) * 6} ${state.currency} (6 luni cheltuieli)`,
+                    action: 'Creează un obiectiv pentru fondul de urgență',
+                    impact: 'high'
+                });
+            }
+        });
+        
+        // Based on velocity
+        if (velocity.status === 'over') {
+            recommendations.push({
+                priority: 1,
+                icon: '⏰',
+                title: 'Reduce ritmul cheltuielilor',
+                description: `Mai ai ${velocity.daysRemaining} zile și ${velocity.dailyBudget} ${state.currency}/zi buget.`,
+                action: 'Amână achizițiile non-esențiale',
+                impact: 'high'
+            });
+        }
+        
+        // Based on merchant analysis
+        if (merchants?.potentialSavings?.length > 0) {
+            const topSaving = merchants.potentialSavings[0];
+            recommendations.push({
+                priority: 2,
+                icon: '🏪',
+                title: `Reduce cheltuielile la ${topSaving.name}`,
+                description: `Poți economisi ~${topSaving.savingsPotential} ${state.currency}`,
+                action: 'Caută alternative mai ieftine sau reduce frecvența',
+                impact: 'medium'
+            });
+        }
+        
+        // Based on anomalies
+        if (anomalies?.length > 0) {
+            const highAnomaly = anomalies.find(a => a.severity === 'high');
+            if (highAnomaly) {
+                recommendations.push({
+                    priority: 1,
+                    icon: '🚨',
+                    title: highAnomaly.title,
+                    description: highAnomaly.message,
+                    action: highAnomaly.suggestion,
+                    impact: 'high'
+                });
+            }
+        }
+        
+        // Generic improvement recommendations
+        if (health.score < 70) {
+            recommendations.push({
+                priority: 3,
+                icon: '📱',
+                title: 'Înregistrează toate cheltuielile',
+                description: 'Consistența este cheia. Înregistrează fiecare tranzacție.',
+                action: 'Setează reminder zilnic pentru tracking',
+                impact: 'medium'
+            });
+        }
+        
+        // Sort by priority and return top 5
+        return recommendations.sort((a, b) => a.priority - b.priority).slice(0, 5);
+    },
+
+    // 📈 INVESTMENT READINESS - Are you ready to invest?
+    checkInvestmentReadiness: function() {
+        const health = this.calculateHealthScore();
+        const predictions = this.predictSpending();
+        const monthTx = getMonthTx();
+        const monthIncome = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0);
+        const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0);
+        const monthlySavings = monthIncome - monthExpense;
+        
+        const checks = [];
+        let readinessScore = 0;
+        
+        // Check 1: Emergency fund
+        const emergencyTarget = (predictions?.avgExpense || monthExpense) * 3;
+        const emergencyGoal = (state.goals || []).find(g => 
+            g.name?.toLowerCase().includes('urgență') || g.name?.toLowerCase().includes('emergency')
+        );
+        const hasEmergencyFund = emergencyGoal && emergencyGoal.current >= emergencyTarget;
+        checks.push({
+            name: 'Fond de urgență (3 luni)',
+            passed: hasEmergencyFund,
+            icon: hasEmergencyFund ? '✅' : '❌',
+            note: hasEmergencyFund ? 'Complet!' : `Ai nevoie de ${emergencyTarget} ${state.currency}`
+        });
+        if (hasEmergencyFund) readinessScore += 30;
+        
+        // Check 2: No high-interest debt
+        const highInterestDebt = (state.debts || []).filter(d => d.type === 'owed').length === 0;
+        checks.push({
+            name: 'Fără datorii cu dobândă mare',
+            passed: highInterestDebt,
+            icon: highInterestDebt ? '✅' : '⚠️',
+            note: highInterestDebt ? 'Perfect!' : 'Plătește mai întâi datoriile'
+        });
+        if (highInterestDebt) readinessScore += 25;
+        
+        // Check 3: Positive cash flow
+        const positiveCashFlow = monthlySavings > 0;
+        checks.push({
+            name: 'Cash flow pozitiv',
+            passed: positiveCashFlow,
+            icon: positiveCashFlow ? '✅' : '❌',
+            note: positiveCashFlow ? `+${monthlySavings} ${state.currency}/lună` : 'Crește veniturile sau reduce cheltuielile'
+        });
+        if (positiveCashFlow) readinessScore += 20;
+        
+        // Check 4: Consistent tracking
+        const consistentTracking = (state.streak || 0) >= 7;
+        checks.push({
+            name: 'Tracking consistent (7+ zile)',
+            passed: consistentTracking,
+            icon: consistentTracking ? '✅' : '⚠️',
+            note: consistentTracking ? `${state.streak} zile streak!` : 'Continuă să trackuiești'
+        });
+        if (consistentTracking) readinessScore += 15;
+        
+        // Check 5: Savings rate
+        const goodSavingsRate = health.savingsRate >= 15;
+        checks.push({
+            name: 'Rată economii 15%+',
+            passed: goodSavingsRate,
+            icon: goodSavingsRate ? '✅' : '⚠️',
+            note: `${health.savingsRate.toFixed(1)}% acum`
+        });
+        if (goodSavingsRate) readinessScore += 10;
+        
+        const ready = readinessScore >= 70;
+        const investableAmount = Math.max(0, monthlySavings * 0.5);
+        
+        return {
+            ready,
+            readinessScore,
+            checks,
+            investableAmount: Math.round(investableAmount),
+            recommendation: ready 
+                ? `Poți investi ~${Math.round(investableAmount)} ${state.currency}/lună în ETF-uri sau Pilon 3` 
+                : 'Focus mai întâi pe fundație: fond de urgență și plata datoriilor',
+            nextSteps: ready 
+                ? ['Deschide cont la un broker (XTB, Interactive Brokers)', 'Începe cu ETF-uri globale (VWCE)', 'Investește lunar, nu timing market']
+                : ['Completează fondul de urgență', 'Plătește datoriile cu dobândă mare', 'Crește rata de economisire la 20%']
+        };
+    }
+};
+
+// State
+
 // Achievements
 const achievementsList = [
     { id: 'first_tx', name: 'Prima', icon: '🎉', desc: 'Prima tranzacție' },
@@ -523,12 +1515,22 @@ function nav(view) {
         challenges: 'Provocări',
         netWorth: 'Patrimoniu',
         insights: 'AI Insights',
-        customcats: 'Categorii Custom'
+        customcats: 'Categorii Custom',
+        // GENIUS views
+        anomalies: '⚠️ Anomalii',
+        predictions: '🔮 Predicții',
+        timeAnalysis: '⏰ Analiză Timp',
+        merchants: '🏪 Magazine',
+        smartBudgets: '📝 Bugete AI',
+        smartGoals: '🎯 Obiective AI',
+        healthScore: '💪 Scor Sănătate',
+        investment: '📈 Investiții',
+        recommendations: '🎯 Recomandări'
     };
     if ($('hdrTitle')) $('hdrTitle').textContent = titles[view] || 'Budget Pro';
     
     // Render content
-    if (view === 'home') updateHome();
+    if (view === 'home') { updateHome(); renderGeniusDashboard(); }
     if (view === 'transactions') { updateMonthText(); renderAllTx(); }
     if (view === 'analytics') renderAnalytics();
     if (view === 'budgets') renderBudgets();
@@ -545,6 +1547,16 @@ function nav(view) {
     if (view === 'netWorth') renderNetWorthTimeline();
     if (view === 'insights') renderAdvancedInsights();
     if (view === 'customcats') renderCustomCategories();
+    // GENIUS views
+    if (view === 'anomalies') renderAllAnomalies();
+    if (view === 'predictions') renderPredictionsView();
+    if (view === 'timeAnalysis') renderTimeAnalysis();
+    if (view === 'merchants') renderMerchantAnalytics();
+    if (view === 'smartBudgets') renderSmartBudgets();
+    if (view === 'smartGoals') renderSmartGoals();
+    if (view === 'healthScore') renderHealthScore();
+    if (view === 'investment') renderInvestmentReadiness();
+    if (view === 'recommendations') renderRecommendations();
 }
 
 function prevMonth() {
@@ -1367,6 +2379,588 @@ function renderTrendChart() {
             }
         }
     });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🧠 GENIUS ANALYTICS UI - Advanced Financial Dashboard
+// ═══════════════════════════════════════════════════════════════
+
+function renderGeniusDashboard() {
+    renderCoachTips();
+    renderAnomalyAlerts();
+    renderPredictionsWidget();
+}
+
+function renderCoachTips() {
+    const container = $('coachTips');
+    if (!container) return;
+    
+    const tips = GeniusEngine.getDailyCoachTip();
+    if (!tips || tips.length === 0) {
+        container.innerHTML = '<div class="empty-tip">Continuă să adaugi tranzacții pentru sfaturi!</div>';
+        return;
+    }
+    
+    container.innerHTML = tips.map(tip => `
+        <div class="coach-tip">
+            <div class="tip-icon">${tip.icon}</div>
+            <div class="tip-content">
+                <div class="tip-title">${tip.title}</div>
+                <div class="tip-message">${tip.message}</div>
+                <div class="tip-action">💡 ${tip.action}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderAnomalyAlerts() {
+    const container = $('anomalyAlerts');
+    if (!container) return;
+    
+    const anomalies = GeniusEngine.detectAnomalies();
+    if (!anomalies || anomalies.length === 0) {
+        container.classList.add('hide');
+        return;
+    }
+    
+    container.classList.remove('hide');
+    container.innerHTML = `
+        <div class="anomaly-header">⚠️ Alerte (${anomalies.length})</div>
+        ${anomalies.slice(0, 3).map(a => `
+            <div class="anomaly-item ${a.severity}">
+                <span class="anomaly-icon">${a.icon}</span>
+                <div class="anomaly-content">
+                    <div class="anomaly-title">${a.title}</div>
+                    <div class="anomaly-msg">${a.message}</div>
+                </div>
+            </div>
+        `).join('')}
+        ${anomalies.length > 3 ? `<button class="see-all-btn" onclick="nav('anomalies')">Vezi toate</button>` : ''}
+    `;
+}
+
+function renderPredictionsWidget() {
+    const container = $('predictionsWidget');
+    if (!container) return;
+    
+    const pred = GeniusEngine.predictSpending();
+    if (!pred) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    const icon = pred.trendDirection === 'up' ? '📈' : pred.trendDirection === 'down' ? '📉' : '➡️';
+    container.innerHTML = `
+        <div class="pred-widget">
+            <div class="pred-widget-header">🔮 Predicție</div>
+            <div class="pred-widget-value">${pred.nextMonth.expense.toLocaleString()} ${state.currency}</div>
+            <div class="pred-widget-trend">${icon} ${pred.trend > 0 ? '+' : ''}${pred.trend.toFixed(0)}%</div>
+        </div>
+    `;
+}
+
+function renderAllAnomalies() {
+    const container = $('anomaliesList');
+    if (!container) return;
+    
+    const anomalies = GeniusEngine.detectAnomalies();
+    if (!anomalies || anomalies.length === 0) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>Nicio anomalie! Felicitări!</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = anomalies.map(a => `
+        <div class="anomaly-card ${a.severity}">
+            <div class="anomaly-card-header">
+                <span>${a.icon}</span>
+                <span class="anomaly-card-title">${a.title}</span>
+                <span class="severity-badge ${a.severity}">${a.severity === 'high' ? 'Urgent' : a.severity === 'medium' ? 'Atenție' : 'Info'}</span>
+            </div>
+            <div class="anomaly-card-msg">${a.message}</div>
+            <div class="anomaly-card-tip">💡 ${a.suggestion}</div>
+        </div>
+    `).join('');
+}
+
+function renderPredictionsView() {
+    const container = $('predictionsContent');
+    if (!container) return;
+    
+    const pred = GeniusEngine.predictSpending();
+    if (!pred) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">📊</div><p>Adaugă cel puțin 5 tranzacții</p></div>`;
+        return;
+    }
+    
+    const cats = pred.categoryPredictions || {};
+    const sortedCats = Object.entries(cats).sort((a, b) => b[1].predicted - a[1].predicted).slice(0, 8);
+    
+    container.innerHTML = `
+        <div class="pred-main">
+            <div class="pred-main-title">🔮 Predicție Luna Viitoare</div>
+            <div class="pred-main-grid">
+                <div class="pred-main-item">
+                    <div class="pred-label">Cheltuieli</div>
+                    <div class="pred-value red">${pred.nextMonth.expense.toLocaleString()} ${state.currency}</div>
+                </div>
+                <div class="pred-main-item">
+                    <div class="pred-label">Venituri</div>
+                    <div class="pred-value grn">${pred.nextMonth.income.toLocaleString()} ${state.currency}</div>
+                </div>
+                <div class="pred-main-item">
+                    <div class="pred-label">Economii</div>
+                    <div class="pred-value ${pred.nextMonth.savings >= 0 ? 'grn' : 'red'}">${pred.nextMonth.savings.toLocaleString()} ${state.currency}</div>
+                </div>
+            </div>
+            <div class="pred-confidence">
+                <div class="pred-conf-bar"><div class="pred-conf-fill" style="width:${pred.confidence}%"></div></div>
+                <span>${pred.confidence.toFixed(0)}% încredere</span>
+            </div>
+        </div>
+        
+        <h3 class="section-title">📊 Pe categorii</h3>
+        <div class="pred-cats">
+            ${sortedCats.map(([catId, data]) => {
+                const cat = findCat('expense', catId);
+                const icon = data.trend > 5 ? '📈' : data.trend < -5 ? '📉' : '➡️';
+                return `
+                    <div class="pred-cat">
+                        <span class="pred-cat-icon">${cat?.icon || '📦'}</span>
+                        <div class="pred-cat-info">
+                            <div class="pred-cat-name">${cat?.name || catId}</div>
+                            <div class="pred-cat-trend">${icon} ${data.trend > 0 ? '+' : ''}${data.trend.toFixed(0)}%</div>
+                        </div>
+                        <div class="pred-cat-value">${data.predicted.toLocaleString()} ${state.currency}</div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function renderTimeAnalysis() {
+    const container = $('timeAnalysisContent');
+    if (!container) return;
+    
+    const analysis = GeniusEngine.analyzeTimePatterns();
+    if (!analysis) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">⏰</div><p>Adaugă mai multe tranzacții</p></div>`;
+        return;
+    }
+    
+    const maxDay = Math.max(...analysis.byDay.map(d => d.total));
+    const dayNames = ['Du', 'Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ'];
+    
+    container.innerHTML = `
+        <h3 class="section-title">📅 Cheltuieli pe zile</h3>
+        <div class="day-chart">
+            ${analysis.byDay.sort((a, b) => a.day - b.day).map(d => `
+                <div class="day-bar">
+                    <div class="day-bar-fill" style="height:${maxDay > 0 ? (d.total / maxDay * 100) : 0}%"></div>
+                    <div class="day-bar-label">${dayNames[d.day]}</div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="time-insights">
+            <div class="time-insight high">
+                <span class="time-insight-icon">🔥</span>
+                <div>
+                    <div class="time-insight-title">Cea mai scumpă zi</div>
+                    <div class="time-insight-value">${analysis.insights.highestDay.name}</div>
+                </div>
+            </div>
+            <div class="time-insight low">
+                <span class="time-insight-icon">💚</span>
+                <div>
+                    <div class="time-insight-title">Cea mai ieftină zi</div>
+                    <div class="time-insight-value">${analysis.insights.lowestDay.name}</div>
+                </div>
+            </div>
+            <div class="time-insight">
+                <span class="time-insight-icon">📊</span>
+                <div>
+                    <div class="time-insight-title">Weekend vs Weekday</div>
+                    <div class="time-insight-value">${analysis.insights.weekendVsWeekday.ratio}%</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderMerchantAnalytics() {
+    const container = $('merchantContent');
+    if (!container) return;
+    
+    const analysis = GeniusEngine.analyzeMerchants();
+    if (!analysis) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">🏪</div><p>Adaugă tranzacții cu subcategorii</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="merchant-stats">
+            <div class="merchant-stat">
+                <div class="merchant-stat-val">${analysis.totalMerchants}</div>
+                <div class="merchant-stat-lbl">Magazine</div>
+            </div>
+            <div class="merchant-stat">
+                <div class="merchant-stat-val">${analysis.insights.totalFromTop10.toLocaleString()}</div>
+                <div class="merchant-stat-lbl">${state.currency} Top 10</div>
+            </div>
+        </div>
+        
+        <h3 class="section-title">🏆 Top 10</h3>
+        <div class="merchant-list">
+            ${analysis.top10.map((m, i) => `
+                <div class="merchant-item">
+                    <span class="merchant-rank">#${i + 1}</span>
+                    <span class="merchant-icon">${m.categoryInfo?.icon || '🏪'}</span>
+                    <div class="merchant-info">
+                        <div class="merchant-name">${m.name}</div>
+                        <div class="merchant-meta">${m.count} tranzacții</div>
+                    </div>
+                    <div class="merchant-total">${m.total.toLocaleString()}</div>
+                </div>
+            `).join('')}
+        </div>
+        
+        ${analysis.potentialSavings.length > 0 ? `
+            <h3 class="section-title">💡 Economii potențiale</h3>
+            ${analysis.potentialSavings.map(m => `
+                <div class="savings-tip">
+                    <span>${m.categoryInfo?.icon || '💰'}</span>
+                    <div>
+                        <div>${m.name}</div>
+                        <div class="savings-tip-val grn">+${m.savingsPotential.toLocaleString()} ${state.currency}</div>
+                    </div>
+                </div>
+            `).join('')}
+        ` : ''}
+    `;
+}
+
+function renderSmartBudgets() {
+    const container = $('smartBudgetsContent');
+    if (!container) return;
+    
+    const result = GeniusEngine.generateSmartBudgets();
+    if (!result || result.budgets.length === 0) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">📊</div><p>Adaugă tranzacții pentru bugete AI</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="smart-budget-header">
+            <div class="smart-budget-title">🤖 Bugete recomandate de AI</div>
+            <div class="smart-budget-summary">
+                <span>Total: ${result.summary.totalBudgeted.toLocaleString()} ${state.currency}</span>
+                <span>Economii: ${result.summary.targetSavings.toLocaleString()} ${state.currency}</span>
+            </div>
+        </div>
+        
+        <div class="smart-budget-list">
+            ${result.budgets.map(b => `
+                <div class="smart-budget-item ${b.priority}">
+                    <span class="smart-budget-icon">${b.icon}</span>
+                    <div class="smart-budget-info">
+                        <div class="smart-budget-name">${b.categoryName}</div>
+                        <div class="smart-budget-trend">${b.trendDirection === 'up' ? '📈' : b.trendDirection === 'down' ? '📉' : '➡️'} ${b.trend > 0 ? '+' : ''}${b.trend.toFixed(0)}%</div>
+                    </div>
+                    <div class="smart-budget-value">${b.recommended.toLocaleString()} ${state.currency}</div>
+                    <button class="smart-budget-btn" onclick="applySmartBudget('${b.category}', ${b.recommended})">✓</button>
+                </div>
+            `).join('')}
+        </div>
+        
+        <button class="apply-all-btn" onclick="applyAllSmartBudgets()">✨ Aplică toate</button>
+    `;
+}
+
+async function applySmartBudget(category, amount) {
+    if (!state.user) return;
+    const existing = state.budgets.find(b => b.category === category);
+    if (existing) {
+        existing.limit = amount;
+        await db.collection('users').doc(state.user.uid).collection('budgets').doc(existing.id).update({ limit: amount });
+    } else {
+        const doc = await db.collection('users').doc(state.user.uid).collection('budgets').add({
+            category, limit: amount, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        state.budgets.push({ id: doc.id, category, limit: amount });
+    }
+    toast('Buget aplicat!', 'success');
+    renderSmartBudgets();
+}
+
+async function applyAllSmartBudgets() {
+    const result = GeniusEngine.generateSmartBudgets();
+    if (!result) return;
+    for (const b of result.budgets) await applySmartBudget(b.category, b.recommended);
+    toast('Toate bugetele aplicate!', 'success');
+}
+
+function renderSmartGoals() {
+    const container = $('smartGoalsContent');
+    if (!container) return;
+    
+    const goals = GeniusEngine.suggestSmartGoals();
+    if (!goals || goals.length === 0) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><p>Adaugă tranzacții pentru sugestii</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="smart-goals-header">🤖 Obiective sugerate de AI</div>
+        <div class="smart-goals-list">
+            ${goals.map(g => `
+                <div class="smart-goal ${g.priority}">
+                    <span class="smart-goal-icon">${g.icon}</span>
+                    <div class="smart-goal-info">
+                        <div class="smart-goal-name">${g.name}</div>
+                        <div class="smart-goal-target">${g.target.toLocaleString()} ${state.currency}</div>
+                        <div class="smart-goal-reason">${g.reason}</div>
+                        <div class="smart-goal-time">~${g.monthly.toLocaleString()}/lună · ${g.months} luni</div>
+                    </div>
+                    <button class="smart-goal-btn" onclick="addSmartGoal('${g.name}', ${g.target})">+</button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+async function addSmartGoal(name, target) {
+    if (!state.user) return;
+    const doc = await db.collection('users').doc(state.user.uid).collection('goals').add({
+        name, target, current: 0, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    state.goals.push({ id: doc.id, name, target, current: 0 });
+    toast('Obiectiv adăugat!', 'success');
+    renderSmartGoals();
+    renderGoals();
+}
+
+function openWhatIfSimulator() {
+    openModal('whatIfModal');
+    updateWhatIfSimulation();
+}
+
+// 💪 HEALTH SCORE VIEW
+function renderHealthScore() {
+    const container = $('healthScoreContent');
+    if (!container) return;
+    
+    const health = GeniusEngine.calculateHealthScore();
+    if (!health) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">💪</div><p>Adaugă tranzacții pentru scor</p></div>`;
+        return;
+    }
+    
+    const circumference = 2 * Math.PI * 45;
+    const offset = circumference - (health.score / 100) * circumference;
+    
+    container.innerHTML = `
+        <div class="health-main">
+            <div class="health-ring">
+                <svg width="120" height="120">
+                    <circle class="health-ring-bg" cx="60" cy="60" r="45"></circle>
+                    <circle class="health-ring-progress" cx="60" cy="60" r="45" 
+                        stroke="${health.gradeColor}"
+                        stroke-dasharray="${circumference}"
+                        stroke-dashoffset="${offset}">
+                    </circle>
+                </svg>
+                <div class="health-ring-text">
+                    <span class="health-score" style="color: ${health.gradeColor}">${health.score}</span>
+                </div>
+            </div>
+            <div class="health-grade" style="color: ${health.gradeColor}">${health.grade}</div>
+            <div class="health-message">${health.message}</div>
+        </div>
+        
+        <h3 class="section-title">📊 Factori de evaluare</h3>
+        <div class="health-factors">
+            ${health.factors.map(f => `
+                <div class="health-factor ${f.status}">
+                    <span class="health-factor-icon">${f.icon}</span>
+                    <div class="health-factor-info">
+                        <div class="health-factor-name">${f.name}</div>
+                        <div class="health-factor-bar">
+                            <div class="health-factor-fill" style="width: ${f.score / 25 * 100}%"></div>
+                        </div>
+                    </div>
+                    <span class="health-factor-score">+${f.score}</span>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="health-tip">
+            💡 Îmbunătățește factorii cu scor mic pentru a crește scorul general!
+        </div>
+    `;
+}
+
+// 📈 INVESTMENT READINESS VIEW
+function renderInvestmentReadiness() {
+    const container = $('investmentContent');
+    if (!container) return;
+    
+    const readiness = GeniusEngine.checkInvestmentReadiness();
+    if (!readiness) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">📈</div><p>Adaugă date pentru analiză</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="invest-main ${readiness.ready ? 'ready' : 'not-ready'}">
+            <div class="invest-status-icon">${readiness.ready ? '✅' : '⏳'}</div>
+            <div class="invest-status-title">${readiness.ready ? 'Ești pregătit să investești!' : 'Mai ai câțiva pași'}</div>
+            <div class="invest-status-score">${readiness.readinessScore}% pregătit</div>
+            ${readiness.ready ? `<div class="invest-amount">Poți investi ~${readiness.investableAmount} ${state.currency}/lună</div>` : ''}
+        </div>
+        
+        <h3 class="section-title">✓ Checklist pregătire</h3>
+        <div class="invest-checks">
+            ${readiness.checks.map(c => `
+                <div class="invest-check ${c.passed ? 'passed' : 'pending'}">
+                    <span class="invest-check-icon">${c.icon}</span>
+                    <div class="invest-check-info">
+                        <div class="invest-check-name">${c.name}</div>
+                        <div class="invest-check-note">${c.note}</div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <h3 class="section-title">📝 Următorii pași</h3>
+        <div class="invest-steps">
+            ${readiness.nextSteps.map((step, i) => `
+                <div class="invest-step">
+                    <span class="invest-step-num">${i + 1}</span>
+                    <span class="invest-step-text">${step}</span>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="invest-disclaimer">
+            ⚠️ Aceasta nu este consiliere financiară. Consultă un specialist înainte de a investi.
+        </div>
+    `;
+}
+
+// 🎯 RECOMMENDATIONS VIEW
+function renderRecommendations() {
+    const container = $('recommendationsContent');
+    if (!container) return;
+    
+    const recs = GeniusEngine.getPersonalizedRecommendations();
+    if (!recs || recs.length === 0) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">✨</div><p>Totul arată bine! Nicio recomandare urgentă.</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="recs-header">
+            <span class="recs-icon">🎯</span>
+            <span class="recs-title">Recomandări personalizate</span>
+        </div>
+        <div class="recs-list">
+            ${recs.map(r => `
+                <div class="rec-card ${r.impact}">
+                    <div class="rec-priority">${r.priority === 1 ? '🔴' : r.priority === 2 ? '🟡' : '🟢'}</div>
+                    <div class="rec-icon">${r.icon}</div>
+                    <div class="rec-content">
+                        <div class="rec-title">${r.title}</div>
+                        <div class="rec-desc">${r.description}</div>
+                        <div class="rec-action">👉 ${r.action}</div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// 📊 VELOCITY WIDGET (for home)
+function renderVelocityWidget() {
+    const container = $('velocityWidget');
+    if (!container) return;
+    
+    const velocity = GeniusEngine.getSpendingVelocity();
+    if (!velocity) return;
+    
+    const statusColors = { under: '#10b981', 'on-track': '#06b6d4', over: '#ef4444' };
+    const statusIcons = { under: '🎉', 'on-track': '👍', over: '⚠️' };
+    
+    container.innerHTML = `
+        <div class="velocity-widget" style="border-color: ${statusColors[velocity.status]}">
+            <div class="velocity-header">
+                <span>${statusIcons[velocity.status]}</span>
+                <span class="velocity-pct" style="color: ${statusColors[velocity.status]}">${velocity.velocity}%</span>
+            </div>
+            <div class="velocity-msg">${velocity.message}</div>
+            <div class="velocity-detail">
+                ${velocity.dailyBudget > 0 ? `Budget zilnic rămas: ${velocity.dailyBudget} ${state.currency}` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function updateWhatIfSimulation() {
+    const subCut = parseInt($('simSubCut')?.value) || 0;
+    const foodCut = parseInt($('simFoodCut')?.value) || 0;
+    const entCut = parseInt($('simEntCut')?.value) || 0;
+    const transportCut = parseInt($('simTransportCut')?.value) || 0;
+    const extraIncome = parseInt($('simExtraIncome')?.value) || 0;
+    
+    if ($('simSubCutVal')) $('simSubCutVal').textContent = subCut + '%';
+    if ($('simFoodCutVal')) $('simFoodCutVal').textContent = foodCut + '%';
+    if ($('simEntCutVal')) $('simEntCutVal').textContent = entCut + '%';
+    if ($('simTransportCutVal')) $('simTransportCutVal').textContent = transportCut + '%';
+    if ($('simExtraIncomeVal')) $('simExtraIncomeVal').textContent = extraIncome.toLocaleString() + ' ' + state.currency;
+    
+    const result = GeniusEngine.simulateScenario({
+        cutSubscription: subCut,
+        reduceFoodDelivery: foodCut,
+        reduceEntertainment: entCut,
+        reduceTransport: transportCut,
+        additionalIncome: extraIncome
+    });
+    
+    const container = $('whatIfResults');
+    if (!result || !container) return;
+    
+    container.innerHTML = `
+        <div class="whatif-compare">
+            <div class="whatif-box">
+                <div class="whatif-box-label">Acum</div>
+                <div class="whatif-box-value">${result.current.savings.toLocaleString()}</div>
+                <div class="whatif-box-rate">${result.current.savingsRate.toFixed(1)}%</div>
+            </div>
+            <div class="whatif-arrow">→</div>
+            <div class="whatif-box ${result.simulated.savings > result.current.savings ? 'positive' : ''}">
+                <div class="whatif-box-label">După</div>
+                <div class="whatif-box-value">${result.simulated.savings.toLocaleString()}</div>
+                <div class="whatif-box-rate">${result.simulated.savingsRate.toFixed(1)}%</div>
+            </div>
+        </div>
+        
+        <div class="whatif-impact">
+            <div class="whatif-impact-row ${result.totalMonthlyImpact >= 0 ? 'positive' : ''}">
+                <span>Impact lunar:</span>
+                <span>${result.totalMonthlyImpact >= 0 ? '+' : ''}${result.totalMonthlyImpact.toLocaleString()} ${state.currency}</span>
+            </div>
+            <div class="whatif-impact-row ${result.totalYearlyImpact >= 0 ? 'positive' : ''}">
+                <span>Impact anual:</span>
+                <span>${result.totalYearlyImpact >= 0 ? '+' : ''}${result.totalYearlyImpact.toLocaleString()} ${state.currency}</span>
+            </div>
+        </div>
+        
+        ${result.fireImpact && result.fireImpact.yearsSaved > 0 ? `
+            <div class="whatif-fire">
+                🔥 Ajungi la FIRE cu <strong>${result.fireImpact.yearsSaved.toFixed(1)} ani</strong> mai devreme!
+            </div>
+        ` : ''}
+    `;
 }
 
 // ═══════════════════════════════════════════
@@ -2608,3 +4202,10 @@ window.editCustomCat = editCustomCat;
 window.saveCustomCat = saveCustomCat;
 window.deleteCustomCat = deleteCustomCat;
 window.getAllCategories = getAllCategories;
+// GENIUS AI exports
+window.openWhatIfSimulator = openWhatIfSimulator;
+window.updateWhatIfSimulation = updateWhatIfSimulation;
+window.applySmartBudget = applySmartBudget;
+window.applyAllSmartBudgets = applyAllSmartBudgets;
+window.addSmartGoal = addSmartGoal;
+window.renderGeniusDashboard = renderGeniusDashboard;

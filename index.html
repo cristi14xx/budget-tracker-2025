@@ -112,6 +112,43 @@
           </div>
         </div>
 
+        <!-- 🧠 GENIUS: Anomaly Alerts -->
+        <div id="anomalyAlerts" class="genius-alerts hide"></div>
+
+        <!-- 🧠 GENIUS: Daily Coach Tips -->
+        <section class="section genius-section">
+          <div class="sec-head">
+            <h3 class="sec-title">⚡ Spending Coach</h3>
+          </div>
+          <div id="coachTips" class="coach-tips"></div>
+        </section>
+
+        <!-- 🧠 GENIUS: Predictions Widget -->
+        <div id="predictionsWidget" class="predictions-widget"></div>
+
+        <!-- 🧠 GENIUS: Velocity Widget -->
+        <div id="velocityWidget"></div>
+
+        <!-- 🧠 GENIUS: Quick Actions -->
+        <div class="genius-actions">
+          <button class="genius-action-btn" onclick="openWhatIfSimulator()">
+            <span>💰</span>
+            <span>What-If</span>
+          </button>
+          <button class="genius-action-btn" onclick="nav('predictions')">
+            <span>🔮</span>
+            <span>Predicții</span>
+          </button>
+          <button class="genius-action-btn" onclick="nav('timeAnalysis')">
+            <span>⏰</span>
+            <span>Timp</span>
+          </button>
+          <button class="genius-action-btn" onclick="nav('merchants')">
+            <span>🏪</span>
+            <span>Magazine</span>
+          </button>
+        </div>
+
         <section class="section">
           <div class="sec-head">
             <h3 class="sec-title">Tranzacții recente</h3>
@@ -180,6 +217,87 @@
         <div id="budgetsList"></div>
       </section>
 
+      <!-- 🧠 GENIUS: ANOMALIES VIEW -->
+      <section id="anomaliesView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('home')">←</button>
+          <h2 class="sub-title">⚠️ Anomalii detectate</h2>
+        </div>
+        <div id="anomaliesList" class="genius-content"></div>
+      </section>
+
+      <!-- 🧠 GENIUS: PREDICTIONS VIEW -->
+      <section id="predictionsView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('home')">←</button>
+          <h2 class="sub-title">🔮 Predicții AI</h2>
+        </div>
+        <div id="predictionsContent" class="genius-content"></div>
+      </section>
+
+      <!-- 🧠 GENIUS: TIME ANALYSIS VIEW -->
+      <section id="timeAnalysisView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('home')">←</button>
+          <h2 class="sub-title">⏰ Analiză timp</h2>
+        </div>
+        <div id="timeAnalysisContent" class="genius-content"></div>
+      </section>
+
+      <!-- 🧠 GENIUS: MERCHANT ANALYTICS VIEW -->
+      <section id="merchantsView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('home')">←</button>
+          <h2 class="sub-title">🏪 Magazine & Locații</h2>
+        </div>
+        <div id="merchantContent" class="genius-content"></div>
+      </section>
+
+      <!-- 🧠 GENIUS: SMART BUDGETS VIEW -->
+      <section id="smartBudgetsView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">📝 Bugete AI</h2>
+        </div>
+        <div id="smartBudgetsContent" class="genius-content"></div>
+      </section>
+
+      <!-- 🧠 GENIUS: SMART GOALS VIEW -->
+      <section id="smartGoalsView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">🎯 Obiective AI</h2>
+        </div>
+        <div id="smartGoalsContent" class="genius-content"></div>
+      </section>
+
+      <!-- 🧠 GENIUS: HEALTH SCORE VIEW -->
+      <section id="healthScoreView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">💪 Scor Sănătate Financiară</h2>
+        </div>
+        <div id="healthScoreContent" class="genius-content"></div>
+      </section>
+
+      <!-- 🧠 GENIUS: INVESTMENT READINESS VIEW -->
+      <section id="investmentView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">📈 Pregătire Investiții</h2>
+        </div>
+        <div id="investmentContent" class="genius-content"></div>
+      </section>
+
+      <!-- 🧠 GENIUS: RECOMMENDATIONS VIEW -->
+      <section id="recommendationsView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">🎯 Recomandări AI</h2>
+        </div>
+        <div id="recommendationsContent" class="genius-content"></div>
+      </section>
+
       <!-- MENU -->
       <section id="menuView" class="view">
         <div class="profile-box">
@@ -207,6 +325,22 @@
           <div class="menu-grp">
             <button class="menu-item" onclick="nav('netWorth')"><span class="menu-icon">📈</span><span class="menu-txt">Evoluție Patrimoniu</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('insights')"><span class="menu-icon">🤖</span><span class="menu-txt">AI Insights</span><span class="menu-arr">›</span></button>
+          </div>
+        </div>
+
+        <div class="menu-sec">
+          <div class="menu-lbl">🧠 Genius AI</div>
+          <div class="menu-grp">
+            <button class="menu-item" onclick="nav('healthScore')"><span class="menu-icon">💪</span><span class="menu-txt">Scor Sănătate</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('predictions')"><span class="menu-icon">🔮</span><span class="menu-txt">Predicții Spending</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('anomalies')"><span class="menu-icon">⚠️</span><span class="menu-txt">Anomalii Detectate</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('recommendations')"><span class="menu-icon">🎯</span><span class="menu-txt">Recomandări AI</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('timeAnalysis')"><span class="menu-icon">⏰</span><span class="menu-txt">Analiză Timp</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('merchants')"><span class="menu-icon">🏪</span><span class="menu-txt">Merchant Analytics</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('smartBudgets')"><span class="menu-icon">📝</span><span class="menu-txt">Auto-Budgeting AI</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('smartGoals')"><span class="menu-icon">🎯</span><span class="menu-txt">Smart Goals AI</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('investment')"><span class="menu-icon">📈</span><span class="menu-txt">Pregătire Investiții</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="openWhatIfSimulator()"><span class="menu-icon">💰</span><span class="menu-txt">What-If Simulator</span><span class="menu-arr">›</span></button>
           </div>
         </div>
 
@@ -565,6 +699,65 @@
           <button type="submit" class="submit-btn">Salvează</button>
           <button type="button" class="submit-btn red" id="txDeleteBtn" style="display:none;margin-top:8px" onclick="deleteTx()">Șterge</button>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🧠 GENIUS: What-If Simulator Modal -->
+  <div id="whatIfModal" class="modal">
+    <div class="modal-bg" onclick="closeModal('whatIfModal')"></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <span class="modal-title">💰 What-If Simulator</span>
+        <button class="modal-x" onclick="closeModal('whatIfModal')">✕</button>
+      </div>
+      <div class="modal-body whatif-body">
+        <p class="whatif-intro">Descoperă cum mici schimbări pot avea un impact mare!</p>
+        
+        <div class="whatif-sliders">
+          <div class="whatif-slider">
+            <div class="whatif-slider-header">
+              <span>📱 Reducere abonamente</span>
+              <span id="simSubCutVal">0%</span>
+            </div>
+            <input type="range" id="simSubCut" min="0" max="100" value="0" oninput="updateWhatIfSimulation()">
+          </div>
+          
+          <div class="whatif-slider">
+            <div class="whatif-slider-header">
+              <span>🍔 Reducere livrări mâncare</span>
+              <span id="simFoodCutVal">0%</span>
+            </div>
+            <input type="range" id="simFoodCut" min="0" max="100" value="0" oninput="updateWhatIfSimulation()">
+          </div>
+          
+          <div class="whatif-slider">
+            <div class="whatif-slider-header">
+              <span>🎬 Reducere divertisment</span>
+              <span id="simEntCutVal">0%</span>
+            </div>
+            <input type="range" id="simEntCut" min="0" max="100" value="0" oninput="updateWhatIfSimulation()">
+          </div>
+          
+          <div class="whatif-slider">
+            <div class="whatif-slider-header">
+              <span>🚗 Reducere transport</span>
+              <span id="simTransportCutVal">0%</span>
+            </div>
+            <input type="range" id="simTransportCut" min="0" max="100" value="0" oninput="updateWhatIfSimulation()">
+          </div>
+          
+          <div class="whatif-slider">
+            <div class="whatif-slider-header">
+              <span>💼 Venit suplimentar</span>
+              <span id="simExtraIncomeVal">0 RON</span>
+            </div>
+            <input type="range" id="simExtraIncome" min="0" max="5000" step="100" value="0" oninput="updateWhatIfSimulation()">
+          </div>
+        </div>
+        
+        <div id="whatIfResults" class="whatif-results"></div>
       </div>
     </div>
   </div>

@@ -479,22 +479,138 @@
             </div>
           </div>
         </div>
+        
+        <!-- CORECȚIE SOLD -->
         <div class="menu-sec">
-          <div class="menu-lbl">Date</div>
+          <div class="menu-lbl">⚖️ Corecție Sold</div>
+          <div class="menu-grp">
+            <div class="menu-item" style="flex-direction:column;align-items:stretch;gap:12px;">
+              <p style="font-size:12px;color:var(--text2);margin:0;">
+                Dacă soldul calculat nu corespunde cu realitatea, adaugă o tranzacție de corecție.
+                Aceasta ajustează diferența fără a afecta statisticile.
+              </p>
+              <div style="display:flex;gap:8px;">
+                <input type="number" id="balanceCorrectionAmount" placeholder="Sold real actual" style="flex:1;background:var(--card2);border:1px solid var(--border);color:#fff;padding:10px;border-radius:8px;">
+                <button onclick="applyBalanceCorrection()" style="background:var(--accent);border:none;color:#000;padding:10px 16px;border-radius:8px;font-weight:600;">Corectează</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="menu-sec">
+          <div class="menu-lbl">💰 FIRE Calculator</div>
+          <div class="menu-grp">
+            <div class="menu-item">
+              <span class="menu-icon">📊</span>
+              <input type="number" id="netWorthIn" placeholder="Patrimoniu total" style="flex:1;background:var(--card2);border:1px solid var(--border);color:#fff;padding:8px;border-radius:8px;">
+              <button onclick="saveNetWorth()" style="background:var(--accent);border:none;color:#000;padding:8px 14px;border-radius:8px;font-weight:600;margin-left:8px;">Save</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="menu-sec">
+          <div class="menu-lbl">📦 Date</div>
           <div class="menu-grp">
             <button class="menu-item" onclick="exportData()"><span class="menu-icon">📤</span><span class="menu-txt">Export date</span></button>
             <button class="menu-item danger" onclick="clearData()"><span class="menu-icon">🗑️</span><span class="menu-txt">Șterge toate datele</span></button>
           </div>
         </div>
+        
         <div class="menu-sec">
-          <div class="menu-lbl">FIRE Calculator</div>
+          <div class="menu-lbl">ℹ️ Despre</div>
           <div class="menu-grp">
-            <div class="menu-item">
-              <span class="menu-icon">💰</span>
-              <input type="number" id="netWorthIn" placeholder="Patrimoniu total" style="flex:1;background:var(--card2);border:1px solid var(--border);color:#fff;padding:8px;border-radius:8px;">
-              <button onclick="saveNetWorth()" style="background:var(--accent);border:none;color:#000;padding:8px 14px;border-radius:8px;font-weight:600;margin-left:8px;">Save</button>
+            <button class="menu-item" onclick="nav('faq')"><span class="menu-icon">❓</span><span class="menu-txt">FAQ & Ghid Utilizare</span><span class="menu-arr">›</span></button>
+          </div>
+        </div>
+        
+        <!-- Copyright -->
+        <div style="text-align:center;padding:24px 16px;margin-top:20px;">
+          <p style="font-size:12px;color:var(--text3);margin:0 0 4px;">Budget Pro 2025 v3.0</p>
+          <p style="font-size:11px;color:var(--text3);margin:0;">© 2025 Cristian Puravu. Toate drepturile rezervate.</p>
+        </div>
+      </section>
+      
+      <!-- FAQ -->
+      <section id="faqView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('settings')">←</button>
+          <h2 class="sub-title">FAQ & Ghid</h2>
+        </div>
+        <div style="padding:16px;">
+          
+          <!-- Quick Start -->
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-hdr"><span class="card-title">🚀 Început Rapid</span></div>
+            <div style="padding:16px;font-size:14px;color:var(--text2);line-height:1.6;">
+              <p><strong style="color:var(--text);">1. Adaugă prima tranzacție</strong> - Apasă butonul <strong>+</strong> din mijlocul ecranului</p>
+              <p><strong style="color:var(--text);">2. Setează bugete</strong> - Mergi la Bugete și definește limite pe categorii</p>
+              <p><strong style="color:var(--text);">3. Adaugă venituri recurente</strong> - Salariul, chiria primită, etc.</p>
+              <p><strong style="color:var(--text);">4. Verifică AI Insights</strong> - Finley îți oferă sfaturi personalizate</p>
             </div>
           </div>
+          
+          <!-- FAQ Items -->
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-hdr"><span class="card-title">❓ Întrebări Frecvente</span></div>
+            <div style="padding:16px;font-size:14px;">
+              
+              <div style="border-bottom:1px solid var(--border);padding:12px 0;">
+                <p style="color:var(--accent);font-weight:600;margin:0 0 8px;">Cum funcționează corecția sold?</p>
+                <p style="color:var(--text2);margin:0;line-height:1.5;">Dacă soldul calculat diferă de realitate (ex: ai uitat tranzacții), introdu soldul real în "Corecție Sold". Se va crea automat o tranzacție de ajustare cu diferența.</p>
+              </div>
+              
+              <div style="border-bottom:1px solid var(--border);padding:12px 0;">
+                <p style="color:var(--accent);font-weight:600;margin:0 0 8px;">Ce sunt categoriile învățate?</p>
+                <p style="color:var(--text2);margin:0;line-height:1.5;">Aplicația memorează automat cum categorizezi tranzacțiile. Data viitoare când scrii "Lidl", va sugera automat categoria "Mâncare". Poți vedea și șterge pattern-urile în Categorii Smart → Tab "Învățate".</p>
+              </div>
+              
+              <div style="border-bottom:1px solid var(--border);padding:12px 0;">
+                <p style="color:var(--accent);font-weight:600;margin:0 0 8px;">Cum adaug o subcategorie nouă?</p>
+                <p style="color:var(--text2);margin:0;line-height:1.5;">Când adaugi o tranzacție și selectezi subcategoria, ultima opțiune este "➕ Adaugă nou...". Apasă și introdu numele noii subcategorii.</p>
+              </div>
+              
+              <div style="border-bottom:1px solid var(--border);padding:12px 0;">
+                <p style="color:var(--accent);font-weight:600;margin:0 0 8px;">Ce înseamnă FIRE?</p>
+                <p style="color:var(--text2);margin:0;line-height:1.5;">FIRE = Financial Independence, Retire Early. Reprezintă suma necesară pentru a trăi din investiții (de obicei 25x cheltuielile anuale). Aplicația calculează câți ani îți mai trebuie.</p>
+              </div>
+              
+              <div style="border-bottom:1px solid var(--border);padding:12px 0;">
+                <p style="color:var(--accent);font-weight:600;margin:0 0 8px;">Cum funcționează tranzacțiile recurente?</p>
+                <p style="color:var(--text2);margin:0;line-height:1.5;">Definești o tranzacție (ex: chirie 2000 RON lunar) și aplicația o va adăuga automat la fiecare scadență. Le poți edita sau șterge oricând.</p>
+              </div>
+              
+              <div style="border-bottom:1px solid var(--border);padding:12px 0;">
+                <p style="color:var(--accent);font-weight:600;margin:0 0 8px;">Datele sunt salvate unde?</p>
+                <p style="color:var(--text2);margin:0;line-height:1.5;">Datele sunt stocate în Firebase Cloud, asociate contului tău Google. Sunt criptate și sincronizate pe toate dispozitivele tale.</p>
+              </div>
+              
+              <div style="padding:12px 0;">
+                <p style="color:var(--accent);font-weight:600;margin:0 0 8px;">Ce face Finley AI?</p>
+                <p style="color:var(--text2);margin:0;line-height:1.5;">Finley este consilierul tău financiar AI. Analizează tranzacțiile tale și oferă sfaturi personalizate pentru economisire, reducerea cheltuielilor și atingerea obiectivelor.</p>
+              </div>
+              
+            </div>
+          </div>
+          
+          <!-- Tips -->
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-hdr"><span class="card-title">💡 Sfaturi Pro</span></div>
+            <div style="padding:16px;font-size:13px;color:var(--text2);line-height:1.6;">
+              <p>✅ <strong style="color:var(--text);">Adaugă tranzacțiile zilnic</strong> - Nu amâna, uiți detaliile</p>
+              <p>✅ <strong style="color:var(--text);">Folosește tag-uri</strong> - #vacanță, #business pentru filtrare ușoară</p>
+              <p>✅ <strong style="color:var(--text);">Setează bugete realiste</strong> - Începe cu ce ai cheltuit luna trecută</p>
+              <p>✅ <strong style="color:var(--text);">Verifică AI Insights săptămânal</strong> - Primești sfaturi personalizate</p>
+              <p>✅ <strong style="color:var(--text);">Încearcă o provocare</strong> - "No Spend Weekend" e un început bun</p>
+            </div>
+          </div>
+          
+          <!-- Copyright Footer -->
+          <div style="text-align:center;padding:20px;">
+            <p style="font-size:13px;color:var(--text);margin:0 0 4px;">Budget Pro 2025</p>
+            <p style="font-size:11px;color:var(--text3);margin:0;">Dezvoltat cu ❤️ de Cristian Puravu</p>
+            <p style="font-size:10px;color:var(--text3);margin:8px 0 0;">© 2025 Toate drepturile rezervate</p>
+          </div>
+          
         </div>
       </section>
 
@@ -561,14 +677,54 @@
         </div>
         <div id="advancedInsights"></div>
       </section>
-      <!-- CUSTOM CATEGORIES -->
+      <!-- CUSTOM CATEGORIES & SMART LEARNING -->
       <section id="customcatsView" class="view">
         <div class="sub-hdr">
           <button class="back-btn" onclick="nav('menu')">←</button>
-          <h2 class="sub-title">Categorii Custom</h2>
+          <h2 class="sub-title">Categorii Smart</h2>
           <button class="add-btn" onclick="openCustomCatModal()">+</button>
         </div>
-        <div id="customCatsList"></div>
+        
+        <!-- Tabs -->
+        <div class="sub-tabs" style="margin: 0 16px 16px;">
+          <button class="sub-tab on" onclick="showSmartTab('custom')">🏷️ Custom</button>
+          <button class="sub-tab" onclick="showSmartTab('learned')">🧠 Învățate</button>
+          <button class="sub-tab" onclick="showSmartTab('stats')">📊 Statistici</button>
+        </div>
+        
+        <!-- Custom Categories Tab -->
+        <div id="smartTabCustom" class="smart-tab-content">
+          <div id="customCatsList"></div>
+          <div style="margin: 16px; padding-top: 8px; border-top: 1px solid var(--border);">
+            <p style="font-size: 12px; color: var(--text2); margin-bottom: 12px;">
+              💡 Creează categorii personalizate cu subcategorii și cuvinte cheie pentru auto-detectare
+            </p>
+          </div>
+        </div>
+        
+        <!-- Learned Patterns Tab -->
+        <div id="smartTabLearned" class="smart-tab-content" style="display: none;">
+          <div class="learned-patterns">
+            <div class="learned-header">
+              <div class="learned-title">🧠 Modele Învățate</div>
+              <button class="btn-clear-patterns" onclick="clearLearnedPatterns()">🗑️ Șterge tot</button>
+            </div>
+            <div id="learnedPatternsList"></div>
+            <div class="smart-actions">
+              <button class="smart-action-btn" onclick="exportSmartData()">
+                📤 Exportă
+              </button>
+              <button class="smart-action-btn" onclick="importSmartData()">
+                📥 Importă
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Statistics Tab -->
+        <div id="smartTabStats" class="smart-tab-content" style="display: none;">
+          <div id="smartStats" style="margin: 16px;"></div>
+        </div>
       </section>
     </main>
 
@@ -682,7 +838,7 @@
           </div>
           <div class="form-row">
             <label class="form-lbl">Subcategorie</label>
-            <select id="txSubcat" class="form-select"></select>
+            <select id="txSubcat" class="form-select" onchange="handleSubcatChange()"></select>
           </div>
           <div class="form-row">
             <label class="form-lbl">Data</label>
@@ -694,7 +850,7 @@
           </div>
           <div class="form-row">
             <label class="form-lbl">Notă (opțional)</label>
-            <input type="text" id="txNote" class="form-input" placeholder="Adaugă o notă...">
+            <input type="text" id="txNote" class="form-input" placeholder="Adaugă o notă..." oninput="handleNoteInput(event)">
           </div>
           <button type="submit" class="submit-btn">Salvează</button>
           <button type="button" class="submit-btn red" id="txDeleteBtn" style="display:none;margin-top:8px" onclick="deleteTx()">Șterge</button>
@@ -932,7 +1088,7 @@
     <div class="modal-bg" onclick="closeModal('recurringModal')"></div>
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-head"><span class="modal-title">🔄 Tranzacție Recurentă</span><button class="modal-x" onclick="closeModal('recurringModal')">✕</button></div>
+      <div class="modal-head"><span class="modal-title" id="recurringModalTitle">🔄 Tranzacție Recurentă</span><button class="modal-x" onclick="closeModal('recurringModal')">✕</button></div>
       <div class="modal-body">
         <div class="type-tabs">
           <button class="type-tab exp on" data-t="expense" onclick="setRecurType('expense')">💸 Cheltuială</button>
@@ -946,30 +1102,27 @@
           </div>
           <div class="form-row">
             <label class="form-lbl">Categorie</label>
-            <select id="recurCat" class="form-select" required onchange="loadSubcats()"></select>
-          </div>
-          <div class="form-row">
-            <label class="form-lbl">Subcategorie</label>
-            <select id="recurSubcat" class="form-select"></select>
+            <select id="recurCat" class="form-select" required></select>
           </div>
           <div class="form-row">
             <label class="form-lbl">Frecvență</label>
             <select id="recurFreq" class="form-select" required>
               <option value="daily">Zilnic</option>
               <option value="weekly">Săptămânal</option>
-              <option value="monthly">Lunar</option>
+              <option value="monthly" selected>Lunar</option>
               <option value="yearly">Anual</option>
             </select>
           </div>
           <div class="form-row">
-            <label class="form-lbl">Data început</label>
+            <label class="form-lbl">Data următoare</label>
             <input type="date" id="recurStart" class="form-input" required>
           </div>
           <div class="form-row">
             <label class="form-lbl">Notă</label>
-            <input type="text" id="recurNote" class="form-input" placeholder="Ex: Chirie">
+            <input type="text" id="recurNote" class="form-input" placeholder="Ex: Chirie apartament">
           </div>
           <button type="submit" class="submit-btn">Salvează</button>
+          <button type="button" class="submit-btn red" id="recurDeleteBtn" style="display:none;margin-top:8px" onclick="deleteRecurring(state.editingId)">🗑️ Șterge</button>
         </form>
       </div>
     </div>

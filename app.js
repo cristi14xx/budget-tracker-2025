@@ -524,8 +524,525 @@ const categories = {
     ]
 };
 
-// Custom categories (loaded from user data)
+// ═══════════════════════════════════════════════════════════════
+// 🤖 SMART CATEGORY SYSTEM - AI + Custom + Auto-Learn
+// ═══════════════════════════════════════════════════════════════
+
+// Custom categories storage
 let customCategories = { expense: [], income: [] };
+
+// Auto-learn database - stores user category preferences
+let learnedPatterns = {};
+
+// Smart Category Engine
+const SmartCategoryEngine = {
+    
+    // 📂 STORAGE KEYS
+    STORAGE_KEYS: {
+        customCategories: 'budget_custom_categories',
+        learnedPatterns: 'budget_learned_patterns',
+        merchantHistory: 'budget_merchant_history'
+    },
+    
+    // 🚀 INITIALIZE - Load saved data
+    init: function() {
+        try {
+            // Load custom categories
+            const savedCustom = localStorage.getItem(this.STORAGE_KEYS.customCategories);
+            if (savedCustom) {
+                customCategories = JSON.parse(savedCustom);
+            }
+            
+            // Load learned patterns
+            const savedPatterns = localStorage.getItem(this.STORAGE_KEYS.learnedPatterns);
+            if (savedPatterns) {
+                learnedPatterns = JSON.parse(savedPatterns);
+            }
+            
+            console.log('🤖 SmartCategoryEngine initialized:', {
+                customCategories: customCategories,
+                learnedPatterns: Object.keys(learnedPatterns).length + ' patterns'
+            });
+        } catch (e) {
+            console.error('SmartCategoryEngine init error:', e);
+        }
+    },
+    
+    // 💾 SAVE - Persist data to localStorage
+    save: function() {
+        try {
+            localStorage.setItem(this.STORAGE_KEYS.customCategories, JSON.stringify(customCategories));
+            localStorage.setItem(this.STORAGE_KEYS.learnedPatterns, JSON.stringify(learnedPatterns));
+        } catch (e) {
+            console.error('SmartCategoryEngine save error:', e);
+        }
+    },
+    
+    // ═══════════════════════════════════════════════════════════
+    // 🔍 AI AUTO-DETECT - Intelligent category detection
+    // ═══════════════════════════════════════════════════════════
+    
+    autoCategorize: function(description, amount, type = 'expense') {
+        if (!description) return null;
+        
+        const desc = description.toLowerCase().trim();
+        
+        // 1️⃣ FIRST: Check learned patterns (user preferences)
+        const learnedResult = this.checkLearnedPatterns(desc);
+        if (learnedResult) {
+            console.log('🧠 Auto-categorized from learned:', learnedResult);
+            return learnedResult;
+        }
+        
+        // 2️⃣ SECOND: Check custom categories
+        const customResult = this.checkCustomCategories(desc, type);
+        if (customResult) {
+            console.log('📁 Auto-categorized from custom:', customResult);
+            return customResult;
+        }
+        
+        // 3️⃣ THIRD: Smart detection from built-in categories
+        const smartResult = this.smartDetect(desc, type);
+        if (smartResult) {
+            console.log('🤖 Auto-categorized with AI:', smartResult);
+            return smartResult;
+        }
+        
+        // 4️⃣ FOURTH: Brand/Company detection (for unknown merchants)
+        const brandResult = this.detectBrand(desc, amount, type);
+        if (brandResult) {
+            console.log('🏪 Auto-categorized by brand detection:', brandResult);
+            return brandResult;
+        }
+        
+        return null;
+    },
+    
+    // Check learned patterns from user history
+    checkLearnedPatterns: function(desc) {
+        // Exact match first
+        if (learnedPatterns[desc]) {
+            return learnedPatterns[desc];
+        }
+        
+        // Partial match
+        for (const [pattern, result] of Object.entries(learnedPatterns)) {
+            if (desc.includes(pattern) || pattern.includes(desc)) {
+                return result;
+            }
+        }
+        
+        // Word-based match
+        const words = desc.split(/\s+/);
+        for (const word of words) {
+            if (word.length >= 4 && learnedPatterns[word]) {
+                return learnedPatterns[word];
+            }
+        }
+        
+        return null;
+    },
+    
+    // Check custom categories
+    checkCustomCategories: function(desc, type) {
+        const customs = customCategories[type] || [];
+        
+        for (const custom of customs) {
+            // Check main category name
+            if (desc.includes(custom.name.toLowerCase())) {
+                return { category: custom.id, subcategory: custom.name };
+            }
+            
+            // Check subcategories
+            for (const sub of (custom.subs || [])) {
+                if (desc.includes(sub.toLowerCase())) {
+                    return { category: custom.id, subcategory: sub };
+                }
+            }
+            
+            // Check keywords
+            for (const kw of (custom.keywords || [])) {
+                if (desc.includes(kw.toLowerCase())) {
+                    return { category: custom.id, subcategory: custom.name };
+                }
+            }
+        }
+        
+        return null;
+    },
+    
+    // Smart detection from built-in categories
+    smartDetect: function(desc, type) {
+        const cats = categories[type] || [];
+        let bestMatch = null;
+        let bestScore = 0;
+        
+        for (const cat of cats) {
+            let score = 0;
+            let matchedSub = null;
+            
+            // Check subcategories (highest priority)
+            for (const sub of (cat.subs || [])) {
+                const subLower = sub.toLowerCase();
+                
+                // Exact match = 100 points
+                if (desc === subLower) {
+                    return { category: cat.id, subcategory: sub, confidence: 100 };
+                }
+                
+                // Contains match = 80 points
+                if (desc.includes(subLower) || subLower.includes(desc)) {
+                    const matchScore = 80 + (subLower.length / desc.length * 20);
+                    if (matchScore > score) {
+                        score = matchScore;
+                        matchedSub = sub;
+                    }
+                }
+                
+                // Word match = 50 points per word
+                const subWords = subLower.split(/\s+/);
+                const descWords = desc.split(/\s+/);
+                for (const sw of subWords) {
+                    if (sw.length >= 3 && descWords.some(dw => dw.includes(sw) || sw.includes(dw))) {
+                        score += 50;
+                        if (!matchedSub) matchedSub = sub;
+                    }
+                }
+            }
+            
+            // Check keywords (medium priority)
+            for (const kw of (cat.keywords || [])) {
+                if (desc.includes(kw.toLowerCase())) {
+                    score += 30;
+                }
+            }
+            
+            // Check category name (lower priority)
+            if (desc.includes(cat.name.toLowerCase())) {
+                score += 20;
+            }
+            
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = { category: cat.id, subcategory: matchedSub || cat.name, confidence: Math.min(score, 100) };
+            }
+        }
+        
+        return bestScore >= 30 ? bestMatch : null;
+    },
+    
+    // Brand/Company detection for unknown merchants
+    detectBrand: function(desc, amount, type) {
+        if (type !== 'expense') return null;
+        
+        // Common patterns for Romanian transactions
+        const patterns = [
+            // Bank/Card patterns
+            { regex: /pos\s+(.+)/i, extract: 1 },
+            { regex: /plata\s+(.+)/i, extract: 1 },
+            { regex: /transfer\s+(.+)/i, extract: 1 },
+            { regex: /(.+)\s+srl/i, extract: 1 },
+            { regex: /(.+)\s+sa\b/i, extract: 1 },
+            { regex: /sc\s+(.+)/i, extract: 1 },
+        ];
+        
+        let merchantName = desc;
+        for (const p of patterns) {
+            const match = desc.match(p.regex);
+            if (match && match[p.extract]) {
+                merchantName = match[p.extract].trim();
+                break;
+            }
+        }
+        
+        // Try to categorize by amount ranges and keywords
+        if (amount) {
+            // Small amounts (< 50) often food/coffee
+            if (amount < 50 && /coffee|cafea|cafe|latte|cappuccino/i.test(desc)) {
+                return { category: 'food', subcategory: merchantName, confidence: 60 };
+            }
+            
+            // Medium amounts with food keywords
+            if (amount < 200 && /restaurant|bistro|grill|kitchen|bucatarie|mancare|food|pizza|burger|kebab/i.test(desc)) {
+                return { category: 'food', subcategory: merchantName, confidence: 60 };
+            }
+            
+            // Fuel station patterns
+            if (/benzina|petrol|mol |omv |lukoil|rompetrol|socar|shell/i.test(desc)) {
+                return { category: 'transport', subcategory: merchantName, confidence: 70 };
+            }
+            
+            // Pharmacy patterns
+            if (/farmacie|pharmacy|catena|sensiblu|helpnet|dr\.?\s*max|dona\s|tei\b/i.test(desc)) {
+                return { category: 'health', subcategory: merchantName, confidence: 70 };
+            }
+            
+            // Supermarket patterns
+            if (/market|magazin|shop|store|mega|lidl|kaufland|carrefour|auchan|penny|profi/i.test(desc)) {
+                return { category: 'food', subcategory: merchantName, confidence: 65 };
+            }
+        }
+        
+        // Return as uncategorized but with merchant name extracted
+        return { category: null, subcategory: merchantName, confidence: 0 };
+    },
+    
+    // ═══════════════════════════════════════════════════════════
+    // 📚 AUTO-LEARN - Remember user preferences
+    // ═══════════════════════════════════════════════════════════
+    
+    learn: function(description, category, subcategory) {
+        if (!description || !category) return;
+        
+        const key = description.toLowerCase().trim();
+        
+        // Store the pattern
+        learnedPatterns[key] = {
+            category: category,
+            subcategory: subcategory || category,
+            learnedAt: new Date().toISOString(),
+            useCount: (learnedPatterns[key]?.useCount || 0) + 1
+        };
+        
+        // Also learn significant words (3+ chars)
+        const words = key.split(/\s+/).filter(w => w.length >= 4);
+        for (const word of words) {
+            if (!learnedPatterns[word]) {
+                learnedPatterns[word] = {
+                    category: category,
+                    subcategory: subcategory || category,
+                    learnedAt: new Date().toISOString(),
+                    useCount: 1,
+                    isWord: true
+                };
+            }
+        }
+        
+        this.save();
+        console.log('📚 Learned pattern:', key, '->', category, '/', subcategory);
+    },
+    
+    // Forget a learned pattern
+    forget: function(description) {
+        const key = description.toLowerCase().trim();
+        delete learnedPatterns[key];
+        this.save();
+    },
+    
+    // Get all learned patterns
+    getLearnedPatterns: function() {
+        return Object.entries(learnedPatterns)
+            .filter(([k, v]) => !v.isWord)
+            .sort((a, b) => (b[1].useCount || 0) - (a[1].useCount || 0));
+    },
+    
+    // ═══════════════════════════════════════════════════════════
+    // ✏️ CUSTOM CATEGORIES - User-defined categories
+    // ═══════════════════════════════════════════════════════════
+    
+    // Add a new custom category
+    addCustomCategory: function(type, category) {
+        if (!type || !category || !category.name) return false;
+        
+        // Generate ID if not provided
+        if (!category.id) {
+            category.id = 'custom_' + category.name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
+        }
+        
+        // Set defaults
+        category.icon = category.icon || '📁';
+        category.color = category.color || '#6b7280';
+        category.subs = category.subs || [];
+        category.keywords = category.keywords || [];
+        category.isCustom = true;
+        
+        // Check for duplicates
+        const existing = customCategories[type].find(c => c.id === category.id || c.name.toLowerCase() === category.name.toLowerCase());
+        if (existing) return false;
+        
+        customCategories[type].push(category);
+        this.save();
+        
+        console.log('✏️ Added custom category:', category);
+        return true;
+    },
+    
+    // Add subcategory to existing category
+    addSubcategory: function(type, categoryId, subcategoryName) {
+        if (!subcategoryName) return false;
+        
+        // Check in custom categories first
+        let cat = customCategories[type]?.find(c => c.id === categoryId);
+        
+        if (cat) {
+            if (!cat.subs.includes(subcategoryName)) {
+                cat.subs.push(subcategoryName);
+                this.save();
+                return true;
+            }
+        } else {
+            // For built-in categories, create a custom extension
+            const builtIn = categories[type]?.find(c => c.id === categoryId);
+            if (builtIn && !builtIn.subs.includes(subcategoryName)) {
+                // Add to a custom extensions storage
+                if (!customCategories[type + '_extensions']) {
+                    customCategories[type + '_extensions'] = {};
+                }
+                if (!customCategories[type + '_extensions'][categoryId]) {
+                    customCategories[type + '_extensions'][categoryId] = [];
+                }
+                if (!customCategories[type + '_extensions'][categoryId].includes(subcategoryName)) {
+                    customCategories[type + '_extensions'][categoryId].push(subcategoryName);
+                    this.save();
+                    return true;
+                }
+            }
+        }
+        return false;
+    },
+    
+    // Get all subcategories for a category (built-in + custom)
+    getSubcategories: function(type, categoryId) {
+        const subs = new Set();
+        
+        // Built-in subcategories
+        const builtIn = categories[type]?.find(c => c.id === categoryId);
+        if (builtIn) {
+            builtIn.subs.forEach(s => subs.add(s));
+        }
+        
+        // Custom category subcategories
+        const custom = customCategories[type]?.find(c => c.id === categoryId);
+        if (custom) {
+            custom.subs.forEach(s => subs.add(s));
+        }
+        
+        // Custom extensions for built-in categories
+        const extensions = customCategories[type + '_extensions']?.[categoryId] || [];
+        extensions.forEach(s => subs.add(s));
+        
+        return Array.from(subs).sort();
+    },
+    
+    // Get all categories (built-in + custom)
+    getAllCategories: function(type) {
+        const builtIn = categories[type] || [];
+        const custom = customCategories[type] || [];
+        return [...builtIn, ...custom];
+    },
+    
+    // Delete custom category
+    deleteCustomCategory: function(type, categoryId) {
+        const index = customCategories[type]?.findIndex(c => c.id === categoryId);
+        if (index >= 0) {
+            customCategories[type].splice(index, 1);
+            this.save();
+            return true;
+        }
+        return false;
+    },
+    
+    // Delete custom subcategory
+    deleteSubcategory: function(type, categoryId, subcategoryName) {
+        // From custom category
+        const cat = customCategories[type]?.find(c => c.id === categoryId);
+        if (cat) {
+            const idx = cat.subs.indexOf(subcategoryName);
+            if (idx >= 0) {
+                cat.subs.splice(idx, 1);
+                this.save();
+                return true;
+            }
+        }
+        
+        // From extensions
+        const ext = customCategories[type + '_extensions']?.[categoryId];
+        if (ext) {
+            const idx = ext.indexOf(subcategoryName);
+            if (idx >= 0) {
+                ext.splice(idx, 1);
+                this.save();
+                return true;
+            }
+        }
+        
+        return false;
+    },
+    
+    // ═══════════════════════════════════════════════════════════
+    // 📊 ANALYTICS - Category usage statistics
+    // ═══════════════════════════════════════════════════════════
+    
+    getUsageStats: function(transactions) {
+        const stats = {
+            categoryCounts: {},
+            subcategoryCounts: {},
+            uncategorized: 0,
+            autoCategCount: 0,
+            manualCount: 0
+        };
+        
+        for (const tx of (transactions || [])) {
+            if (tx.category) {
+                stats.categoryCounts[tx.category] = (stats.categoryCounts[tx.category] || 0) + 1;
+                if (tx.subcategory) {
+                    const key = `${tx.category}:${tx.subcategory}`;
+                    stats.subcategoryCounts[key] = (stats.subcategoryCounts[key] || 0) + 1;
+                }
+            } else {
+                stats.uncategorized++;
+            }
+        }
+        
+        return stats;
+    },
+    
+    // Get suggested subcategories based on usage
+    getSuggestedSubcategories: function(type, categoryId, limit = 10) {
+        const allSubs = this.getSubcategories(type, categoryId);
+        
+        // Get usage from learned patterns
+        const usage = {};
+        for (const [pattern, data] of Object.entries(learnedPatterns)) {
+            if (data.category === categoryId && data.subcategory) {
+                usage[data.subcategory] = (usage[data.subcategory] || 0) + (data.useCount || 1);
+            }
+        }
+        
+        // Sort by usage
+        return allSubs.sort((a, b) => (usage[b] || 0) - (usage[a] || 0)).slice(0, limit);
+    },
+    
+    // Export learned data (for backup)
+    exportData: function() {
+        return {
+            customCategories: customCategories,
+            learnedPatterns: learnedPatterns,
+            exportedAt: new Date().toISOString()
+        };
+    },
+    
+    // Import learned data
+    importData: function(data) {
+        if (data.customCategories) {
+            customCategories = { ...customCategories, ...data.customCategories };
+        }
+        if (data.learnedPatterns) {
+            learnedPatterns = { ...learnedPatterns, ...data.learnedPatterns };
+        }
+        this.save();
+    },
+    
+    // Clear all learned data
+    clearAllData: function() {
+        customCategories = { expense: [], income: [] };
+        learnedPatterns = {};
+        this.save();
+    }
+};
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => SmartCategoryEngine.init());
 
 // ═══════════════════════════════════════════════════════════════
 // 🧠 GENIUS ANALYTICS ENGINE - Advanced Financial Intelligence
@@ -988,65 +1505,207 @@ const GeniusEngine = {
         if (!predictions) return [];
         
         const monthlySavings = predictions.nextMonth.savings;
+        const monthlyIncome = predictions.avgIncome;
+        const monthlyExpense = predictions.avgExpense;
         const goals = [];
         
-        // Emergency Fund
+        // 🛡️ Emergency Fund - PRIORITATE MAXIMĂ
         const emergencyTarget = predictions.avgExpense * 6;
         const currentEmergency = (state.goals || []).find(g => g.name?.toLowerCase().includes('urgență'))?.current || 0;
         if (currentEmergency < emergencyTarget) {
             goals.push({
                 icon: '🛡️',
-                name: 'Fond de Urgență',
+                name: 'Fond de Urgență (6 luni)',
                 target: emergencyTarget,
                 current: currentEmergency,
                 monthly: Math.round(emergencyTarget / 12),
                 months: Math.ceil((emergencyTarget - currentEmergency) / Math.max(monthlySavings * 0.5, 100)),
                 priority: 'high',
-                reason: '6 luni de cheltuieli pentru siguranță financiară'
+                reason: '6 luni de cheltuieli - siguranța ta financiară #1',
+                category: 'safety'
             });
         }
         
-        // Vacation fund
-        const vacationTarget = predictions.avgExpense * 2;
+        // 💳 Zero Datorii
+        const totalDebt = (state.debts || []).reduce((s, d) => s + (d.remaining || d.amount || 0), 0);
+        if (totalDebt > 0) {
+            goals.push({
+                icon: '💳',
+                name: 'Zero Datorii',
+                target: totalDebt,
+                current: 0,
+                monthly: Math.round(totalDebt / 12),
+                months: Math.ceil(totalDebt / Math.max(monthlySavings * 0.4, 100)),
+                priority: 'high',
+                reason: 'Elimină toate datoriile pentru libertate financiară',
+                category: 'debt'
+            });
+        }
+        
+        // 🚗 Avans Mașină
+        if (monthlyIncome > 4000) {
+            goals.push({
+                icon: '🚗',
+                name: 'Avans Mașină',
+                target: 15000,
+                current: 0,
+                monthly: Math.round(15000 / 18),
+                months: Math.ceil(15000 / Math.max(monthlySavings * 0.35, 100)),
+                priority: 'medium',
+                reason: 'Avans 20-30% pentru credit auto mai bun',
+                category: 'purchase'
+            });
+        }
+        
+        // 🏠 Avans Apartament
+        if (monthlyIncome > 5000 && monthlySavings > 1000) {
+            goals.push({
+                icon: '🏠',
+                name: 'Avans Apartament',
+                target: 50000,
+                current: 0,
+                monthly: Math.round(50000 / 36),
+                months: Math.ceil(50000 / Math.max(monthlySavings * 0.6, 500)),
+                priority: 'long-term',
+                reason: 'Avans 15-20% pentru apartament',
+                category: 'purchase'
+            });
+        }
+        
+        // ✈️ Vacanță de Vis
+        const vacationTarget = Math.round(monthlyIncome * 1.5);
         goals.push({
             icon: '✈️',
-            name: 'Vacanță',
+            name: 'Vacanță de Vis',
             target: vacationTarget,
             current: 0,
             monthly: Math.round(vacationTarget / 6),
-            months: Math.ceil(vacationTarget / Math.max(monthlySavings * 0.3, 100)),
+            months: Math.ceil(vacationTarget / Math.max(monthlySavings * 0.25, 100)),
             priority: 'medium',
-            reason: 'O vacanță de 2 săptămâni'
+            reason: 'O vacanță memorabilă de 1-2 săptămâni',
+            category: 'lifestyle'
         });
         
-        // Investment start
-        if (monthlySavings > 500) {
+        // 📈 Start Investiții
+        if (monthlySavings > 300) {
             goals.push({
                 icon: '📈',
                 name: 'Start Investiții',
                 target: 5000,
                 current: 0,
-                monthly: Math.round(5000 / 10),
-                months: Math.ceil(5000 / Math.max(monthlySavings * 0.4, 100)),
+                monthly: 500,
+                months: Math.ceil(5000 / Math.max(monthlySavings * 0.3, 100)),
                 priority: 'medium',
-                reason: 'Capital inițial pentru investiții în ETF-uri'
+                reason: 'Capital inițial pentru ETF-uri (S&P 500, Global)',
+                category: 'investment'
             });
         }
         
-        // New phone/laptop
+        // 🎓 Educație & Cursuri
         goals.push({
-            icon: '📱',
-            name: 'Telefon/Laptop nou',
-            target: 4000,
+            icon: '🎓',
+            name: 'Fond Educație',
+            target: 3000,
             current: 0,
-            monthly: Math.round(4000 / 8),
-            months: Math.ceil(4000 / Math.max(monthlySavings * 0.25, 100)),
-            priority: 'low',
-            reason: 'Upgrade tehnologie'
+            monthly: 250,
+            months: Math.ceil(3000 / Math.max(monthlySavings * 0.15, 50)),
+            priority: 'medium',
+            reason: 'Cursuri, certificări, skill-uri noi',
+            category: 'education'
         });
         
-        // Sort by achievability
-        return goals.sort((a, b) => a.months - b.months);
+        // 📱 Tech Upgrade
+        goals.push({
+            icon: '📱',
+            name: 'Telefon/Laptop Nou',
+            target: 5000,
+            current: 0,
+            monthly: Math.round(5000 / 10),
+            months: Math.ceil(5000 / Math.max(monthlySavings * 0.2, 100)),
+            priority: 'low',
+            reason: 'Upgrade tehnologie fără rate',
+            category: 'purchase'
+        });
+        
+        // 🎁 Fond Cadouri
+        goals.push({
+            icon: '🎁',
+            name: 'Fond Cadouri & Sărbători',
+            target: 2000,
+            current: 0,
+            monthly: Math.round(2000 / 12),
+            months: 12,
+            priority: 'low',
+            reason: 'Crăciun, zile de naștere, nunți fără stres',
+            category: 'lifestyle'
+        });
+        
+        // 🏥 Fond Medical
+        goals.push({
+            icon: '🏥',
+            name: 'Fond Medical',
+            target: 3000,
+            current: 0,
+            monthly: 250,
+            months: Math.ceil(3000 / Math.max(monthlySavings * 0.1, 50)),
+            priority: 'medium',
+            reason: 'Stomatolog, analize, consultații neprevăzute',
+            category: 'safety'
+        });
+        
+        // 👶 Fond Copii (dacă detectăm cheltuieli Family)
+        const hasKids = (state.transactions || []).some(t => t.category === 'family');
+        if (hasKids) {
+            goals.push({
+                icon: '👶',
+                name: 'Fond Copii/Familie',
+                target: 10000,
+                current: 0,
+                monthly: Math.round(10000 / 24),
+                months: 24,
+                priority: 'high',
+                reason: 'Educație, activități, viitorul copiilor',
+                category: 'family'
+            });
+        }
+        
+        // 🎭 Hobby & Pasiuni
+        goals.push({
+            icon: '🎭',
+            name: 'Fond Hobby',
+            target: 1500,
+            current: 0,
+            monthly: 125,
+            months: 12,
+            priority: 'low',
+            reason: 'Echipament, cursuri pentru pasiunile tale',
+            category: 'lifestyle'
+        });
+        
+        // 💎 Independență Financiară (FIRE)
+        if (monthlySavings > 2000) {
+            const fireNumber = monthlyExpense * 12 * 25;
+            goals.push({
+                icon: '💎',
+                name: 'Independență Financiară',
+                target: fireNumber,
+                current: state.netWorth || 0,
+                monthly: monthlySavings,
+                months: Math.ceil(fireNumber / (monthlySavings * 12)),
+                priority: 'long-term',
+                reason: `${Math.ceil(fireNumber / (monthlySavings * 12))} ani până la libertate financiară`,
+                category: 'fire'
+            });
+        }
+        
+        // Sort by priority and achievability
+        const priorityOrder = { 'high': 0, 'medium': 1, 'low': 2, 'long-term': 3 };
+        return goals.sort((a, b) => {
+            if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+                return priorityOrder[a.priority] - priorityOrder[b.priority];
+            }
+            return a.months - b.months;
+        });
     },
 
     // ⚡ DAILY SPENDING COACH - Personalized tips
@@ -1539,10 +2198,43 @@ const months = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'I
 
 // Savings Challenges Templates
 const challengeTemplates = [
-    { id: '52week', name: '52 Săptămâni', icon: '📅', desc: 'Economisește crescător fiecare săptămână', duration: 52, weeklyIncrease: 10 },
-    { id: 'noSpend', name: 'Weekend Zero', icon: '🚫', desc: 'Un weekend fără cheltuieli', duration: 2, target: 0 },
-    { id: 'roundUp', name: 'Rotunjește', icon: '🔄', desc: 'Rotunjește cheltuielile, economisește diferența', duration: 30, target: 500 },
-    { id: '1percent', name: '1% pe zi', icon: '📈', desc: 'Economisește 1% din venit zilnic', duration: 30 }
+    // SĂPTĂMÂNALE
+    { id: '52week', name: '52 Săptămâni', icon: '📅', desc: 'Economisește crescător: 10 RON săpt 1, 20 RON săpt 2... = 13,780 RON/an', duration: 52, weeklyIncrease: 10, category: 'savings' },
+    { id: 'reverseWeek', name: '52 Săptămâni Invers', icon: '🔄', desc: 'Începi cu 520 RON și scazi câte 10 RON', duration: 52, weeklyIncrease: -10, startAmount: 520, category: 'savings' },
+    
+    // LUNARE
+    { id: 'noSpend', name: 'Weekend Zero', icon: '🚫', desc: 'Un weekend complet fără cheltuieli', duration: 2, target: 0, category: 'discipline' },
+    { id: 'noSpendWeek', name: 'Săptămâna Zero', icon: '⛔', desc: 'O săptămână cu cheltuieli doar pe necesități', duration: 7, category: 'discipline' },
+    { id: 'noSpendMonth', name: 'Luna Frugală', icon: '🏆', desc: 'O lună întreagă cu cheltuieli minime', duration: 30, category: 'discipline' },
+    
+    // PROCENTUALE
+    { id: 'roundUp', name: 'Rotunjește în Sus', icon: '⬆️', desc: 'Rotunjește cheltuielile, economisește diferența', duration: 30, target: 500, category: 'auto' },
+    { id: '1percent', name: '1% pe Zi', icon: '📈', desc: 'Economisește 1% din venit zilnic', duration: 30, category: 'savings' },
+    { id: '10percent', name: 'Regula 10%', icon: '🎯', desc: 'Economisește minim 10% din fiecare venit', duration: 30, category: 'savings' },
+    { id: '50-30-20', name: 'Regula 50/30/20', icon: '⚖️', desc: '50% nevoi, 30% dorințe, 20% economii', duration: 30, category: 'budget' },
+    
+    // CATEGORII SPECIFICE
+    { id: 'noCoffee', name: 'Fără Cafea Afară', icon: '☕', desc: '30 zile fără cafea cumpărată', duration: 30, category: 'food', restrictCategory: 'food' },
+    { id: 'noDelivery', name: 'Fără Delivery', icon: '🚫🍕', desc: '30 zile fără comenzi de mâncare', duration: 30, category: 'food', restrictCategory: 'food' },
+    { id: 'noShopping', name: 'Fără Shopping', icon: '🛍️', desc: '30 zile fără cumpărături non-esențiale', duration: 30, category: 'shopping', restrictCategory: 'shopping' },
+    { id: 'noSubscriptions', name: 'Audit Abonamente', icon: '📱', desc: 'Anulează abonamentele nefolosite', duration: 7, category: 'subscriptions' },
+    
+    // TRANSPORT
+    { id: 'publicTransport', name: 'Transport Public', icon: '🚌', desc: '30 zile doar transport public/bicicletă', duration: 30, category: 'transport', restrictCategory: 'transport' },
+    { id: 'carpoolWeek', name: 'Carpool Week', icon: '🚗', desc: 'O săptămână de ride-sharing', duration: 7, category: 'transport' },
+    
+    // EXTREME
+    { id: 'cashOnly', name: 'Cash Only', icon: '💵', desc: '30 zile doar cu cash (mai conștient de cheltuieli)', duration: 30, category: 'discipline' },
+    { id: 'envelope', name: 'Metoda Plicurilor', icon: '✉️', desc: 'Împarte cash-ul în plicuri pe categorii', duration: 30, category: 'budget' },
+    { id: 'minimalist', name: 'Minimalist', icon: '🧘', desc: 'Cumpără doar ce ai NEVOIE, nu ce vrei', duration: 30, category: 'discipline' },
+    
+    // VENITURI EXTRA
+    { id: 'sideHustle', name: 'Side Hustle', icon: '💼', desc: 'Câștigă 500 RON extra luna asta', duration: 30, target: 500, category: 'income' },
+    { id: 'sellStuff', name: 'Vinde & Economisește', icon: '🏷️', desc: 'Vinde 10 lucruri nefolosite', duration: 30, target: 10, category: 'income' },
+    
+    // RAPIDE
+    { id: '24hNoSpend', name: '24h Zero', icon: '⏰', desc: '24 de ore fără nicio cheltuială', duration: 1, category: 'discipline' },
+    { id: 'pantryWeek', name: 'Săptămâna Cămării', icon: '🥫', desc: 'Mănâncă doar ce ai deja în casă', duration: 7, category: 'food' }
 ];
 
 // State
@@ -1863,7 +2555,9 @@ function nav(view) {
         challenges: 'Provocări',
         netWorth: 'Patrimoniu',
         insights: 'AI Insights',
-        customcats: 'Categorii Custom',
+        customcats: 'Categorii Smart',
+        settings: 'Setări',
+        faq: 'FAQ & Ghid',
         // GENIUS views
         anomalies: '⚠️ Anomalii',
         predictions: '🔮 Predicții',
@@ -1894,7 +2588,7 @@ function nav(view) {
     if (view === 'challenges') renderChallenges();
     if (view === 'netWorth') renderNetWorthTimeline();
     if (view === 'insights') renderAdvancedInsights();
-    if (view === 'customcats') renderCustomCategories();
+    if (view === 'customcats') { renderCustomCategories(); renderLearnedPatterns(); }
     // GENIUS views
     if (view === 'anomalies') renderAllAnomalies();
     if (view === 'predictions') renderPredictionsView();
@@ -2033,8 +2727,99 @@ function loadSubcats() {
     const catId = $('txCat')?.value;
     const sel = $('txSubcat');
     if (!sel) return;
-    const cat = getAllCategories(type).find(c => c.id === catId);
-    sel.innerHTML = '<option value="">-- Selectează --</option>' + (cat?.subs || []).map(s => `<option value="${s}">${s}</option>`).join('');
+    
+    // Get subcategories from SmartCategoryEngine (includes custom + extensions)
+    const subs = SmartCategoryEngine.getSubcategories(type, catId);
+    
+    // Add "Add new" option at the end
+    sel.innerHTML = '<option value="">-- Selectează --</option>' + 
+        subs.map(s => `<option value="${s}">${s}</option>`).join('') +
+        '<option value="__add_new__">➕ Adaugă nou...</option>';
+}
+
+// Handle subcategory change - allow adding new subcategories
+function handleSubcatChange() {
+    const sel = $('txSubcat');
+    if (sel?.value === '__add_new__') {
+        const newSub = prompt('Introdu noua subcategorie:');
+        if (newSub && newSub.trim()) {
+            const type = $('txType')?.value;
+            const catId = $('txCat')?.value;
+            SmartCategoryEngine.addSubcategory(type, catId, newSub.trim());
+            loadSubcats();
+            sel.value = newSub.trim();
+            toast('Subcategorie adăugată!', 'success');
+        } else {
+            sel.value = '';
+        }
+    }
+}
+
+// Auto-categorize when user types in note field
+function handleNoteInput(e) {
+    const note = e.target.value;
+    const type = $('txType')?.value;
+    const amount = parseFloat($('txAmount')?.value) || 0;
+    
+    // Only auto-suggest if no category selected yet (or default)
+    const currentCat = $('txCat')?.value;
+    if (!currentCat || currentCat === 'other' || currentCat === 'other_income') {
+        const suggestion = SmartCategoryEngine.autoCategorize(note, amount, type);
+        
+        if (suggestion && suggestion.category && suggestion.confidence > 50) {
+            // Show suggestion toast
+            const catInfo = findCat(type, suggestion.category);
+            if (catInfo) {
+                showAutoCategorizeSuggestion(suggestion, catInfo);
+            }
+        }
+    }
+}
+
+// Show auto-categorize suggestion
+function showAutoCategorizeSuggestion(suggestion, catInfo) {
+    // Remove existing suggestion
+    const existing = document.querySelector('.auto-cat-suggestion');
+    if (existing) existing.remove();
+    
+    const suggestionEl = document.createElement('div');
+    suggestionEl.className = 'auto-cat-suggestion';
+    suggestionEl.innerHTML = `
+        <span class="suggestion-icon">🤖</span>
+        <span class="suggestion-text">
+            Sugerez: <strong>${catInfo.icon} ${catInfo.name}</strong>
+            ${suggestion.subcategory ? ` → ${suggestion.subcategory}` : ''}
+        </span>
+        <button type="button" class="suggestion-btn" onclick="applyAutoSuggestion('${suggestion.category}', '${suggestion.subcategory || ''}')">
+            Aplică
+        </button>
+        <button type="button" class="suggestion-close" onclick="this.parentElement.remove()">✕</button>
+    `;
+    
+    const form = $('txForm');
+    if (form) {
+        form.insertBefore(suggestionEl, form.firstChild);
+    }
+}
+
+// Apply auto-categorization suggestion
+function applyAutoSuggestion(category, subcategory) {
+    const catSel = $('txCat');
+    const subSel = $('txSubcat');
+    
+    if (catSel) {
+        catSel.value = category;
+        loadSubcats();
+    }
+    if (subSel && subcategory) {
+        subSel.value = subcategory;
+    }
+    
+    // Remove suggestion
+    const suggestion = document.querySelector('.auto-cat-suggestion');
+    if (suggestion) suggestion.remove();
+    
+    toast('Categorie aplicată automat!', 'success');
 }
 
 async function saveTx(e) {
@@ -2052,6 +2837,12 @@ async function saveTx(e) {
         tags: tags,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
+    
+    // 🤖 AUTO-LEARN: Remember this categorization for future
+    const learnText = data.subcategory || data.note;
+    if (learnText && data.category) {
+        SmartCategoryEngine.learn(learnText, data.category, data.subcategory);
+    }
     
     try {
         const ref = db.collection('users').doc(state.user.uid).collection('transactions');
@@ -3826,6 +4617,7 @@ function renderRecurring() {
                         <div class="item-sub">${fmt(r.amount)} · Next: ${r.nextDate}</div>
                     </div>
                     <div class="item-actions">
+                        <button class="item-btn" onclick="editRecurring('${r.id}')">✏️</button>
                         <button class="item-btn" onclick="deleteRecurring('${r.id}')">🗑️</button>
                     </div>
                 </div>
@@ -3837,8 +4629,27 @@ function renderRecurring() {
 function openRecurringModal() {
     state.editingId = null;
     $('recurringForm')?.reset();
+    $('recurringModalTitle').textContent = 'Tranzacție Recurentă';
+    $('recurDeleteBtn').style.display = 'none';
     setRecurType('expense');
     $('recurStart').value = new Date().toISOString().split('T')[0];
+    openModal('recurringModal');
+}
+
+// Edit recurring transaction
+function editRecurring(id) {
+    const r = state.recurring.find(x => x.id === id);
+    if (!r) return;
+    
+    state.editingId = id;
+    $('recurringModalTitle').textContent = 'Editează Recurent';
+    setRecurType(r.type);
+    $('recurCat').value = r.category;
+    $('recurAmount').value = r.amount;
+    $('recurFreq').value = r.frequency;
+    $('recurStart').value = r.nextDate;
+    $('recurNote').value = r.note || '';
+    $('recurDeleteBtn').style.display = 'block';
     openModal('recurringModal');
 }
 
@@ -3853,7 +4664,7 @@ function setRecurType(type) {
     // Load categories for recurring
     const sel = $('recurCat');
     if (!sel) return;
-    const cats = categories[type] || [];
+    const cats = getAllCategories(type);
     sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
 }
 
@@ -3869,11 +4680,19 @@ async function saveRecurring(e) {
         nextDate: $('recurStart').value
     };
     try {
-        const doc = await db.collection('users').doc(state.user.uid).collection('recurring').add(data);
-        state.recurring.push({ id: doc.id, ...data });
+        const ref = db.collection('users').doc(state.user.uid).collection('recurring');
+        if (state.editingId) {
+            await ref.doc(state.editingId).update(data);
+            const idx = state.recurring.findIndex(r => r.id === state.editingId);
+            if (idx >= 0) state.recurring[idx] = { ...state.recurring[idx], ...data };
+            toast('Actualizat!', 'success');
+        } else {
+            const doc = await ref.add(data);
+            state.recurring.push({ id: doc.id, ...data });
+            toast('Salvat!', 'success');
+        }
         closeModal('recurringModal');
         renderRecurring();
-        toast('Salvat!', 'success');
     } catch (err) {
         toast('Eroare', 'error');
     }
@@ -4073,13 +4892,49 @@ function renderChallenges() {
 function openChallengeModal() {
     const modal = $('challengeModal');
     if (!modal) return;
-    $('challengeTemplates').innerHTML = challengeTemplates.map(t => `
-        <div class="challenge-card" onclick="startChallenge('${t.id}')">
-            <div class="challenge-icon">${t.icon}</div>
-            <div class="challenge-name">${t.name}</div>
-            <div class="challenge-desc">${t.desc}</div>
-        </div>
-    `).join('');
+    
+    // Group challenges by category
+    const categoryNames = {
+        savings: '💰 Economisire',
+        discipline: '🎯 Disciplină',
+        food: '🍔 Mâncare',
+        transport: '🚗 Transport',
+        shopping: '🛍️ Shopping',
+        income: '💵 Venituri Extra',
+        budget: '📊 Bugetare',
+        auto: '🔄 Automat',
+        subscriptions: '📱 Abonamente'
+    };
+    
+    const grouped = {};
+    challengeTemplates.forEach(t => {
+        const cat = t.category || 'other';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(t);
+    });
+    
+    let html = '';
+    Object.entries(grouped).forEach(([cat, templates]) => {
+        html += `
+            <div style="margin-bottom:20px;">
+                <div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:10px;padding-left:4px;">
+                    ${categoryNames[cat] || '📦 Altele'}
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+                    ${templates.map(t => `
+                        <div class="challenge-card" onclick="startChallenge('${t.id}')" style="cursor:pointer;">
+                            <div class="challenge-icon">${t.icon}</div>
+                            <div class="challenge-name">${t.name}</div>
+                            <div class="challenge-desc">${t.desc}</div>
+                            <div style="font-size:10px;color:var(--text3);margin-top:6px;">${t.duration} ${t.duration === 1 ? 'zi' : t.duration < 7 ? 'zile' : t.duration < 30 ? 'săptămâni' : 'zile'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    });
+    
+    $('challengeTemplates').innerHTML = html;
     openModal('challengeModal');
 }
 
@@ -4528,6 +5383,57 @@ window.askAI = askAI;
 window.sendAI = sendAI;
 window.setCurrency = setCurrency;
 window.saveNetWorth = saveNetWorth;
+
+// Balance correction function
+async function applyBalanceCorrection() {
+    const targetBalance = parseFloat($('balanceCorrectionAmount')?.value);
+    if (isNaN(targetBalance)) {
+        toast('Introdu soldul corect', 'error');
+        return;
+    }
+    
+    // Calculate current balance
+    const income = (state.transactions || [])
+        .filter(t => t.type === 'income')
+        .reduce((s, t) => s + (t.amount || 0), 0);
+    const expense = (state.transactions || [])
+        .filter(t => t.type === 'expense')
+        .reduce((s, t) => s + (t.amount || 0), 0);
+    const currentBalance = income - expense;
+    
+    const difference = targetBalance - currentBalance;
+    
+    if (Math.abs(difference) < 0.01) {
+        toast('Soldul este deja corect!', 'success');
+        return;
+    }
+    
+    // Create correction transaction
+    const correctionData = {
+        type: difference > 0 ? 'income' : 'expense',
+        amount: Math.abs(difference),
+        category: difference > 0 ? 'other_income' : 'other',
+        subcategory: '⚖️ Corecție sold',
+        date: new Date().toISOString().split('T')[0],
+        note: `Corecție automată: sold ajustat de la ${fmt(currentBalance)} la ${fmt(targetBalance)}`,
+        tags: ['corecție', 'ajustare'],
+        isCorrection: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        const doc = await db.collection('users').doc(state.user.uid).collection('transactions').add(correctionData);
+        state.transactions.unshift({ id: doc.id, ...correctionData });
+        
+        $('balanceCorrectionAmount').value = '';
+        toast(`Sold corectat! ${difference > 0 ? '+' : ''}${fmt(difference)}`, 'success');
+        updateHome();
+    } catch (err) {
+        toast('Eroare la corecție', 'error');
+    }
+}
+window.applyBalanceCorrection = applyBalanceCorrection;
+window.editRecurring = editRecurring;
 window.exportData = exportData;
 window.clearData = clearData;
 // NEW exports
@@ -4541,6 +5447,192 @@ window.openChallengeModal = openChallengeModal;
 window.startChallenge = startChallenge;
 window.deleteChallenge = deleteChallenge;
 window.saveNetWorthSnapshot = saveNetWorthSnapshot;
+// ═══════════════════════════════════════════════════════════════
+// 🤖 SMART CATEGORY UI FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+// Tab switching for smart categories view
+function showSmartTab(tab) {
+    // Hide all tabs
+    document.querySelectorAll('.smart-tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('#customcatsView .sub-tab').forEach(btn => btn.classList.remove('on'));
+    
+    // Show selected tab
+    const tabEl = $(`smartTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+    if (tabEl) tabEl.style.display = 'block';
+    
+    // Activate button
+    event?.target?.classList.add('on');
+    
+    // Render content
+    if (tab === 'learned') {
+        renderLearnedPatterns();
+    } else if (tab === 'stats') {
+        renderSmartStats();
+    } else if (tab === 'custom') {
+        renderCustomCategories();
+    }
+}
+
+// Render learned patterns list
+function renderLearnedPatterns() {
+    const container = $('learnedPatternsList');
+    if (!container) return;
+    
+    const patterns = SmartCategoryEngine.getLearnedPatterns();
+    
+    if (patterns.length === 0) {
+        container.innerHTML = `
+            <div class="learned-empty">
+                <div class="learned-empty-icon">🧠</div>
+                <div class="learned-empty-text">Niciun model învățat încă</div>
+                <div class="learned-empty-hint">Aplicația va învăța automat din tranzacțiile tale</div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="learned-list">
+            ${patterns.slice(0, 50).map(([pattern, data]) => {
+                const catInfo = findCat(data.category.includes('income') ? 'income' : 'expense', data.category);
+                return `
+                    <div class="learned-item">
+                        <div class="learned-pattern">"${escapeHtml(pattern)}"</div>
+                        <div class="learned-category">${catInfo?.icon || '📁'} ${data.subcategory || catInfo?.name || data.category}</div>
+                        <button class="learned-delete" onclick="forgetPattern('${escapeHtml(pattern)}')" title="Uită">🗑️</button>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+        ${patterns.length > 50 ? `<p style="text-align: center; color: var(--text2); font-size: 12px; margin-top: 12px;">+ ${patterns.length - 50} alte modele</p>` : ''}
+    `;
+}
+
+// Forget a learned pattern
+function forgetPattern(pattern) {
+    SmartCategoryEngine.forget(pattern);
+    renderLearnedPatterns();
+    toast('Model uitat!', 'success');
+}
+
+// Clear all learned patterns
+function clearLearnedPatterns() {
+    if (!confirm('Ești sigur că vrei să ștergi toate modelele învățate? Această acțiune nu poate fi anulată.')) return;
+    
+    SmartCategoryEngine.clearAllData();
+    renderLearnedPatterns();
+    toast('Toate modelele au fost șterse!', 'success');
+}
+
+// Render smart statistics
+function renderSmartStats() {
+    const container = $('smartStats');
+    if (!container) return;
+    
+    const stats = SmartCategoryEngine.getUsageStats(state.transactions);
+    const patterns = SmartCategoryEngine.getLearnedPatterns();
+    
+    // Category usage stats
+    const sortedCats = Object.entries(stats.categoryCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    
+    container.innerHTML = `
+        <div class="card" style="margin-bottom: 16px;">
+            <div class="card-hdr">
+                <span class="card-title">📊 Statistici Generale</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px;">
+                <div class="stat-box" style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--accent);">${patterns.length}</div>
+                    <div style="font-size: 12px; color: var(--text2);">Modele învățate</div>
+                </div>
+                <div class="stat-box" style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--green);">${customCategories.expense.length + customCategories.income.length}</div>
+                    <div style="font-size: 12px; color: var(--text2);">Categorii custom</div>
+                </div>
+                <div class="stat-box" style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--blue);">${state.transactions?.length || 0}</div>
+                    <div style="font-size: 12px; color: var(--text2);">Total tranzacții</div>
+                </div>
+                <div class="stat-box" style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: ${stats.uncategorized > 0 ? 'var(--orange)' : 'var(--green)'};">${stats.uncategorized}</div>
+                    <div style="font-size: 12px; color: var(--text2);">Necategorizate</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-hdr">
+                <span class="card-title">🏆 Top 10 Categorii</span>
+            </div>
+            <div style="padding: 12px;">
+                ${sortedCats.map(([catId, count], i) => {
+                    const catInfo = findCat('expense', catId) || findCat('income', catId);
+                    const percentage = state.transactions?.length > 0 ? Math.round(count / state.transactions.length * 100) : 0;
+                    return `
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; ${i < sortedCats.length - 1 ? 'border-bottom: 1px solid var(--border);' : ''}">
+                            <span style="font-size: 24px;">${catInfo?.icon || '📁'}</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500;">${catInfo?.name || catId}</div>
+                                <div style="font-size: 12px; color: var(--text2);">${count} tranzacții</div>
+                            </div>
+                            <div style="font-weight: 600; color: var(--accent);">${percentage}%</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// Export smart data
+function exportSmartData() {
+    const data = SmartCategoryEngine.exportData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `budget-smart-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Date exportate!', 'success');
+}
+
+// Import smart data
+function importSmartData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                SmartCategoryEngine.importData(data);
+                renderLearnedPatterns();
+                renderSmartStats();
+                toast('Date importate cu succes!', 'success');
+            } catch (err) {
+                toast('Eroare la import', 'error');
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+// Helper: escape HTML
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 // AI & Custom Categories exports
 window.openSmartAdd = openSmartAdd;
 window.processSmartInput = processSmartInput;
@@ -4550,6 +5642,17 @@ window.editCustomCat = editCustomCat;
 window.saveCustomCat = saveCustomCat;
 window.deleteCustomCat = deleteCustomCat;
 window.getAllCategories = getAllCategories;
+// Smart Category System exports
+window.showSmartTab = showSmartTab;
+window.renderLearnedPatterns = renderLearnedPatterns;
+window.forgetPattern = forgetPattern;
+window.clearLearnedPatterns = clearLearnedPatterns;
+window.exportSmartData = exportSmartData;
+window.importSmartData = importSmartData;
+window.handleSubcatChange = handleSubcatChange;
+window.handleNoteInput = handleNoteInput;
+window.applyAutoSuggestion = applyAutoSuggestion;
+window.SmartCategoryEngine = SmartCategoryEngine;
 // GENIUS AI exports
 window.openWhatIfSimulator = openWhatIfSimulator;
 window.updateWhatIfSimulation = updateWhatIfSimulation;

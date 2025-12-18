@@ -1634,3 +1634,221 @@ body {
   font-size: 11px;
   color: var(--text2);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   🤖 SMART CATEGORY SYSTEM STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Auto-categorize suggestion */
+.auto-cat-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: -10px -16px 16px -16px;
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.15), rgba(0, 150, 120, 0.1));
+  border-bottom: 1px solid rgba(0, 212, 170, 0.3);
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.suggestion-icon {
+  font-size: 20px;
+  animation: bounce 1s ease infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.suggestion-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+}
+.suggestion-text strong {
+  color: var(--accent);
+}
+.suggestion-btn {
+  padding: 6px 14px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.suggestion-btn:hover {
+  background: #00f0c0;
+  transform: scale(1.05);
+}
+.suggestion-close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  border-radius: 50%;
+}
+.suggestion-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
+
+/* Learned patterns section */
+.learned-patterns {
+  margin: 16px;
+}
+.learned-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.learned-title {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.learned-count {
+  font-size: 12px;
+  color: var(--text2);
+  background: var(--card);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.learned-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.learned-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--card);
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+}
+.learned-pattern {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.learned-category {
+  font-size: 12px;
+  color: var(--accent);
+  background: rgba(0, 212, 170, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.learned-delete {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+.learned-delete:hover {
+  background: rgba(255,71,87,0.2);
+  color: var(--red);
+}
+
+/* Smart add subcategory option */
+#txSubcat option[value="__add_new__"] {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Category stats badge */
+.cat-usage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text3);
+  background: var(--card2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+
+/* Empty learned patterns */
+.learned-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text2);
+}
+.learned-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+.learned-empty-text {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.learned-empty-hint {
+  font-size: 12px;
+  color: var(--text3);
+}
+
+/* Clear button */
+.btn-clear-patterns {
+  padding: 8px 16px;
+  background: rgba(255,71,87,0.1);
+  color: var(--red);
+  border: 1px solid rgba(255,71,87,0.3);
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-clear-patterns:hover {
+  background: rgba(255,71,87,0.2);
+}
+
+/* Export/Import buttons */
+.smart-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.smart-action-btn {
+  flex: 1;
+  padding: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.smart-action-btn:hover {
+  background: var(--card2);
+  border-color: var(--accent);
+}

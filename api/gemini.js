@@ -36,8 +36,10 @@ export default async function handler(req, res) {
             });
         }
 
-        // Official Gemini API endpoint - using gemini-1.5-flash (stable)
-        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        // Use gemini-1.5-flash with v1beta endpoint (correct and stable)
+        // Alternative: gemini-pro for older but very stable model
+        const MODEL = 'gemini-1.5-flash-latest';
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
         // Request body with system instruction support
         const requestBody = {
@@ -49,7 +51,13 @@ export default async function handler(req, res) {
                 maxOutputTokens: maxTokens,
                 topP: 0.9,
                 topK: 40
-            }
+            },
+            safetySettings: [
+                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+            ]
         };
 
         // Add system instruction if provided
@@ -59,7 +67,7 @@ export default async function handler(req, res) {
             };
         }
 
-        console.log('Calling Gemini API with model: gemini-2.0-flash');
+        console.log('Calling Gemini API with model:', MODEL);
         console.log('System prompt length:', systemPrompt?.length || 0);
         console.log('User prompt:', prompt.substring(0, 100) + '...');
 
@@ -79,6 +87,40 @@ export default async function handler(req, res) {
         // Check for API errors
         if (data.error) {
             console.error('Gemini API error:', data.error);
+            
+            // Try fallback to gemini-pro if 1.5-flash fails
+            if (data.error.code === 404 || data.error.message?.includes('not found')) {
+                console.log('Trying fallback model: gemini-pro');
+                const FALLBACK_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+                
+                // Simplified request for gemini-pro (no systemInstruction)
+                const fallbackBody = {
+                    contents: [{
+                        parts: [{ text: systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.8,
+                        maxOutputTokens: maxTokens
+                    }
+                };
+                
+                const fallbackResponse = await fetch(FALLBACK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fallbackBody)
+                });
+                
+                const fallbackData = await fallbackResponse.json();
+                
+                if (fallbackData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return res.status(200).json({
+                        success: true,
+                        response: fallbackData.candidates[0].content.parts[0].text,
+                        model: 'gemini-pro (fallback)'
+                    });
+                }
+            }
+            
             return res.status(400).json({ 
                 success: false,
                 error: data.error.message || 'Gemini API error',
@@ -99,7 +141,8 @@ export default async function handler(req, res) {
             
             return res.status(200).json({
                 success: true,
-                response: text
+                response: text,
+                model: MODEL
             });
         }
 

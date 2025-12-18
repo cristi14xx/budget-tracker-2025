@@ -17,162 +17,510 @@ db.enablePersistence().catch(() => {});
 // MEGA Categories - Extended Version cu keywords pentru AI
 const categories = {
     expense: [
-        // 🍔 MÂNCARE & BĂUTURI
+        // 🍔 MÂNCARE & BĂUTURI - MEGA COMPREHENSIVE
         { id: 'food', name: 'Mâncare & Băuturi', icon: '🍔', color: '#ef4444', 
-          keywords: ['mancare', 'food', 'meal', 'lunch', 'dinner', 'breakfast', 'mic dejun', 'pranz', 'cina'],
-          subs: ['Supermarket', 'Hypermarket', 'Magazin alimentar', 'Piață', 'Aprozar', 'Măcelărie', 'Brutărie', 'Patiserie', 'Cofetărie', 'Restaurant', 'Pizzerie', 'Fast-food', 'McDonalds', 'KFC', 'Subway', 'Burger King', 'Shaormerie', 'Chinezesc', 'Sushi', 'Italienesc', 'Grecesc', 'Românesc', 'Livrare mâncare', 'Glovo', 'Tazz', 'Bolt Food', 'Foodpanda', 'Cafea', 'Starbucks', 'Ted\'s Coffee', 'Cafenea', 'Ceainărie', 'Sucuri', 'Băuturi răcoritoare', 'Apă', 'Alcool', 'Bere', 'Vin', 'Spirtoase', 'Pub', 'Bar', 'Club', 'Gustări', 'Snacks', 'Dulciuri', 'Ciocolată', 'Înghețată', 'Fructe', 'Legume', 'Carne', 'Lactate', 'Ouă', 'Pâine', 'Conserve', 'Condimente', 'Mâncare bio', 'Vegan', 'Vegetarian'] },
+          keywords: ['mancare', 'food', 'meal', 'lunch', 'dinner', 'breakfast', 'mic dejun', 'pranz', 'cina', 'supermarket', 'restaurant'],
+          subs: [
+            // === SUPERMARKETURI & HYPERMARKETURI ===
+            'Lidl', 'Kaufland', 'Carrefour', 'Carrefour Express', 'Carrefour Market', 'Mega Image', 'Shop&Go', 'Auchan', 'Cora', 'Metro', 'Selgros', 'Profi', 'Penny', 'Penny Market', 'La Doi Pași', 'ABC', 'Spar', 'MyAuchan', 'Freshful', 'Bringo',
+            // === MAGAZINE ALIMENTARE ===
+            'Magazin alimentar', 'Băcănie', 'Piață', 'Piața agroalimentară', 'Piața de gros', 'Aprozar', 'Măcelărie', 'Carmangerie', 'Pescărie', 'Brutărie', 'Patiserie', 'Covrigărie', 'Simigerie', 'Cofetărie', 'Plăcintărie', 'Gogoșerie',
+            // === RESTAURANTE FAST-FOOD ===
+            'McDonald\'s', 'KFC', 'Burger King', 'Subway', 'Taco Bell', 'Wendy\'s', 'Five Guys', 'Shake Shack', 'Dristor Kebab', 'Calif', 'Spartan', 'Mesopotamia', 'Shaormerie', 'Spring Time', 'City Grill', 'Hanu Berarilor',
+            // === PIZZERII ===
+            'Domino\'s', 'Pizza Hut', 'Jerry\'s Pizza', 'Trenta', 'Pizza Colosseum', 'Bella Italia', 'Il Calcio', 'Pizzerie',
+            // === LIVRARE MÂNCARE ===
+            'Tazz', 'Tazz by eMAG', 'Glovo', 'Bolt Food', 'Foodpanda', 'Takeaway', 'Just Eat', 'Uber Eats', 'Bringo', 'Freshful', 'Flink', 'Gorillas',
+            // === RESTAURANTE BY CUISINE ===
+            'Restaurant', 'Restaurant românesc', 'Restaurant chinezesc', 'Restaurant japonez', 'Sushi', 'Restaurant italian', 'Restaurant grecesc', 'Restaurant indian', 'Restaurant mexican', 'Restaurant turcesc', 'Restaurant libanez', 'Restaurant asiatic', 'Restaurant vegetarian', 'Restaurant vegan', 'Restaurant fusion', 'Fine dining', 'Bistro', 'Brasserie', 'Grill',
+            // === CAFENELE & CEAINĂRII ===
+            'Starbucks', 'Ted\'s Coffee', 'Costa Coffee', 'Gregory\'s', 'Tucano Coffee', '5 to Go', 'Narcoffee', 'Origo', 'Steam', 'M60', 'Caffè Vergnano', 'Gloria Jean\'s', 'McCafé', 'Cafenea', 'Coffee shop', 'Ceainărie', 'Ceai', 'Cafea',
+            // === BĂUTURI ===
+            'Sucuri', 'Băuturi răcoritoare', 'Apă minerală', 'Apă plată', 'Coca-Cola', 'Pepsi', 'Fanta', 'Sprite', 'Energizante', 'Red Bull', 'Monster', 'Hell', 'Smoothie', 'Fresh',
+            // === ALCOOL ===
+            'Bere', 'Vin', 'Vinărie', 'Cramă', 'Spirtoase', 'Țuică', 'Pălincă', 'Whisky', 'Vodka', 'Rom', 'Gin', 'Cocktailuri', 'Pub', 'Bar', 'Club', 'Beer garden', 'Berărie',
+            // === GUSTĂRI & DULCIURI ===
+            'Gustări', 'Snacks', 'Chipsuri', 'Dulciuri', 'Ciocolată', 'Milka', 'Oreo', 'Kinder', 'Ferrero', 'Bomboane', 'Gumă', 'Înghețată', 'Gelaterie',
+            // === ALIMENTE DE BAZĂ ===
+            'Fructe', 'Legume', 'Carne', 'Pui', 'Porc', 'Vită', 'Pește', 'Fructe de mare', 'Lactate', 'Lapte', 'Iaurt', 'Brânză', 'Smântână', 'Ouă', 'Pâine', 'Produse panificație', 'Conserve', 'Murături', 'Condimente', 'Ulei', 'Oțet', 'Făină', 'Zahăr', 'Sare', 'Orez', 'Paste', 'Cereale', 'Muesli', 'Miere', 'Gem', 'Unt', 'Margarină',
+            // === MÂNCARE SPECIALĂ ===
+            'Mâncare bio', 'Organic', 'Gluten free', 'Lactose free', 'Vegan', 'Vegetarian', 'Keto', 'Low carb', 'Proteine', 'Suplimente alimentare'
+          ]},
         
-        // 🚗 TRANSPORT
+        // 🚗 TRANSPORT - MEGA COMPREHENSIVE
         { id: 'transport', name: 'Transport', icon: '🚗', color: '#f59e0b',
           keywords: ['transport', 'masina', 'car', 'benzina', 'motorina', 'uber', 'bolt', 'taxi', 'bus', 'metrou', 'tren'],
-          subs: ['Benzină', 'Motorină', 'GPL', 'Încărcare electrică', 'Tesla Supercharger', 'Uber', 'Bolt', 'Taxi', 'Transport public', 'STB', 'Metrorex', 'Abonament transport', 'Bilet autobuz', 'Bilet metrou', 'CFR', 'Tren', 'Interregio', 'Regio', 'Avion', 'Bilet avion', 'Wizz Air', 'Ryanair', 'Blue Air', 'Tarom', 'Parcare', 'Parcare mall', 'Parcare stradală', 'Parcare aeroport', 'Rovignetă', 'Taxa pod', 'Taxă drum', 'Autostradă', 'Service auto', 'ITP', 'Schimb ulei', 'Revizie', 'Frâne', 'Cauciucuri', 'Anvelope iarnă', 'Anvelope vară', 'Vulcanizare', 'Spălătorie auto', 'Detailing', 'Polish', 'Piese auto', 'Accesorii auto', 'Asigurare RCA', 'Asigurare CASCO', 'Leasing auto', 'Rată mașină', 'Chirie mașină', 'Rent a car', 'Car sharing', 'Amendă rutieră', 'Amendă parcare', 'Combustibil', 'OMV', 'Petrom', 'Rompetrol', 'MOL', 'Lukoil'] },
-        
-        // 🏠 LOCUINȚĂ
+          subs: [
+            // === COMBUSTIBIL ===
+            'Benzină', 'Motorină', 'Diesel', 'GPL', 'AdBlue', 'Încărcare electrică', 'Stație încărcare', 'Tesla Supercharger', 'Enel X', 'Renovatio', 'OMV', 'Petrom', 'Rompetrol', 'MOL', 'Lukoil', 'Socar', 'Gazprom', 'Shell',
+            // === RIDESHARING & TAXI ===
+            'Uber', 'Bolt', 'Bolt Drive', 'Free Now', 'Yango', 'Taxi', 'Taxi Pelicanul', 'Speed Taxi', 'Meridian Taxi', 'Leone', 'Cobalcescu',
+            // === TRANSPORT PUBLIC ===
+            'STB', 'Metrorex', 'Abonament STB', 'Bilet STB', 'Bilet metrou', 'Abonament metrou', 'Card transport', 'Transport public', 'Autobuz', 'Tramvai', 'Troleibuz',
+            // === TREN ===
+            'CFR', 'CFR Călători', 'Interregio', 'Regio', 'InterCity', 'Tren', 'Bilet tren', 'Abonament tren', 'Softrans', 'Astra Trans Carpatic', 'Trenurile Soarelui',
+            // === AVION ===
+            'Wizz Air', 'Ryanair', 'Blue Air', 'Tarom', 'Lufthansa', 'KLM', 'Air France', 'British Airways', 'Turkish Airlines', 'Qatar Airways', 'Emirates', 'Austrian Airlines', 'LOT', 'Bilet avion', 'Bagaj cală', 'Bagaj mână', 'Priority boarding', 'Selectare loc',
+            // === PARCARE ===
+            'Parcare', 'Parcare mall', 'Parcare stradală', 'Parcare aeroport', 'Parcare privată', 'Parcare rezidențială', 'Parcare subterană', 'Parcomatic', 'Telverde parcare', 'Aplicație parcare',
+            // === TAXE & ROVINIETE ===
+            'Rovignetă', 'Peaj', 'Taxa pod', 'Pod Cernavodă', 'Taxa autostradă', 'Autostradă', 'Taxă drum', 'Taxa oxigen', 'Timbru mediu', 'Taxa poluare',
+            // === SERVICE AUTO ===
+            'Service auto', 'ITP', 'Revizie', 'Schimb ulei', 'Ulei motor', 'Filtru ulei', 'Filtru aer', 'Frâne', 'Plăcuțe frână', 'Discuri frână', 'Amortizoare', 'Suspensie', 'Direcție', 'Climatizare auto', 'AC auto', 'Geometrie roți', 'Echilibrare roți', 'Bujii', 'Curea distribuție', 'Alternator', 'Electromotor', 'Baterie auto', 'Acumulator',
+            // === ANVELOPE ===
+            'Cauciucuri', 'Anvelope', 'Anvelope iarnă', 'Anvelope vară', 'Anvelope all season', 'Vulcanizare', 'Hotel anvelope', 'Michelin', 'Continental', 'Pirelli', 'Bridgestone', 'Goodyear', 'Hankook', 'Nokian',
+            // === SPĂLĂTORIE & DETAILING ===
+            'Spălătorie auto', 'Self wash', 'Detailing', 'Polish', 'Ceruire', 'Curățare interior', 'Curățare tapițerie', 'Igienizare AC',
+            // === PIESE & ACCESORII ===
+            'Piese auto', 'Accesorii auto', 'Covorase', 'Huse scaune', 'Suport telefon', 'Încărcător auto', 'Cameră bord', 'GPS', 'AutoDoc', 'Eta Beta', 'Inter Cars', 'Motrio',
+            // === ASIGURĂRI AUTO ===
+            'RCA', 'CASCO', 'Asigurare auto', 'Decontare directă', 'Allianz RCA', 'Groupama RCA', 'Euroins', 'City Insurance', 'Omniasig', 'Asirom', 'Generali',
+            // === LEASING & RATĂ ===
+            'Rată mașină', 'Leasing auto', 'Leasing operațional', 'Credit auto', 'Chirie mașină', 'Rent a car', 'Car sharing', 'Spark', 'Share Now', 'CityLink', 'PONY',
+            // === AMENZI ===
+            'Amendă', 'Amendă rutieră', 'Amendă parcare', 'Amendă viteză', 'Radar', 'Puncte permis'
+          ]},
+
+        // 🏠 LOCUINȚĂ - MEGA COMPREHENSIVE
         { id: 'housing', name: 'Locuință', icon: '🏠', color: '#8b5cf6',
-          keywords: ['casa', 'locuinta', 'chirie', 'rent', 'apartament', 'rata', 'intretinere', 'bloc'],
-          subs: ['Chirie apartament', 'Chirie casă', 'Chirie garsonieră', 'Chirie cameră', 'Rată ipotecară', 'Credit imobiliar', 'Dobândă credit', 'Întreținere', 'Asociație proprietari', 'Fond rulment', 'Fond reparații', 'Curățenie scară', 'Salubrizare', 'Reparații casă', 'Instalator', 'Electrician', 'Zugrav', 'Tâmplar', 'Lacătuș', 'Reparații urgente', 'Renovare', 'Amenajare', 'Decorațiuni', 'Mobilă', 'IKEA', 'JYSK', 'Dedeman', 'Hornbach', 'Leroy Merlin', 'Mobilier living', 'Mobilier dormitor', 'Mobilier bucătărie', 'Canapea', 'Pat', 'Masă', 'Scaune', 'Dulap', 'Birou', 'Electrocasnice', 'Frigider', 'Mașină spălat', 'Uscător', 'Aragaz', 'Cuptor', 'Hotă', 'Aspirator', 'Aer condiționat', 'Centrală termică', 'Boiler', 'Articole menaj', 'Vase', 'Tacâmuri', 'Oale', 'Lenjerie pat', 'Prosoape', 'Perdele', 'Draperii', 'Covoare', 'Plante', 'Grădinărit', 'Unelte grădină', 'Mobilier grădină', 'Piscină', 'Securitate', 'Alarmă', 'Cameră supraveghere', 'Interfon', 'Încuietoare smart', 'Asigurare locuință'] },
+          keywords: ['casa', 'locuinta', 'chirie', 'rent', 'apartament', 'rata', 'intretinere', 'bloc', 'dedeman', 'ikea'],
+          subs: [
+            // === CHIRIE ===
+            'Chirie apartament', 'Chirie casă', 'Chirie garsonieră', 'Chirie studio', 'Chirie cameră', 'Chirie vilă', 'Garanție chirie', 'Avans chirie',
+            // === CREDIT IMOBILIAR ===
+            'Rată ipotecară', 'Credit imobiliar', 'Credit ipotecar', 'Dobândă credit casă', 'Refinanțare', 'Prima casă', 'Noua casă', 'Credit construcție',
+            // === ÎNTREȚINERE BLOC ===
+            'Întreținere', 'Asociație proprietari', 'Fond rulment', 'Fond reparații', 'Fond special', 'Curățenie scară', 'Dezinsecție', 'Deratizare', 'Salubrizare', 'Lift', 'Interfon', 'Iluminat scară',
+            // === REPARAȚII & MEȘTERI ===
+            'Reparații casă', 'Instalator', 'Instalații sanitare', 'Electrician', 'Instalații electrice', 'Zugrav', 'Zugrăveli', 'Vopsit', 'Tâmplar', 'Lacătuș', 'Faianțar', 'Parchetar', 'Rigipsar', 'Tinichigiu', 'Reparații acoperiș', 'Hidroizolație', 'Termoizolație',
+            // === RENOVARE & AMENAJARE ===
+            'Renovare', 'Renovare apartament', 'Renovare casă', 'Renovare baie', 'Renovare bucătărie', 'Amenajare', 'Amenajări interioare', 'Design interior', 'Arhitect',
+            // === MAGAZINE BRICOLAJ ===
+            'Dedeman', 'Hornbach', 'Leroy Merlin', 'Brico Depot', 'MatHaus', 'Ambient', 'Diego', 'Praktiker', 'OBI', 'Baumax',
+            // === MOBILĂ ===
+            'IKEA', 'JYSK', 'Mobexpert', 'Kika', 'XXXLutz', 'Dormeo', 'Saltele', 'Mobila.ro', 'Vivre', 'WestwingNow', 'Somproduct', 'Elvila', 'Staer', 'Casa Rusu', 'Rus Savitar',
+            // === MOBILIER SPECIFIC ===
+            'Mobilier living', 'Canapea', 'Fotoliu', 'Masă living', 'Comodă', 'Bibliotecă', 'Mobilier dormitor', 'Pat', 'Saltea', 'Noptieră', 'Dulap', 'Șifonier', 'Dressing', 'Mobilier bucătărie', 'Masă bucătărie', 'Scaune bucătărie', 'Mobilier baie', 'Mobilier copii', 'Birou', 'Scaun birou', 'Scaun gaming', 'Masă dining',
+            // === ELECTROCASNICE ===
+            'Electrocasnice', 'Frigider', 'Congelator', 'Combină frigorifică', 'Mașină spălat rufe', 'Mașină spălat vase', 'Uscător', 'Aragaz', 'Cuptor electric', 'Cuptor microunde', 'Hotă', 'Plită', 'Plită inductie', 'Plită gaz', 'Espressor', 'Cafetieră', 'Fierbător', 'Toaster', 'Mixer', 'Blender', 'Robot bucătărie', 'Thermomix', 'Friteuză', 'Air fryer', 'Multicooker', 'Aparat pâine', 'Storcător', 'Aspirator', 'Aspirator robot', 'iRobot', 'Roborock', 'Xiaomi', 'Dyson', 'Fier călcat', 'Stație călcat', 'Aparat aer condiționat', 'AC', 'Centrală termică', 'Boiler', 'Calorifer electric', 'Convector', 'Aeroterma', 'Ventilator', 'Purificator aer', 'Dezumidificator', 'Umidificator',
+            // === ARTICOLE MENAJ ===
+            'Vase', 'Oale', 'Tigăi', 'Tefal', 'Tacâmuri', 'Farfurii', 'Pahare', 'Căni', 'Castroane', 'Cutii depozitare', 'Recipient', 'Tocător', 'Cuțite', 'Ustensile bucătărie', 'Recipiente', 'Uscător vase',
+            // === TEXTILE CASĂ ===
+            'Lenjerie pat', 'Cearșaf', 'Pătură', 'Plapumă', 'Pernă', 'Prosoape', 'Halat', 'Perdele', 'Draperii', 'Jaluzele', 'Storuri', 'Rolete', 'Covoare', 'Mochete', 'Pres intrare',
+            // === DECORAȚIUNI ===
+            'Decorațiuni', 'Tablouri', 'Oglinzi', 'Vaze', 'Lumânări', 'Plante artificiale', 'Ghivece', 'Cadre foto', 'Ceasuri perete', 'Statuete',
+            // === GRĂDINĂ ===
+            'Plante', 'Flori', 'Ghivece plante', 'Pământ', 'Îngrășământ', 'Unelte grădină', 'Furtun', 'Stropitoare', 'Mașină tuns iarbă', 'Motocositoare', 'Drujbă', 'Mobilier grădină', 'Masă grădină', 'Scaune grădină', 'Umbrela soare', 'Grătar', 'Hamac', 'Piscină', 'Piscină gonflabilă',
+            // === SECURITATE ===
+            'Alarmă', 'Sistem alarmă', 'Cameră supraveghere', 'Videointerfon', 'Interfon', 'Sonerie', 'Sonerie video', 'Ring', 'Încuietoare', 'Încuietoare smart', 'Yale', 'Seif',
+            // === ASIGURARE LOCUINȚĂ ===
+            'Asigurare locuință', 'Asigurare casă', 'Asigurare apartament', 'PAD', 'Asigurare incendiu', 'Asigurare inundații'
+          ]},
         
-        // 💡 UTILITĂȚI
+        // 💡 UTILITĂȚI - COMPREHENSIVE
         { id: 'utilities', name: 'Utilități', icon: '💡', color: '#3b82f6',
           keywords: ['utilitate', 'curent', 'gaz', 'apa', 'electricitate', 'factura', 'enel', 'engie', 'digi', 'rds'],
-          subs: ['Electricitate', 'Enel', 'E.ON', 'Electrica', 'CEZ', 'Gaz', 'Engie', 'E.ON Gaz', 'Apă', 'Apă Nova', 'Apa Canal', 'Apă caldă', 'Apă rece', 'Canalizare', 'Gunoi', 'Salubritate', 'Încălzire', 'Termoficare', 'RADET', 'Lemne', 'Peleți', 'Cărbuni', 'Internet', 'Digi', 'RCS-RDS', 'Orange Home', 'Vodafone', 'Telekom', 'UPC', 'Fibră optică', 'Telefon fix', 'Telefon mobil', 'Abonament Orange', 'Abonament Vodafone', 'Abonament Telekom', 'Abonament Digi', 'Cartela prepaid', 'TV cablu', 'TV satelit', 'Digi TV', 'Orange TV', 'Telekom TV', 'Focus Sat', 'Întreținere bloc', 'Administrator bloc'] },
+          subs: [
+            // === ELECTRICITATE ===
+            'Electricitate', 'Curent', 'Enel', 'E.ON', 'Electrica', 'CEZ', 'Hidroelectrica', 'DEER', 'Restart Energy', 'Nova Power',
+            // === GAZ ===
+            'Gaz', 'Gaz natural', 'Engie', 'E.ON Gaz', 'Gaz metan', 'Premier Energy', 'Distrigaz',
+            // === APĂ ===
+            'Apă', 'Apă Nova', 'Apa Canal', 'Apă caldă', 'Apă rece', 'Canalizare', 'RAJA', 'Vital', 'Aquaserv', 'Compania de Apă',
+            // === GUNOI & SALUBRITATE ===
+            'Gunoi', 'Salubritate', 'Colectare deșeuri', 'Romprest', 'Eco-Sud', 'Supercom', 'Rosal', 'Iridex',
+            // === ÎNCĂLZIRE ===
+            'Încălzire', 'Termoficare', 'RADET', 'Termoenergetica', 'Lemne', 'Peleți', 'Cărbuni', 'Butelie gaz',
+            // === INTERNET ===
+            'Internet', 'Digi', 'RCS-RDS', 'Orange Home', 'Vodafone Home', 'Telekom', 'UPC', 'Fibră optică', 'Net',
+            // === TELEFONIE ===
+            'Telefon fix', 'Telefon mobil', 'Abonament Orange', 'Abonament Vodafone', 'Abonament Telekom', 'Abonament Digi', 'Cartela prepaid', 'Orange Prepay', 'Vodafone Prepay', 'Extra opțiuni', 'Date mobile', 'Roaming', 'Minute', 'SMS',
+            // === TV ===
+            'TV cablu', 'TV satelit', 'Digi TV', 'Orange TV', 'Telekom TV', 'Focus Sat', 'Dolce', 'Antena Play',
+            // === ADMINISTRARE ===
+            'Întreținere bloc', 'Administrator bloc', 'Contorizare', 'Repartitoare', 'Citire contor'
+          ]},
         
-        // 💊 SĂNĂTATE
+        // 💊 SĂNĂTATE - MEGA COMPREHENSIVE
         { id: 'health', name: 'Sănătate', icon: '💊', color: '#10b981',
           keywords: ['sanatate', 'doctor', 'medic', 'farmacie', 'medicamente', 'spital', 'clinica', 'dentist', 'stomatolog'],
-          subs: ['Medicamente', 'Farmacie', 'Catena', 'Sensiblu', 'HelpNet', 'Dr. Max', 'Tei', 'Antibiotice', 'Vitamine', 'Suplimente', 'Consultație medic', 'Medic familie', 'Medic specialist', 'Cardiolog', 'Dermatolog', 'Ginecolog', 'Urolog', 'Neurolog', 'Oftalmolog', 'ORL', 'Psihiatru', 'Psiholog', 'Psihoterapeut', 'Analize medicale', 'Analize sânge', 'Ecografie', 'RMN', 'CT', 'Radiografie', 'EKG', 'Spital', 'Internare', 'Operație', 'Urgențe', 'Ambulanță', 'Stomatolog', 'Dentist', 'Implant dentar', 'Coroană dentară', 'Detartraj', 'Albire dinți', 'Aparat dentar', 'Ortodont', 'Oftalmolog', 'Ochelari', 'Lentile contact', 'Operație ochi', 'Kinetoterapie', 'Fizioterapie', 'Masaj terapeutic', 'Recuperare', 'Tratament spa', 'Vaccinuri', 'Vaccin gripal', 'Asigurare sănătate', 'Asigurare privată', 'Regina Maria', 'MedLife', 'Sanador', 'Memorial'] },
+          subs: [
+            // === FARMACII ===
+            'Farmacie', 'Catena', 'Sensiblu', 'HelpNet', 'Dr. Max', 'Tei', 'Dona', 'Ropharma', 'Farmacia Inimii', 'Punkt', 'Remedium', 'Belladonna',
+            // === MEDICAMENTE ===
+            'Medicamente', 'Pastile', 'Antibiotice', 'Antiinflamatoare', 'Analgezice', 'Sirop', 'Spray', 'Picături', 'Unguent', 'Cremă medicinală', 'Plasturi', 'Bandaje', 'Dezinfectant',
+            // === SUPLIMENTE ===
+            'Vitamine', 'Suplimente', 'Vitamina C', 'Vitamina D', 'Multivitamine', 'Omega 3', 'Magneziu', 'Fier', 'Calciu', 'Zinc', 'Probiotice', 'Colagen', 'Proteine', 'Aminoacizi',
+            // === CLINICI PRIVATE ===
+            'Regina Maria', 'MedLife', 'Sanador', 'Arcadia', 'Medicover', 'Medpark', 'Affidea', 'Neolife', 'Monza', 'Polisano', 'Sanovil', 'Enayati Medical',
+            // === CONSULTAȚII ===
+            'Consultație medic', 'Medic familie', 'Medic specialist', 'Internist', 'Cardiolog', 'Dermatolog', 'Ginecolog', 'Urolog', 'Neurolog', 'Endocrinolog', 'Gastroenterolog', 'Pneumolog', 'Reumatolog', 'Oncolog', 'Hematolog', 'Alergolog', 'Imunolog', 'Nefrolog', 'Infectolog', 'Chirurg', 'Ortoped', 'Traumatolog',
+            // === ORL & OCHI ===
+            'ORL', 'Otorinolaringolog', 'Oftalmolog', 'Oculist', 'Control vedere', 'Ochelari', 'Rame', 'Lentile', 'Lentile contact', 'Lentile progresive', 'Operație ochi', 'LASIK', 'Optică medicală', 'Optica Optiblu', 'Optica Lensa',
+            // === STOMATOLOGIE ===
+            'Stomatolog', 'Dentist', 'Cabinet dentar', 'Consultație dentară', 'Plomba', 'Tratament canal', 'Extracție', 'Detartraj', 'Albire dinți', 'Implant dentar', 'Coroană dentară', 'Punte dentară', 'Proteză', 'Aparat dentar', 'Ortodont', 'Aparat ortodontic', 'Gutieră', 'Invisalign', 'Denta Vita', 'Dent Estet',
+            // === SĂNĂTATE MINTALĂ ===
+            'Psihiatru', 'Psiholog', 'Psihoterapeut', 'Terapie', 'Psihoterapie', 'Consiliere psihologică', 'Coaching', 'Mindfulness',
+            // === ANALIZE & INVESTIGAȚII ===
+            'Analize medicale', 'Analize sânge', 'Hemoleucogramă', 'Biochimie', 'Analize urină', 'Recoltare', 'Synevo', 'MedLife Analize', 'Regina Maria Lab', 'Ecografie', 'RMN', 'CT', 'Radiografie', 'Mamografie', 'EKG', 'Holter', 'Ecocardiografie', 'Endoscopie', 'Colonoscopie',
+            // === SPITAL ===
+            'Spital', 'Internare', 'Operație', 'Intervenție chirurgicală', 'Urgențe', 'Camera de gardă', 'Ambulanță', 'SMURD', 'Salvare',
+            // === FIZIOTERAPIE ===
+            'Kinetoterapie', 'Fizioterapie', 'Recuperare', 'Masaj terapeutic', 'Masaj medical', 'Electroterapie', 'Hidroterapie', 'Reflexoterapie', 'Acupunctură',
+            // === PREVENȚIE ===
+            'Vaccinuri', 'Vaccin gripal', 'Vaccin COVID', 'Vaccin HPV', 'Vaccin copii', 'Control medical', 'Screening', 'Control periodic', 'Medicina muncii',
+            // === ASIGURARE SĂNĂTATE ===
+            'Asigurare sănătate', 'Asigurare privată', 'Abonament medical', 'Card sănătate', 'CNAS', 'Decontare', 'Signal Iduna', 'Allianz Health'
+          ]},
         
-        // 🛍️ CUMPĂRĂTURI
+        // 🛍️ CUMPĂRĂTURI - MEGA COMPREHENSIVE
         { id: 'shopping', name: 'Cumpărături', icon: '🛍️', color: '#ec4899',
-          keywords: ['shopping', 'cumparaturi', 'mall', 'haine', 'incaltaminte', 'pantofi', 'geanta', 'accesorii', 'fashion'],
-          subs: ['Haine', 'Blugi', 'Pantaloni', 'Cămăși', 'Tricouri', 'Rochii', 'Fuste', 'Sacouri', 'Paltoane', 'Geci', 'Pulovere', 'Lenjerie intimă', 'Șosete', 'H&M', 'Zara', 'Reserved', 'C&A', 'New Yorker', 'Bershka', 'Pull&Bear', 'Mango', 'Stradivarius', 'Massimo Dutti', 'Încălțăminte', 'Pantofi', 'Adidași', 'Ghete', 'Sandale', 'Papuci', 'Cizme', 'deichmann', 'CCC', 'Office Shoes', 'Ecco', 'Geox', 'Nike', 'Adidas', 'Puma', 'Genți', 'Rucsacuri', 'Valize', 'Curele', 'Portofele', 'Bijuterii', 'Ceasuri', 'Ochelari soare', 'Accesorii', 'Eșarfe', 'Mănuși', 'Șepci', 'Pălării', 'Cosmetice', 'Machiaj', 'Parfumuri', 'Sephora', 'Douglas', 'Marionnaud', 'Îngrijire piele', 'Îngrijire păr', 'Electronice', 'Telefon', 'Laptop', 'Tabletă', 'Cască', 'eMAG', 'Altex', 'Flanco', 'MediaGalaxy', 'PCGarage', 'Apple', 'Samsung', 'Huawei', 'Xiaomi', 'Cadouri', 'Flori', 'Jucării', 'Decorațiuni'] },
+          keywords: ['shopping', 'cumparaturi', 'mall', 'haine', 'incaltaminte', 'pantofi', 'geanta', 'accesorii', 'fashion', 'emag', 'altex'],
+          subs: [
+            // === MAGAZINE HAINE ===
+            'H&M', 'Zara', 'Reserved', 'C&A', 'New Yorker', 'Bershka', 'Pull&Bear', 'Mango', 'Stradivarius', 'Massimo Dutti', 'Oysho', 'LC Waikiki', 'Koton', 'Terranova', 'OVS', 'Takko', 'KiK', 'Pepco', 'Primark', 'Peek & Cloppenburg', 'Van Graaf', 'Marks & Spencer', 'GAP', 'Guess', 'Tommy Hilfiger', 'Calvin Klein', 'Levi\'s', 'Moncler', 'Ralph Lauren', 'Lacoste', 'Hugo Boss', 'Armani', 'Versace', 'Prada', 'Gucci', 'Louis Vuitton', 'Hermes', 'Dior', 'Chanel', 'Burberry',
+            // === MAGAZINE ONLINE FASHION ===
+            'About You', 'Fashion Days', 'Answear', 'Modivo', 'FashionUP', 'Shopkins', 'Superbebeshop', 'Kurtmann', 'Stkan', 'Secretele Mireselor', 'Croitorie',
+            // === HAINE ===
+            'Haine', 'Blugi', 'Jeans', 'Pantaloni', 'Cămăși', 'Cămașă', 'Tricouri', 'Tricou', 'Rochii', 'Rochie', 'Fuste', 'Fustă', 'Sacouri', 'Sacou', 'Costume', 'Costum', 'Paltoane', 'Palton', 'Geci', 'Geacă', 'Jachete', 'Pulovere', 'Pulover', 'Hanorac', 'Bluză', 'Top', 'Maiou', 'Body', 'Lenjerie intimă', 'Sutiene', 'Chiloți', 'Boxeri', 'Șosete', 'Ciorapi', 'Dresuri', 'Pijamale', 'Halat baie',
+            // === ÎNCĂLȚĂMINTE ===
+            'Deichmann', 'CCC', 'Office Shoes', 'Otter', 'Ecco', 'Geox', 'Clarks', 'Salamander', 'Benvenuti', 'Il Passo', 'Musette', 'Marelbo', 'Leonardo', 'epantofi.ro', 'Pantofi', 'Adidași', 'Sneakers', 'Ghete', 'Bocanci', 'Sandale', 'Papuci', 'Saboti', 'Cizme', 'Balerini', 'Mocasini', 'Pantofi sport', 'Pantofi eleganți',
+            // === SPORT FASHION ===
+            'Nike', 'Adidas', 'Puma', 'Reebok', 'Under Armour', 'New Balance', 'Asics', 'Fila', 'Converse', 'Vans', 'Jordan', 'Skechers', 'Footshop', 'Sizeer', 'Snipes',
+            // === ACCESORII ===
+            'Genți', 'Geantă', 'Rucsacuri', 'Rucsac', 'Poșete', 'Clutch', 'Valize', 'Troler', 'Samsonite', 'American Tourister', 'Curele', 'Centură', 'Portofele', 'Portofel', 'Bijuterii', 'Cercei', 'Coliere', 'Brățări', 'Inele', 'Pandora', 'Swarovski', 'Teilor', 'Ceasuri', 'Fossil', 'Casio', 'Daniel Wellington', 'Seiko', 'Citizen', 'Tissot', 'Ochelari soare', 'Ray-Ban', 'Oakley', 'Eșarfe', 'Fulare', 'Mănuși', 'Șepci', 'Pălării', 'Cravate', 'Papioane', 'Butoni',
+            // === COSMETICE & PARFUMURI ===
+            'Sephora', 'Douglas', 'Marionnaud', 'Notino', 'Makeup', 'Kendra', 'Makeup.ro', 'Cosmetice', 'Machiaj', 'Fond de ten', 'Rimel', 'Ruj', 'Fard', 'Concealer', 'Pudra', 'Primer', 'Parfum', 'Apă de parfum', 'Apă de toaletă', 'Colonie', 'Parfumuri nișă', 'Dior Parfum', 'Chanel No 5', 'YSL', 'Armani Parfum', 'Lancôme', 'Estée Lauder', 'Clinique', 'MAC', 'Îngrijire piele', 'Cremă față', 'Ser', 'Mască', 'Demachiant', 'Toner', 'Îngrijire păr', 'Șampon', 'Balsam', 'Mască păr', 'Ulei păr', 'Styling', 'L\'Oréal', 'Garnier', 'Nivea', 'Neutrogena', 'CeraVe', 'The Ordinary', 'La Roche-Posay', 'Vichy', 'Avène',
+            // === ELECTRONICE ===
+            'eMAG', 'Altex', 'Flanco', 'Media Galaxy', 'PCGarage', 'CEL.ro', 'evomag', 'PC House', 'Germanos', 'Orange Shop', 'Vodafone Shop', 'iStyle', 'iSTYLE Apple', 'Samsung Store', 'Huawei Store', 'Xiaomi Store', 'QuickMobile', 'Vegashop',
+            // === GADGETURI ===
+            'Telefon', 'Smartphone', 'iPhone', 'Samsung Galaxy', 'Huawei', 'Xiaomi', 'OnePlus', 'Google Pixel', 'Laptop', 'MacBook', 'ThinkPad', 'ASUS', 'Lenovo', 'HP', 'Dell', 'Acer', 'MSI', 'PC', 'Desktop', 'Monitor', 'Tabletă', 'iPad', 'Samsung Tab', 'Cască', 'Căști', 'AirPods', 'Sony WH', 'Bose', 'JBL', 'Ceas smart', 'Smartwatch', 'Apple Watch', 'Samsung Watch', 'Garmin', 'Fitbit', 'Cameră foto', 'Canon', 'Nikon', 'Sony', 'GoPro', 'Dronă', 'DJI', 'Consolă', 'PlayStation', 'PS5', 'Xbox', 'Nintendo Switch', 'Controller',
+            // === CADOURI ===
+            'Cadouri', 'Flori', 'Florist', 'Floria', 'FlorideLux', 'Jucării', 'Lego', 'Hasbro', 'Mattel', 'Noriel', 'ToysRUs', 'Jumbo', 'Carturesti', 'Decorațiuni', 'Artizanat'
+          ]},
         
-        // 🎬 DIVERTISMENT
+        // 🎬 DIVERTISMENT - COMPREHENSIVE
         { id: 'entertainment', name: 'Divertisment', icon: '🎬', color: '#06b6d4',
-          keywords: ['divertisment', 'entertainment', 'film', 'cinema', 'concert', 'festival', 'teatru', 'muzeu', 'joc', 'game'],
-          subs: ['Cinema', 'Cinema City', 'Cinemax', 'IMAX', 'Bilet film', 'Popcorn', 'Teatru', 'Operă', 'Filarmonică', 'Concert', 'Festival', 'Untold', 'Electric Castle', 'Neversea', 'Summer Well', 'Muzeu', 'Expoziție', 'Galerie artă', 'Zoo', 'Grădină botanică', 'Parc distracții', 'Aqua park', 'Bowling', 'Biliard', 'Darts', 'Escape room', 'Karaoke', 'Club noapte', 'Discotecă', 'Casino', 'Pariuri', 'Loto', 'Jocuri video', 'PlayStation', 'Xbox', 'Nintendo', 'Gaming', 'Steam', 'Epic Games', 'Jocuri PC', 'Jocuri mobile', 'Board games', 'Jocuri societate', 'Puzzle', 'Sport', 'Fotbal', 'Baschet', 'Tenis', 'Golf', 'Înot', 'Ciclism', 'Alergare', 'Sală fitness', 'Gym', 'World Class', 'NextFit', 'SmartFit', 'Yoga', 'Pilates', 'CrossFit', 'Dans', 'Arte marțiale', 'Box', 'Schi', 'Snowboard', 'Patinaj', 'Echipament sport', 'Decathlon', 'Intersport', 'Hervis'] },
+          keywords: ['divertisment', 'entertainment', 'film', 'cinema', 'concert', 'festival', 'teatru', 'muzeu', 'joc', 'game', 'netflix'],
+          subs: [
+            // === CINEMA ===
+            'Cinema City', 'Cinemax', 'Cinegold', 'MoviePlex', 'Hollywood Multiplex', 'IMAX', 'VIP Cinema', 'Bilet film', 'Popcorn cinema', '3D', '4DX',
+            // === TEATRU & CULTURĂ ===
+            'Teatru', 'Teatru Național', 'Operă', 'Opera Națională', 'Filarmonică', 'Balet', 'Musical', 'Stand-up', 'Comedy club', 'iMapp', 'Bilet teatru',
+            // === CONCERTE & FESTIVALURI ===
+            'Concert', 'Bilet concert', 'Festival', 'Untold', 'Electric Castle', 'Neversea', 'Summer Well', 'Saga', 'Beach Please', 'Afterhills', 'TIFF', 'George Enescu', 'Jazz in the Park', 'Rock festival', 'Concert în aer liber',
+            // === MUZEE & EXPOZIȚII ===
+            'Muzeu', 'Muzeu Național', 'Muzeu Satului', 'Muzeu Țăranului', 'Muzeul de Artă', 'Expoziție', 'Galerie artă', 'Vernisaj',
+            // === LOCURI DE VIZITAT ===
+            'Zoo', 'Grădina Zoologică', 'Grădină botanică', 'Parc', 'Parc distracții', 'Aqua park', 'Therme', 'Therme București', 'Băile Felix', 'SPA',
+            // === ACTIVITĂȚI ===
+            'Bowling', 'Biliard', 'Darts', 'Escape room', 'Quest Room', 'Laser tag', 'Paintball', 'Airsoft', 'Karting', 'Karaoke', 'Pub quiz', 'Board games cafe',
+            // === VIAȚĂ NOAPTE ===
+            'Club noapte', 'Club', 'Discotecă', 'Lounge', 'Bar', 'Pub', 'Rooftop bar', 'Beach bar', 'Karaoke bar',
+            // === GAMBLING ===
+            'Casino', 'Pariuri', 'Pariuri sportive', 'Betano', 'Superbet', 'Fortuna', 'Unibet', 'Betfair', 'eFortuna', 'Maxbet', 'Admiral', 'Loto', '6/49', 'Joker', 'Noroc', 'Lozuri',
+            // === GAMING ===
+            'Jocuri video', 'PlayStation', 'PlayStation Plus', 'PS Plus', 'Xbox', 'Xbox Game Pass', 'Nintendo', 'Nintendo Online', 'Steam', 'Steam games', 'Epic Games', 'Origin', 'Battle.net', 'Ubisoft', 'EA', 'Riot Games', 'In-game purchase', 'V-Bucks', 'Robux', 'Gaming PC',
+            // === SPORT & FITNESS ===
+            'World Class', 'Next Level', 'SmartFit', 'FitLife', 'Gold\'s Gym', 'Igloo', '18 Gym', 'Sală fitness', 'Gym', 'Fitness', 'Personal trainer', 'Yoga', 'Pilates', 'CrossFit', 'Dans', 'Zumba', 'Spinning', 'TRX', 'Arte marțiale', 'Box', 'Kickbox', 'MMA', 'Judo', 'Karate', 'Taekwondo',
+            // === SPORTURI ===
+            'Fotbal', 'Tenis', 'Tenis masă', 'Badminton', 'Squash', 'Golf', 'Înot', 'Ciclism', 'Bicicletă', 'Alergare', 'Running', 'Patinaj', 'Patinoar', 'Schi', 'Snowboard', 'Skate', 'Role', 'Echitație', 'Escaladă', 'Cățărare', 'Alpinism',
+            // === ECHIPAMENT SPORT ===
+            'Decathlon', 'Intersport', 'Hervis', 'Sport Vision', 'SportsDirect', 'Sportisimo', 'Echipament sport', 'Echipament fitness', 'Echipament schi', 'Echipament ciclism'
+          ]},
         
-        // 📱 ABONAMENTE & STREAMING
+        // 📱 ABONAMENTE & SUBSCRIPTIONS
         { id: 'subscriptions', name: 'Abonamente', icon: '📱', color: '#a855f7',
           keywords: ['abonament', 'subscription', 'netflix', 'spotify', 'youtube', 'hbo', 'disney', 'streaming'],
-          subs: ['Netflix', 'HBO Max', 'Disney+', 'Amazon Prime', 'Apple TV+', 'Hulu', 'Paramount+', 'Voyo', 'Spotify', 'Apple Music', 'YouTube Music', 'Deezer', 'Tidal', 'SoundCloud', 'YouTube Premium', 'Twitch', 'ChatGPT Plus', 'OpenAI', 'Claude Pro', 'Midjourney', 'Adobe Creative Cloud', 'Photoshop', 'Illustrator', 'Premiere', 'Microsoft 365', 'Office 365', 'Google One', 'iCloud', 'Dropbox', 'OneDrive', 'VPN', 'NordVPN', 'ExpressVPN', 'Antivirus', 'Kaspersky', 'Bitdefender', 'Norton', 'Gaming', 'PlayStation Plus', 'Xbox Game Pass', 'Nintendo Online', 'EA Play', 'Ubisoft+', 'Patreon', 'OnlyFans', 'Substack', 'Medium', 'Presă online', 'Digi24', 'HotNews', 'Ziare.com', 'The Economist', 'Financial Times', 'Kindle Unlimited', 'Audible', 'Scribd', 'Dating apps', 'Tinder', 'Bumble', 'LinkedIn Premium', 'Notion', 'Slack', 'Zoom', 'Canva Pro', 'Figma', 'Domain hosting', 'Website', 'Shopify', 'WordPress'] },
+          subs: [
+            // === VIDEO STREAMING ===
+            'Netflix', 'HBO Max', 'Disney+', 'Amazon Prime Video', 'Apple TV+', 'Hulu', 'Paramount+', 'Voyo', 'Antena Play', 'Digi Online', 'Orange TV Go', 'SkyShowtime', 'MUBI', 'Crunchyroll', 'Discovery+',
+            // === MUSIC STREAMING ===
+            'Spotify', 'Apple Music', 'YouTube Music', 'YouTube Premium', 'Deezer', 'Tidal', 'Amazon Music', 'SoundCloud Go',
+            // === AI & PRODUCTIVITY ===
+            'ChatGPT Plus', 'OpenAI', 'Claude Pro', 'Anthropic', 'Midjourney', 'DALL-E', 'Notion', 'Notion AI', 'Evernote', 'Todoist', 'Trello', 'Asana', 'Slack', 'Zoom', 'Microsoft Teams', 'Google Workspace', 'Grammarly',
+            // === CREATIVE SOFTWARE ===
+            'Adobe Creative Cloud', 'Photoshop', 'Illustrator', 'Premiere Pro', 'After Effects', 'Lightroom', 'InDesign', 'Canva Pro', 'Figma', 'Sketch', 'Procreate',
+            // === OFFICE & CLOUD ===
+            'Microsoft 365', 'Office 365', 'Google One', 'iCloud+', 'iCloud storage', 'Dropbox', 'OneDrive', 'Box', 'pCloud',
+            // === SECURITY ===
+            'VPN', 'NordVPN', 'ExpressVPN', 'Surfshark', 'ProtonVPN', 'CyberGhost', 'Antivirus', 'Kaspersky', 'Bitdefender', 'Norton', 'McAfee', 'ESET', 'Malwarebytes', '1Password', 'LastPass', 'Dashlane',
+            // === GAMING SUBSCRIPTIONS ===
+            'PlayStation Plus', 'PS Plus Extra', 'PS Plus Premium', 'Xbox Game Pass', 'Xbox Game Pass Ultimate', 'Nintendo Online', 'EA Play', 'Ubisoft+', 'GeForce Now', 'Xbox Cloud Gaming',
+            // === NEWS & LEARNING ===
+            'Patreon', 'Substack', 'Medium', 'Kindle Unlimited', 'Audible', 'Scribd', 'Blinkist', 'MasterClass', 'Skillshare', 'LinkedIn Learning', 'Coursera Plus', 'Duolingo Plus',
+            // === PRESS ===
+            'Financial Times', 'The Economist', 'Wall Street Journal', 'New York Times', 'Bloomberg', 'Digi24 Premium', 'HotNews Premium',
+            // === DATING & SOCIAL ===
+            'Tinder', 'Tinder Plus', 'Tinder Gold', 'Bumble', 'Hinge', 'LinkedIn Premium', 'LinkedIn Recruiter', 'Twitter Blue', 'X Premium', 'Snapchat+', 'Discord Nitro',
+            // === OTHER ===
+            'Revolut Premium', 'Revolut Metal', 'Monzo Plus', 'N26 Metal', 'Strava', 'AllTrails', 'Headspace', 'Calm', 'Noom', 'MyFitnessPal'
+          ]},
         
         // 📚 EDUCAȚIE
         { id: 'education', name: 'Educație', icon: '📚', color: '#84cc16',
           keywords: ['educatie', 'education', 'curs', 'course', 'carte', 'book', 'scoala', 'universitate', 'facultate'],
-          subs: ['Cărți', 'Cărți Online', 'eBooks', 'Kindle', 'Librărie', 'Cărturești', 'Elefant', 'Libris', 'Audiobooks', 'Audible', 'Cursuri online', 'Udemy', 'Coursera', 'LinkedIn Learning', 'Skillshare', 'MasterClass', 'Duolingo', 'Babbel', 'Engleza', 'Germană', 'Franceză', 'Spaniolă', 'Programare', 'Codecademy', 'FreeCodeCamp', 'Pluralsight', 'Certificări IT', 'AWS', 'Google Cloud', 'Azure', 'MBA', 'Executive education', 'Facultate', 'Universitate', 'Taxă școlarizare', 'Master', 'Doctorat', 'Liceu privat', 'Școală privată', 'Grădiniță', 'Afterschool', 'Meditații', 'Tutoring', 'Profesor particular', 'Pregătire BAC', 'Pregătire admitere', 'Rechizite', 'Caiete', 'Pixuri', 'Ghiozdan', 'Uniformă', 'Conferințe', 'Workshop', 'Seminar', 'Webinar', 'Training', 'Dezvoltare personală', 'Coaching'] },
+          subs: [
+            // === LIBRĂRII ===
+            'Cărturești', 'Elefant', 'Libris', 'Diverta', 'Librex', 'Nemira', 'Polirom', 'Humanitas', 'RAO', 'Librăria Bastilia', 'Librăria Mihai Eminescu', 'BookDepository', 'Amazon Books', 'Kindle', 'eBooks', 'Audiobooks', 'Audible',
+            // === CURSURI ONLINE ===
+            'Udemy', 'Coursera', 'edX', 'LinkedIn Learning', 'Skillshare', 'MasterClass', 'Pluralsight', 'Treehouse', 'Codecademy', 'FreeCodeCamp', 'DataCamp', 'Brilliant',
+            // === LIMBI STRĂINE ===
+            'Duolingo', 'Babbel', 'Rosetta Stone', 'Busuu', 'italki', 'Preply', 'Curs engleză', 'Curs germană', 'Curs franceză', 'Curs spaniolă', 'Curs italiană', 'British Council',
+            // === CERTIFICĂRI ===
+            'Certificări IT', 'AWS Certification', 'Google Cloud', 'Azure', 'Cisco', 'CompTIA', 'PMP', 'Scrum', 'IELTS', 'TOEFL', 'Cambridge', 'Goethe', 'DELF',
+            // === UNIVERSITATE ===
+            'Taxă școlarizare', 'Universitate', 'Facultate', 'Master', 'MBA', 'Doctorat', 'Postuniversitar', 'UBB', 'Universitatea București', 'ASE', 'Politehnica', 'UAUIM', 'SNSPA',
+            // === ȘCOALĂ ===
+            'Școală privată', 'Liceu privat', 'Grădiniță', 'Grădiniță privată', 'Creșă', 'Afterschool', 'Taxă grădiniță', 'Taxă școală',
+            // === MEDITAȚII ===
+            'Meditații', 'Profesor particular', 'Tutoring', 'Pregătire BAC', 'Pregătire Evaluare Națională', 'Pregătire admitere', 'Meditații matematică', 'Meditații română', 'Meditații engleză',
+            // === RECHIZITE ===
+            'Rechizite', 'Caiete', 'Pixuri', 'Creioane', 'Ghiozdan', 'Penar', 'Stilou', 'Markere', 'Acuarele', 'Uniformă școlară', 'Papetărie', 'Staples', 'Birou pentru copii',
+            // === DEZVOLTARE ===
+            'Workshop', 'Seminar', 'Webinar', 'Conferință', 'Training', 'Team building', 'Dezvoltare personală', 'Coaching', 'Life coaching', 'Business coaching'
+          ]},
         
         // 👨‍👩‍👧 FAMILIE & COPII
         { id: 'family', name: 'Familie & Copii', icon: '👨‍👩‍👧', color: '#f97316',
           keywords: ['familie', 'family', 'copil', 'copii', 'baby', 'kids', 'jucarii', 'scutece', 'lapte praf'],
-          subs: ['Scutece', 'Pampers', 'Huggies', 'Lapte praf', 'Mâncare bebeluși', 'Hipp', 'Nestle', 'Biberon', 'Suzeta', 'Haine copii', 'Haine bebeluși', 'Body', 'Salopete', 'Încălțăminte copii', 'Jucării', 'LEGO', 'Playmobil', 'Barbie', 'Hot Wheels', 'Păpuși', 'Mașinuțe', 'Jocuri educative', 'Puzzle copii', 'Cărți copii', 'Cărucior', 'Scaun auto', 'Pătuț', 'Leagăn', 'Baby monitor', 'Babysitter', 'Bonă', 'Grădiniță', 'Creșă', 'Afterschool', 'Tabără copii', 'Activități copii', 'Cursuri copii', 'Înot copii', 'Balet', 'Fotbal copii', 'Tenis copii', 'Petrecere copii', 'Animatori', 'Loc de joacă', 'Animale companie', 'Câine', 'Pisică', 'Hamster', 'Pește', 'Papagal', 'Mâncare animale', 'Royal Canin', 'Whiskas', 'Pedigree', 'Veterinar', 'Vaccin animal', 'Deparazitare', 'Frizerie animale', 'Pet shop', 'Accesorii animale', 'Cușcă', 'Lesa', 'Jucării animale'] },
+          subs: [
+            // === MAGAZINE COPII ===
+            'Noriel', 'Smyk', 'Toys R Us', 'Jumbo', 'Pepco Kids', 'KiK Kids', 'Takko Kids', 'H&M Kids', 'Zara Kids', 'Reserved Kids', 'C&A Kids', 'Benetton Kids', 'OVS Kids', 'Chicco', 'Prenatal', 'BabyNeeds', 'Nichiduta', 'Bekid', 'Bebe Tei', 'BabyPlus',
+            // === SCUTECE & ÎNGRIJIRE ===
+            'Scutece', 'Pampers', 'Huggies', 'Libero', 'Molfix', 'Happy', 'Scutece textile', 'Șervețele umede', 'Cremă bebeluș', 'Pudră', 'Ulei bebeluș', 'Șampon bebeluș', 'Cremă fund', 'Bepanthen', 'Sudocrem',
+            // === ALIMENTAȚIE BEBELUȘI ===
+            'Lapte praf', 'Aptamil', 'NAN', 'Hipp', 'Nutricia', 'Similac', 'Piure', 'Cereale bebeluș', 'Biberoane', 'Suzete', 'Căni antivărsare', 'Sterilizator', 'Încălzitor biberoane', 'Pompa san', 'Medela',
+            // === MOBILIER COPII ===
+            'Pătuț', 'Landou', 'Cărucior', 'Scoică auto', 'Scaun auto', 'Leagăn', 'Balansoar', 'Premergător', 'Tarc', 'Saltea copii', 'Asternut copii', 'Păturică', 'Pernă copii',
+            // === HAINE COPII ===
+            'Body copii', 'Salopetă', 'Pijamale copii', 'Costum botez', 'Rochie fetițe', 'Pantaloni copii', 'Tricou copii', 'Geacă copii', 'Ghete copii', 'Sandale copii', 'Adidași copii',
+            // === JUCĂRII ===
+            'Lego', 'Playmobil', 'Fisher Price', 'Vtech', 'Barbie', 'Hot Wheels', 'Nerf', 'Hasbro', 'Mattel', 'Paw Patrol', 'Peppa Pig', 'LOL Surprise', 'Puzzle', 'Jocuri societate', 'Jocuri educative', 'Lego Duplo', 'Lego Technic', 'Lego City', 'Lego Star Wars',
+            // === EDUCAȚIE COPII ===
+            'Cărți copii', 'Povești', 'Colorat', 'Carioci', 'Creioane colorate', 'Plastilină', 'Instrumente muzicale copii', 'Piano copii', 'Chitară copii',
+            // === ACTIVITĂȚI COPII ===
+            'Animatori', 'Petrecere copii', 'Loc de joaca', 'Trambulină', 'Piscină gonflabilă', 'Parc copii', 'Grădină zoologică', 'Circ', 'Teatru copii', 'Babysitter', 'Bonă', 'Baby sitting'
+          ]},
         
-        // 💆 PERSONAL & BEAUTY
-        { id: 'personal', name: 'Personal & Beauty', icon: '💆', color: '#14b8a6',
-          keywords: ['personal', 'beauty', 'frizerie', 'salon', 'coafor', 'manichiura', 'spa', 'masaj'],
-          subs: ['Frizerie', 'Coafor', 'Tunsoare', 'Vopsit păr', 'Coafură', 'Manichiură', 'Pedichiură', 'Unghii gel', 'Unghii acryl', 'Manichiură semipermanentă', 'Cosmetică', 'Tratament facial', 'Curățare ten', 'Epilare', 'Epilare laser', 'Epilare ceară', 'IPL', 'Masaj', 'Masaj relaxare', 'Masaj terapeutic', 'Masaj anticelulitic', 'SPA', 'Saună', 'Jacuzzi', 'Tratament corporal', 'Împachetări', 'Bronzare', 'Solar', 'Spray tan', 'Botox', 'Acid hialuronic', 'Lifting', 'Chirurgie estetică', 'Implant silicon', 'Liposucție', 'Tatuaj', 'Piercing', 'Microbladding', 'Extensii gene', 'Laminare gene', 'Barbershop', 'Bărbierit', 'Contur barbă', 'Tratament păr'] },
+        // ✈️ CĂLĂTORII
+        { id: 'travel', name: 'Călătorii', icon: '✈️', color: '#0ea5e9',
+          keywords: ['calatorie', 'travel', 'vacanta', 'vacation', 'hotel', 'zbor', 'flight', 'booking', 'airbnb'],
+          subs: [
+            // === REZERVĂRI ===
+            'Booking.com', 'Airbnb', 'Hotels.com', 'Expedia', 'Trivago', 'Agoda', 'Hostelworld', 'Vrbo', 'HomeAway', 'TripAdvisor',
+            // === AGENȚII ===
+            'TUI TravelCenter', 'Paralela 45', 'Christian Tour', 'Dertour', 'Eurolines', 'Karpaten Turism', 'Perfect Tour', 'Vola.ro', 'Paravion', 'eSky', 'Momondo', 'Skyscanner', 'Google Flights', 'Kayak',
+            // === CAZARE ===
+            'Hotel', 'Pensiune', 'Vila', 'Apartament vacanță', 'Hostel', 'Motel', 'Camping', 'Glamping', 'Resort', 'All inclusive', 'Bungalow', 'Cabană', 'AirBnB',
+            // === LANȚURI HOTELIERE ===
+            'Marriott', 'Hilton', 'IHG', 'Accor', 'Radisson', 'Ibis', 'Novotel', 'Mercure', 'Best Western', 'Holiday Inn', 'Crowne Plaza', 'InterContinental', 'Sheraton', 'Hyatt', 'Four Seasons', 'Ritz Carlton',
+            // === TRANSPORT ===
+            'Bilet avion', 'Bilet tren', 'Bilet autocar', 'FlixBus', 'Eurolines', 'Rent a car', 'Închiriere mașină', 'Transfer aeroport', 'Taxi aeroport',
+            // === ACTIVITĂȚI TURISTICE ===
+            'Tur ghidat', 'Excursie', 'City tour', 'Free walking tour', 'GetYourGuide', 'Viator', 'Musement', 'Bilete muzeu', 'Intrări obiective', 'Croazieră', 'Safari', 'Trekking',
+            // === DOCUMENTE ===
+            'Pașaport', 'Viză', 'Asigurare călătorie', 'Travel insurance', 'Green Card', 'Vigneta', 'Roamingul', 'SIM internațional',
+            // === BAGAJE ===
+            'Bagaj cală', 'Bagaj mână', 'Geantă voiaj', 'Rucsac călătorie', 'Accesorii călătorie', 'Adaptor priză', 'Power bank', 'Pernă gât', 'Geantă cosmetice travel'
+          ]},
+        
+        // 🐕 ANIMALE
+        { id: 'pets', name: 'Animale', icon: '🐕', color: '#eab308',
+          keywords: ['animal', 'pet', 'caine', 'pisica', 'veterinar', 'mancare animale', 'hrana'],
+          subs: [
+            // === MAGAZINE PET SHOP ===
+            'Pet Shop', 'Animax', 'Zoo Center', 'Hornbach Pets', 'Dedeman Pets', 'Carrefour Pet', 'Lidl Pet', 'Kaufland Pet', 'Mega Image Pet', 'zooplus', 'Petissimo', 'Pet Boutique', 'Biotur',
+            // === HRANĂ ===
+            'Hrană câini', 'Hrană pisici', 'Royal Canin', 'Hills', 'Purina', 'Whiskas', 'Pedigree', 'Felix', 'Brit', 'Acana', 'Orijen', 'Taste of the Wild', 'Josera', 'Happy Dog', 'Happy Cat', 'Recompense', 'Snacks animale',
+            // === ÎNGRIJIRE ===
+            'Veterinar', 'Consultație veterinar', 'Vaccinuri animale', 'Deparazitare', 'Vermifugare', 'Operație animale', 'Sterilizare', 'Castrare', 'Detartraj câini', 'Tratament', 'Spitalizare animale',
+            // === ACCESORII ===
+            'Cusca', 'Tarc animale', 'Pat câine', 'Pat pisică', 'Litieră', 'Nisip pisici', 'Lesa', 'Ham', 'Zgardă', 'Botniță', 'Jucării animale', 'Bol hrană', 'Fântână apă', 'Perie animale', 'Tuns câini', 'Grooming', 'Salon frizerie canină', 'Transport animale', 'Cușcă transport', 'Geantă transport',
+            // === ALTE ANIMALE ===
+            'Pești', 'Acvariu', 'Păsări', 'Cușcă păsări', 'Hamsteri', 'Iepuri', 'Rozătoare', 'Reptile', 'Terariu'
+          ]},
+        
+        // 🎁 CADOURI
+        { id: 'gifts', name: 'Cadouri', icon: '🎁', color: '#ec4899',
+          keywords: ['cadou', 'gift', 'dar', 'aniversare', 'craciun', 'paste'],
+          subs: [
+            // === OCAZII ===
+            'Cadou ziua de naștere', 'Cadou aniversare', 'Cadou Crăciun', 'Cadou Paște', 'Cadou Mărțișor', 'Cadou Valentine\'s', 'Cadou 8 Martie', 'Cadou nuntă', 'Dar nuntă', 'Cadou botez', 'Dar botez', 'Cadou absolvire', 'Cadou promovare', 'Cadou pensionare',
+            // === MAGAZINE CADOURI ===
+            'Floria', 'FlorideLux', 'Flori', 'Buchete', 'Aranjamente florale', 'Carturești Cadouri', 'Elefant Cadouri', 'eMAG Gift', 'Voucher cadou', 'Card cadou', 'Gift card', 'Experience gift', 'Voiaj.ro',
+            // === TIPURI ===
+            'Bijuterii cadou', 'Ceas cadou', 'Parfum cadou', 'Cosmetice cadou', 'Gadget cadou', 'Experiență cadou', 'Sărituri cu parașuta', 'Zbor cu balonul', 'Spa cadou', 'Cină romantică', 'Concert cadou', 'Carte cadou', 'Album foto', 'Personalizat', 'Gravura'
+          ]},
         
         // 🏛️ TAXE & IMPOZITE
         { id: 'taxes', name: 'Taxe & Impozite', icon: '🏛️', color: '#64748b',
-          keywords: ['taxa', 'impozit', 'tax', 'anaf', 'stat', 'amenda', 'timbru', 'notar'],
-          subs: ['Impozit pe venit', 'Impozit salariu', 'CAS', 'CASS', 'Contribuții sociale', 'Impozit locuință', 'Impozit apartament', 'Impozit casă', 'Impozit teren', 'Impozit auto', 'Taxă auto', 'Timbru mediu', 'Taxe locale', 'Taxă gunoi', 'ANAF', 'Declarație unică', 'Amenzi', 'Amendă rutieră', 'Amendă parcare', 'Amendă circulație', 'Taxe notariale', 'Notar', 'Autentificare', 'Legalizare', 'Taxe consulare', 'Viză', 'Pașaport', 'Carte identitate', 'Permis conducere', 'Certificat naștere', 'Certificat căsătorie', 'Taxe judiciare', 'Avocat', 'Consultant juridic', 'Executor judecătoresc', 'Taxe înmatriculare', 'Radiere auto', 'Taxe cadastru', 'Intabulare'] },
+          keywords: ['taxa', 'impozit', 'tax', 'anaf', 'stat', 'contributii'],
+          subs: [
+            // === IMPOZITE ===
+            'Impozit venit', 'Impozit salariu', 'CAS', 'CASS', 'Impozit dividende', 'Impozit pe profit', 'Impozit clădiri', 'Impozit teren', 'Impozit auto', 'Taxă auto', 'Impozit locuință',
+            // === TAXE ===
+            'ANAF', 'Taxă timbru', 'Taxă judiciară', 'Taxă notarială', 'Taxă cadastru', 'Taxă întabulare', 'Taxă pașaport', 'Taxă viză', 'Taxă certificat', 'Taxă copie legalizată',
+            // === CONTRIBUȚII ===
+            'Contribuții sociale', 'Pensie stat', 'Sănătate stat', 'Șomaj', 'Contribuție asiguratorie',
+            // === AMENZI ===
+            'Amendă', 'Penalizări', 'Dobânzi întârziere', 'Majorări', 'Executare silită'
+          ]},
         
-        // 🛡️ ASIGURĂRI
-        { id: 'insurance', name: 'Asigurări', icon: '🛡️', color: '#0ea5e9',
-          keywords: ['asigurare', 'insurance', 'rca', 'casco', 'polita'],
-          subs: ['RCA', 'CASCO', 'Asigurare auto', 'Asigurare locuință', 'Asigurare casă', 'Asigurare apartament', 'Asigurare incendiu', 'Asigurare furt', 'Asigurare inundații', 'Asigurare viață', 'Asigurare deces', 'Asigurare sănătate', 'Asigurare privată sănătate', 'Asigurare călătorie', 'Asigurare accidente', 'Asigurare credit', 'Asigurare animale', 'Allianz', 'Generali', 'Omniasig', 'Groupama', 'Euroins', 'City Insurance', 'Asirom', 'Grawe'] },
+        // 💼 BUSINESS & FREELANCE
+        { id: 'business', name: 'Business', icon: '💼', color: '#6366f1',
+          keywords: ['business', 'afacere', 'firma', 'pfa', 'srl', 'freelance'],
+          subs: [
+            // === ÎNFIINȚARE ===
+            'Înființare SRL', 'Înființare PFA', 'Înființare II', 'Registrul Comerțului', 'Autorizații', 'Licențe', 'Avize', 'Semnătură electronică',
+            // === OPERAȚIONAL ===
+            'Contabilitate', 'Contabil', 'Soft contabilitate', 'Saga', 'WinMentor', 'SmartBill', 'Facturis', 'Oblio', 'Consultanță', 'Avocat', 'Juridic', 'Audit', 'Expertiză',
+            // === MARKETING ===
+            'Marketing', 'Facebook Ads', 'Google Ads', 'SEO', 'SMM', 'Content marketing', 'Email marketing', 'Mailchimp', 'Sendinblue', 'Design grafic', 'Logo', 'Branding', 'Website', 'Hosting', 'Domeniu',
+            // === OFFICE ===
+            'Chirie birou', 'Coworking', 'Impact Hub', 'TechHub', 'Regus', 'Spaces', 'Mobila birou', 'Echipamente birou', 'Papetărie birou', 'Imprimantă', 'Xerox', 'Scanner', 'Toner', 'Hârtie',
+            // === SOFT & TOOLS ===
+            'Software', 'Licențe software', 'CRM', 'ERP', 'Project management', 'Jira', 'Monday.com', 'Basecamp', 'Cloud hosting', 'AWS', 'Google Cloud', 'Azure', 'Servere', 'Domenii'
+          ]},
         
-        // 🏦 BANCAR & FINANCIAR
-        { id: 'banking', name: 'Bancar & Financiar', icon: '🏦', color: '#6366f1',
-          keywords: ['banca', 'bank', 'comision', 'transfer', 'card', 'credit', 'dobanda'],
-          subs: ['Comision administrare cont', 'Comision card', 'Comision transfer', 'Comision retragere', 'Comision interbancar', 'Comision schimb valutar', 'Comision ATM', 'Dobândă credit', 'Dobândă overdraft', 'Rată credit consum', 'Rată credit nevoi personale', 'Rată card credit', 'Rată overdraft', 'Comision acordare credit', 'Comision administrare credit', 'ING', 'BT', 'BCR', 'BRD', 'Raiffeisen', 'UniCredit', 'CEC Bank', 'Alpha Bank', 'OTP Bank', 'Revolut', 'N26', 'Wise', 'PayPal fees', 'Stripe fees', 'Investiții', 'Comision broker', 'Trading fees', 'XTB', 'eToro', 'Trading 212', 'IBKR', 'Crypto fees', 'Binance', 'Coinbase', 'Exchange fees'] },
+        // 🤝 DATORII & ÎMPRUMUTURI
+        { id: 'debt', name: 'Datorii', icon: '🤝', color: '#ef4444',
+          keywords: ['datorie', 'imprumut', 'credit', 'rata', 'banca', 'refinantare'],
+          subs: [
+            // === BĂNCI ===
+            'BCR', 'BRD', 'ING', 'Raiffeisen', 'UniCredit', 'Banca Transilvania', 'Alpha Bank', 'CEC Bank', 'OTP Bank', 'Intesa Sanpaolo', 'Libra Bank', 'Garanti', 'First Bank', 'Credit Europe', 'Patria Bank', 'Idea Bank', 'ProCredit',
+            // === TIPURI CREDIT ===
+            'Credit nevoi personale', 'Credit consum', 'Credit ipotecar', 'Credit auto', 'Credit IMM', 'Linie credit', 'Overdraft', 'Card credit', 'Rate fără dobândă', 'Buy Now Pay Later', 'Klarna', 'PayPal Credit',
+            // === RAMBURSARE ===
+            'Rată credit', 'Dobândă credit', 'Comision credit', 'Asigurare credit', 'Rambursare anticipată', 'Refinanțare', 'Consolidare datorii',
+            // === IFN ===
+            'IFN', 'Provident', 'Cetelem', 'TBI Bank', 'Credius', 'Ferratum', 'Viva Credit', 'Zaplo', 'Creditfix',
+            // === PERSONAL ===
+            'Împrumut prieten', 'Împrumut familie', 'Bani datorați', 'Restituire împrumut'
+          ]},
         
-        // ✈️ CĂLĂTORII & VACANȚE
-        { id: 'travel', name: 'Călătorii & Vacanțe', icon: '✈️', color: '#0891b2',
-          keywords: ['calatorie', 'travel', 'vacanta', 'vacation', 'hotel', 'avion', 'flight', 'booking'],
-          subs: ['Bilet avion', 'Wizz Air', 'Ryanair', 'Blue Air', 'Tarom', 'Lufthansa', 'Turkish Airlines', 'Hotel', 'Booking.com', 'Airbnb', 'Hotels.com', 'Expedia', 'Hostel', 'Pensiune', 'Resort', 'All inclusive', 'Cazare', 'Cazare munte', 'Cazare mare', 'City break', 'Weekend getaway', 'Croazieră', 'Pachet vacanță', 'Agenție turism', 'Paralela 45', 'TUI', 'Karpaten', 'Rent car vacanță', 'Transfer aeroport', 'Taxi aeroport', 'Excursie', 'Tur ghidat', 'Atracții turistice', 'Muzeu vacanță', 'Parc tematic', 'Disneyland', 'Plajă', 'Pârtie schi', 'Skipass', 'Echipament schi închiriat', 'Souvenir', 'Cadouri vacanță', 'Asigurare călătorie', 'Viză', 'Bagaj', 'Excess bagaj'] },
+        // 🎨 ÎNGRIJIRE PERSONALĂ
+        { id: 'personal_care', name: 'Îngrijire', icon: '🎨', color: '#f472b6',
+          keywords: ['ingrijire', 'salon', 'frizerie', 'coafor', 'manichiura', 'spa', 'masaj'],
+          subs: [
+            // === PĂRUL ===
+            'Frizerie', 'Coafor', 'Salon', 'Tuns', 'Vopsit', 'Meșe', 'Balayage', 'Coafat', 'Ondulat', 'Permanent', 'Tratament păr', 'Keratină', 'Botox păr', 'Extensii', 'Barbershop', 'Bărbierit', 'Aranjat barbă',
+            // === UNGHII ===
+            'Manichiură', 'Pedichiură', 'Mani-pedi', 'Unghii gel', 'Unghii acryl', 'Oja semipermanentă', 'Nail art', 'Nail salon',
+            // === COSMETICĂ ===
+            'Cosmetică', 'Curățare ten', 'Tratament facial', 'Peeling', 'Microdermabraziune', 'Lifting', 'Botox', 'Acid hialuronic', 'Filler', 'Gene false', 'Extensii gene', 'Laminare gene', 'Sprâncene', 'Microblading', 'Dermopigmentare',
+            // === BODY ===
+            'Masaj', 'Masaj relaxare', 'Masaj anticelulitic', 'Masaj terapeutic', 'SPA', 'Saună', 'Jacuzzi', 'Împachetări', 'Tratament corp', 'Epilare', 'Epilare laser', 'IPL', 'Epilare cu ceară', 'Bronzare', 'Solar', 'Spray tan',
+            // === LANȚURI ===
+            'Nomasvello', 'Hegemon', 'Excellence Spa', 'Mandara Spa', 'Zen Spa'
+          ]},
         
-        // ❤️ DONAȚII & CARITATE
-        { id: 'charity', name: 'Donații & Caritate', icon: '❤️', color: '#f43f5e',
-          keywords: ['donatie', 'donation', 'caritate', 'charity', 'ajutor', 'ong'],
-          subs: ['Donație ONG', 'Crucea Roșie', 'UNICEF', 'Salvați Copiii', 'Habitat for Humanity', 'Donație biserică', 'Lumânări', 'Slujbe', 'Parastas', 'Donație spital', 'Donație școală', 'Donație animal', 'Crowdfunding', 'GoFundMe', 'Sponsorizare', 'Ajutor familie', 'Ajutor prieteni', 'Bacșiș', 'Tips', 'Cause sociale', 'Mediu', 'Reciclare'] },
-        
-        // 🎁 CADOURI & EVENIMENTE
-        { id: 'gifts', name: 'Cadouri & Evenimente', icon: '🎁', color: '#d946ef',
-          keywords: ['cadou', 'gift', 'aniversare', 'nunta', 'botez', 'craciun', 'paste', 'birthday'],
-          subs: ['Cadou ziua de naștere', 'Cadou aniversare', 'Cadou Crăciun', 'Cadou Paște', 'Cadou Valentine\'s Day', 'Cadou Dragobete', 'Cadou 8 Martie', 'Cadou 1 Iunie', 'Cadou absolvire', 'Cadou nuntă', 'Dar nuntă', 'Cadou botez', 'Cadou cumetrie', 'Flori', 'Buchet', 'Aranjament floral', 'Tort', 'Prăjituri', 'Ciocolată', 'Vin cadou', 'Șampanie', 'Parfum cadou', 'Bijuterii cadou', 'Ceas cadou', 'Voucher cadou', 'Gift card', 'Experiență cadou', 'Petrecere', 'Organizare eveniment', 'Decorațiuni petrecere', 'Baloane', 'Catering', 'DJ', 'Fotograf', 'Videograf'] },
-        
-        // 💼 BUSINESS & PROFESIONAL
-        { id: 'business', name: 'Business & Profesional', icon: '💼', color: '#eab308',
-          keywords: ['business', 'profesional', 'birou', 'office', 'firma', 'pfa', 'srl'],
-          subs: ['Echipamente birou', 'Laptop', 'Monitor', 'Tastatură', 'Mouse', 'Birou', 'Scaun ergonomic', 'Imprimantă', 'Scanner', 'Papetărie', 'Software', 'Licență Windows', 'Licență Office', 'Hosting', 'Domeniu web', 'Cloud services', 'AWS', 'Google Cloud', 'Marketing', 'Google Ads', 'Facebook Ads', 'Instagram Ads', 'LinkedIn Ads', 'SEO', 'Publicitate', 'Branding', 'Logo', 'Website', 'Contabilitate', 'Contabil', 'Consultant fiscal', 'Juridic', 'Avocat', 'Consultant', 'Coworking', 'Chirie birou', 'Spații comerciale', 'Deplasări business', 'Conferințe', 'Networking', 'Membership', 'Asociații profesionale', 'Cursuri business', 'Training angajați', 'Team building'] },
-        
-        // 📦 ALTELE
-        { id: 'other', name: 'Altele', icon: '📦', color: '#78716c',
+        // 🎲 ALTELE
+        { id: 'other', name: 'Altele', icon: '🎲', color: '#78716c',
           keywords: ['altele', 'other', 'diverse', 'misc'],
-          subs: ['Diverse', 'Neprevăzute', 'Urgențe', 'Pierderi', 'Furturi', 'Daune', 'Reparații diverse', 'Servicii diverse', 'Comisioane diverse', 'ATM fees', 'Livrare colete', 'Curier', 'FAN Courier', 'Cargus', 'DPD', 'Poștă', 'Timbru', 'Fotocopii', 'Printare', 'Laminare', 'Xerox', 'Chei', 'Încuietori', 'Curățătorie haine', 'Spălătorie', 'Croitorie', 'Reparații încălțăminte', 'Ascuțit cuțite', 'Gravură', 'Personalizare'] }
+          subs: [
+            'Diverse', 'Neprevăzute', 'Urgențe', 'Situații speciale', 'Cheltuieli neplanificate', 'Comisioane', 'Taxe diverse', 'Servicii diverse', 'Reparații diverse', 'Cheltuieli casă', 'Cheltuieli personale', 'Bacșiș', 'Tips', 'Donații', 'Caritate', 'Biserică', 'Pomană', 'Parastase', 'Înmormântare', 'Coroane', 'Sicriu', 'Ceremonii'
+          ]}
     ],
     
     income: [
-        // 💼 SALARIU & ANGAJARE
-        { id: 'salary', name: 'Salariu & Angajare', icon: '💼', color: '#10b981',
-          keywords: ['salariu', 'salary', 'leafă', 'plata', 'angajat', 'job', 'bonus'],
-          subs: ['Salariu net', 'Salariu brut', 'Avans salariu', 'Lichidare', 'Bonus performanță', 'Bonus anual', 'Al 13-lea salariu', 'Prime', 'Prima Paște', 'Prima Crăciun', 'Prima vacanță', 'Ore suplimentare', 'Overtime', 'Concediu plătit', 'Concediu medical plătit', 'Indemnizație deplasare', 'Diurnă', 'Decontări', 'Tichete masă', 'Tichete cadou', 'Tichete vacanță', 'Tichete creșă', 'Asigurare plătită de angajator', 'Abonament fitness plătit', 'Mașină de serviciu', 'Telefon de serviciu', 'Acțiuni companie', 'Stock options', 'RSU', 'ESPP', 'Profit sharing'] },
+        // 💵 SALARIU
+        { id: 'salary', name: 'Salariu', icon: '💵', color: '#22c55e',
+          keywords: ['salariu', 'salary', 'leafa', 'plata', 'wage', 'income'],
+          subs: [
+            'Salariu net', 'Salariu brut', 'Avans salariu', 'Lichidare', 'Prima', 'Bonus', 'Bonus performanță', 'Bonus Crăciun', 'Bonus Paște', 'Al 13-lea salariu', 'Ore suplimentare', 'Overtime', 'Spor noapte', 'Spor weekend', 'Spor vechime', 'Tichet masă', 'Tichet cadou', 'Tichet vacanță', 'Decontare', 'Diurnă', 'Concediu plătit', 'CO plătit', 'Indemnizație concediu'
+          ]},
         
-        // 💻 FREELANCE & CONSULTANȚĂ
-        { id: 'freelance', name: 'Freelance & Consultanță', icon: '💻', color: '#06b6d4',
-          keywords: ['freelance', 'consultant', 'proiect', 'project', 'client', 'pfa'],
-          subs: ['Proiecte freelance', 'Consultanță', 'Consultanță IT', 'Consultanță financiară', 'Consultanță marketing', 'Consultanță HR', 'Colaborări', 'Contract servicii', 'Retainer', 'Onorariu', 'Factură PFA', 'Factură SRL', 'Upwork', 'Fiverr', 'Toptal', 'Freelancer.com', 'Design freelance', 'Programare freelance', 'Scriere freelance', 'Traduceri', 'Copywriting', 'Content creation', 'Video editing', 'Grafică', 'Web design', 'Social media management', 'SEO services', 'Marketing freelance', 'Fotografie', 'Videografie', 'Muzică', 'Voiceover', 'Tutoring', 'Meditații', 'Training', 'Workshop-uri', 'Speaking fees', 'Podcast sponsorship'] },
+        // 💼 FREELANCE & BUSINESS
+        { id: 'freelance', name: 'Freelance', icon: '💼', color: '#06b6d4',
+          keywords: ['freelance', 'pfa', 'srl', 'business', 'afacere', 'consultant'],
+          subs: [
+            // === FREELANCE ===
+            'Proiect freelance', 'Contract', 'Consultanță', 'Servicii', 'Mentenanță', 'Retainer', 'Upwork', 'Fiverr', 'Toptal', 'Freelancer.com', 'PeoplePerHour', '99designs',
+            // === IT ===
+            'Programare', 'Web development', 'Mobile development', 'Design UI/UX', 'DevOps', 'QA Testing', 'Data Science', 'Machine Learning', 'Cybersecurity',
+            // === CREATIVE ===
+            'Design grafic', 'Logo design', 'Video editing', 'Foto', 'Copywriting', 'Content writing', 'Traduceri', 'Voice over', 'Ilustrație',
+            // === MARKETING ===
+            'SEO', 'SMM', 'Facebook Ads', 'Google Ads', 'Email marketing', 'Influencer', 'Affiliate marketing',
+            // === BUSINESS ===
+            'Profit SRL', 'Dividende SRL', 'Facturi PFA', 'Încasări', 'Venit net afacere', 'Cifră afaceri', 'Royalties'
+          ]},
         
-        // 🏪 AFACERI & ANTREPRENORIAT
-        { id: 'business_income', name: 'Afaceri', icon: '🏪', color: '#8b5cf6',
-          keywords: ['afacere', 'business', 'vanzari', 'sales', 'profit', 'srl', 'firma'],
-          subs: ['Vânzări produse', 'Vânzări servicii', 'Profit business', 'Dividende SRL', 'PFA încasări', 'SRL încasări', 'E-commerce', 'Shopify', 'WooCommerce', 'eMag Marketplace', 'Amazon FBA', 'Dropshipping', 'Print on demand', 'Affiliate marketing', 'Comisioane afiliere', 'Google AdSense', 'YouTube monetizare', 'Sponsorizări YouTube', 'TikTok Creator Fund', 'Instagram sponsorship', 'Blog income', 'Newsletter sponsorship', 'Substack', 'Patreon income', 'OnlyFans income', 'Course sales', 'Vânzări cursuri', 'eBook sales', 'Software sales', 'SaaS revenue', 'App revenue', 'License fees', 'Franchise fees', 'Consulting business'] },
-        
-        // 📈 INVESTIȚII & PASIVE
-        { id: 'investments', name: 'Investiții & Pasive', icon: '📈', color: '#22c55e',
-          keywords: ['investitie', 'investment', 'dividend', 'dobanda', 'profit', 'actiuni', 'etf'],
-          subs: ['Dividende acțiuni', 'Dividende ETF', 'Dividende fonduri', 'Dobândă depozit', 'Dobândă cont economii', 'Dobândă obligațiuni', 'Cupon obligațiuni', 'Profit trading', 'Capital gains', 'Vânzare acțiuni', 'Vânzare ETF', 'Vânzare obligațiuni', 'Randament fonduri', 'Fonduri mutuale', 'Fonduri investiții', 'BT Asset Management', 'NN', 'Franklin Templeton', 'BRD Asset', 'Erste Asset', 'Pilonul 2', 'Pilonul 3', 'Pensie privată', 'ROI investiții', 'Real estate income', 'REITs', 'Crowdfunding returns', 'P2P lending returns', 'Mintos', 'Bondora', 'Robor', 'Euribor'] },
+        // 📈 INVESTIȚII
+        { id: 'investments', name: 'Investiții', icon: '📈', color: '#22c55e',
+          keywords: ['investitie', 'investment', 'dividend', 'dobanda', 'profit', 'actiuni', 'etf', 'obligatiuni'],
+          subs: [
+            // === DIVIDENDE ===
+            'Dividende acțiuni', 'Dividende ETF', 'Dividende fonduri', 'Dividend BRD', 'Dividend BVB', 'Dividend S&P500', 'Dividend VWCE',
+            // === DOBÂNZI ===
+            'Dobândă depozit', 'Dobândă cont economii', 'Dobândă obligațiuni', 'Cupon obligațiuni', 'Titluri stat', 'Tezaur', 'Fidelis',
+            // === CAPITAL GAINS ===
+            'Profit acțiuni', 'Profit ETF', 'Profit obligațiuni', 'Vânzare acțiuni', 'Vânzare ETF', 'Capital gains', 'Randament fonduri',
+            // === FONDURI ===
+            'BT Asset Management', 'NN Investment', 'Franklin Templeton', 'BRD Asset', 'Erste Asset', 'Raiffeisen Asset', 'BCR Asset',
+            // === PENSIE ===
+            'Pilon 2', 'Pilon 3', 'Pensie privată', 'NN Pensii', 'Metropolitan', 'Allianz Țiriac',
+            // === REAL ESTATE ===
+            'REITs', 'Real estate income', 'Crowdfunding returns',
+            // === P2P ===
+            'P2P lending', 'Mintos', 'Bondora', 'PeerBerry', 'Twino', 'Robocash'
+          ]},
         
         // ₿ CRYPTO
         { id: 'crypto', name: 'Crypto', icon: '₿', color: '#f7931a',
           keywords: ['crypto', 'bitcoin', 'ethereum', 'btc', 'eth', 'binance', 'coinbase'],
-          subs: ['Profit crypto', 'Vânzare Bitcoin', 'Vânzare Ethereum', 'Vânzare altcoins', 'Staking rewards', 'Staking ETH', 'Staking SOL', 'Staking ADA', 'Mining', 'Mining Bitcoin', 'Mining Ethereum', 'Airdrops', 'DeFi yields', 'Yield farming', 'Liquidity mining', 'NFT sales', 'Vânzare NFT', 'Royalties NFT', 'Referral crypto', 'Binance referral', 'Coinbase referral', 'Cashback crypto', 'Crypto.com rewards', 'Binance cashback', 'Play to earn', 'Axie Infinity', 'GameFi', 'Learn to earn', 'Coinbase Earn'] },
+          subs: [
+            // === EXCHANGE ===
+            'Binance', 'Coinbase', 'Kraken', 'FTX', 'Crypto.com', 'KuCoin', 'Bybit', 'OKX', 'Gate.io', 'Revolut Crypto', 'TradeVille Crypto',
+            // === TRADING ===
+            'Profit Bitcoin', 'Profit Ethereum', 'Profit altcoins', 'Profit Solana', 'Profit Cardano', 'Profit XRP', 'Profit memecoins', 'Day trading', 'Swing trading',
+            // === PASSIVE ===
+            'Staking', 'Staking ETH', 'Staking SOL', 'Staking ADA', 'Staking DOT', 'Yield farming', 'Liquidity mining', 'DeFi yields', 'Lending crypto', 'Aave', 'Compound',
+            // === AIRDROPS & NFT ===
+            'Airdrops', 'NFT sales', 'NFT royalties', 'OpenSea', 'Blur',
+            // === MISC ===
+            'Mining', 'Referral bonus', 'Learn to earn', 'Play to earn', 'Cashback crypto'
+          ]},
         
-        // 🏢 CHIRII & IMOBILIARE
-        { id: 'rental', name: 'Chirii & Imobiliare', icon: '🏢', color: '#0ea5e9',
-          keywords: ['chirie', 'rent', 'airbnb', 'imobiliar', 'apartament', 'casa'],
-          subs: ['Chirie apartament', 'Chirie garsonieră', 'Chirie cameră', 'Chirie casă', 'Chirie vilă', 'Airbnb', 'Booking.com host', 'Short term rental', 'Long term rental', 'Chirie spațiu comercial', 'Chirie birou', 'Chirie magazin', 'Chirie depozit', 'Chirie teren', 'Chirie parcare', 'Chirie garaj', 'Vânzare apartament', 'Vânzare casă', 'Vânzare teren', 'Profit imobiliar', 'Capital gains imobiliar', 'Comision imobiliar', 'Property management fees'] },
+        // 🏢 CHIRIE PRIMITĂ
+        { id: 'rental', name: 'Chirii', icon: '🏢', color: '#0ea5e9',
+          keywords: ['chirie', 'rent', 'airbnb', 'imobiliar', 'inchiriere'],
+          subs: [
+            'Chirie apartament', 'Chirie garsonieră', 'Chirie cameră', 'Chirie casă', 'Airbnb host', 'Booking.com host', 'Short term rental', 'Long term rental', 'Chirie birou', 'Chirie spațiu comercial', 'Chirie depozit', 'Chirie teren', 'Chirie parcare', 'Chirie garaj', 'Property management'
+          ]},
         
         // 👴 PENSIE & SOCIAL
         { id: 'pension', name: 'Pensie & Social', icon: '👴', color: '#64748b',
           keywords: ['pensie', 'pension', 'ajutor', 'social', 'alocatie', 'somaj', 'stat'],
-          subs: ['Pensie stat', 'Pensie limită vârstă', 'Pensie anticipată', 'Pensie invaliditate', 'Pensie urmaș', 'Pensie specială', 'Pensie militară', 'Pensie privată', 'Pilon 2 încasări', 'Pilon 3 încasări', 'Alocație copii', 'Alocație stat', 'Indemnizație creștere copil', 'Concediu maternitate', 'Concediu paternitate', 'Șomaj', 'Indemnizație șomaj', 'Ajutor social', 'VMG', 'Ajutor încălzire', 'Bursă școlară', 'Bursă studii', 'Bursă merit', 'Bursă socială', 'Grant', 'Subvenții', 'Subvenție agricolă', 'Fonduri europene', 'Start-Up Nation'] },
+          subs: [
+            'Pensie stat', 'Pensie limită vârstă', 'Pensie anticipată', 'Pensie invaliditate', 'Pensie urmaș', 'Pensie specială', 'Pensie militară', 'Pilon 2 încasări', 'Pilon 3 încasări', 'Alocație copii', 'Alocație stat', 'Indemnizație creștere copil', 'Concediu maternitate', 'Concediu paternitate', 'Șomaj', 'Ajutor social', 'VMG', 'Ajutor încălzire', 'Bursă', 'Grant', 'Subvenții', 'Fonduri europene', 'Start-Up Nation'
+          ]},
         
         // 🎁 CADOURI & MOȘTENIRI
-        { id: 'gifts_income', name: 'Cadouri Primite', icon: '🎁', color: '#ec4899',
-          keywords: ['cadou primit', 'gift', 'mostenire', 'dar', 'bani primiti'],
-          subs: ['Bani primiți cadou', 'Cadou ziua de naștere', 'Cadou Crăciun', 'Cadou nuntă', 'Dar nuntă', 'Bani nuntă', 'Cadou botez', 'Bani botez', 'Cadou absolvire', 'Moștenire', 'Moștenire casă', 'Moștenire teren', 'Moștenire bani', 'Donații primite', 'Sponsorizări primite', 'Premii', 'Premiu concurs', 'Premiu loterie', 'Tombola', 'Bani găsiți'] },
+        { id: 'gifts_income', name: 'Cadouri', icon: '🎁', color: '#ec4899',
+          keywords: ['cadou', 'gift', 'mostenire', 'dar', 'bani primiti'],
+          subs: ['Bani cadou', 'Cadou ziua naștere', 'Cadou Crăciun', 'Dar nuntă', 'Dar botez', 'Moștenire', 'Donații primite', 'Premii', 'Tombola', 'Bani găsiți']},
         
-        // ↩️ RAMBURSĂRI & RETURURI
-        { id: 'refunds', name: 'Rambursări & Retururi', icon: '↩️', color: '#3b82f6',
-          keywords: ['rambursare', 'refund', 'retur', 'return', 'cashback', 'inapoi'],
-          subs: ['Retur produse', 'Rambursare', 'Refund', 'Garanție returnată', 'Depozit returnat', 'Cauțiune returnată', 'Decontări medicale', 'Rambursare CNAS', 'Rambursare asigurare', 'Rambursare taxe', 'Tax refund', 'Cashback', 'Cashback card', 'Revolut cashback', 'ING cashback', 'George cashback', 'Cashback shopping', 'Rebates', 'Discount recuperat', 'Voucher folosit', 'Credit note', 'Compensație', 'Despăgubire'] },
+        // ↩️ RAMBURSĂRI
+        { id: 'refunds', name: 'Rambursări', icon: '↩️', color: '#3b82f6',
+          keywords: ['rambursare', 'refund', 'retur', 'return', 'cashback'],
+          subs: ['Retur produse', 'Rambursare', 'Refund', 'Garanție', 'Decontări medicale', 'Tax refund', 'Cashback', 'Revolut cashback', 'ING cashback', 'Rebates', 'Compensații', 'Despăgubiri']},
         
-        // 🏷️ VÂNZĂRI PERSONALE
-        { id: 'sales', name: 'Vânzări Personale', icon: '🏷️', color: '#f97316',
-          keywords: ['vanzare', 'sale', 'olx', 'marketplace', 'second hand'],
-          subs: ['OLX', 'Facebook Marketplace', 'Lajumate', 'Publi24', 'Vinted', 'Second hand', 'Vânzare haine', 'Vânzare telefon', 'Vânzare laptop', 'Vânzare electronice', 'Vânzare mobilă', 'Vânzare auto', 'Vânzare mașină', 'Vânzare motocicletă', 'Vânzare bicicletă', 'Garage sale', 'Vânzare cărți', 'Vânzare jucării', 'Vânzare echipament sport', 'Vânzare instrumente', 'Antichități', 'Colecții'] },
+        // 🏷️ VÂNZĂRI
+        { id: 'sales', name: 'Vânzări', icon: '🏷️', color: '#f97316',
+          keywords: ['vanzare', 'sale', 'olx', 'marketplace', 'second hand', 'vinted'],
+          subs: ['OLX', 'Facebook Marketplace', 'Vinted', 'Lajumate', 'Publi24', 'Second hand', 'Vânzare haine', 'Vânzare telefon', 'Vânzare laptop', 'Vânzare auto', 'Vânzare mobilă', 'Garage sale']},
         
-        // 🎰 CÂȘTIGURI & NOROC
-        { id: 'winnings', name: 'Câștiguri & Noroc', icon: '🎰', color: '#eab308',
-          keywords: ['castig', 'winning', 'loto', 'pariuri', 'noroc', 'premiu'],
-          subs: ['Loto', '6/49', 'Joker', 'Loto 5/40', 'Noroc', 'Super Noroc', 'Euromillions', 'Pariuri sportive', 'Betano', 'Superbet', 'Unibet', 'Fortuna', 'Poker', 'Casino online', 'Slot machines', 'Blackjack', 'Ruletă', 'Concursuri', 'Premiu concurs', 'Giveaway', 'Tombola', 'Raffle'] },
+        // 🎰 CÂȘTIGURI
+        { id: 'winnings', name: 'Câștiguri', icon: '🎰', color: '#eab308',
+          keywords: ['castig', 'winning', 'loto', 'pariuri', 'noroc'],
+          subs: ['Loto', 'Pariuri sportive', 'Casino', 'Poker', 'Concursuri', 'Premiu', 'Giveaway', 'Tombola']},
         
         // 💰 ALTE VENITURI
         { id: 'other_income', name: 'Alte Venituri', icon: '💰', color: '#84cc16',
-          keywords: ['venit', 'income', 'altele', 'other', 'diverse'],
-          subs: ['Diverse', 'Venituri ocazionale', 'Side hustle', 'Gig economy', 'Uber driver', 'Bolt driver', 'Glovo curier', 'Tazz curier', 'Livrări', 'Task Rabbit', 'Fiver gigs', 'Babysitting', 'Pet sitting', 'House sitting', 'Mystery shopping', 'Sondaje plătite', 'User testing', 'Beta testing', 'Focus groups', 'Închiriere echipamente', 'Închiriere unelte', 'Închiriere costum', 'Împrumuturi returnate', 'Bani înapoi', 'Datorii recuperate', 'Depozite recuperate'] }
+          keywords: ['venit', 'income', 'altele', 'diverse'],
+          subs: ['Diverse', 'Side hustle', 'Gig economy', 'Uber driver', 'Bolt driver', 'Glovo curier', 'Tazz curier', 'Babysitting', 'Pet sitting', 'Sondaje', 'User testing', 'Împrumuturi returnate', 'Depozite recuperate']}
     ]
 };
 

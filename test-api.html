@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Gemini API</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000; 
+            color: #fff; 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        h1 { margin-bottom: 1rem; color: #8b5cf6; }
+        .test-section { 
+            background: #111; 
+            border-radius: 12px; 
+            padding: 1.5rem; 
+            margin-bottom: 1.5rem;
+            border: 1px solid #333;
+        }
+        h2 { font-size: 1.1rem; margin-bottom: 1rem; }
+        input, button { 
+            padding: 0.75rem 1rem; 
+            border-radius: 8px; 
+            font-size: 1rem;
+            border: 1px solid #333;
+        }
+        input { 
+            background: #222; 
+            color: #fff; 
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+        button { 
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            border: none;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .result { 
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #1a1a1a;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { border-left: 3px solid #10b981; }
+        .error { border-left: 3px solid #ef4444; }
+        .info { color: #888; font-size: 0.9rem; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Gemini API</h1>
+    
+    <div class="test-section">
+        <h2>1️⃣ Test Direct API (cu cheia ta)</h2>
+        <input type="text" id="apiKey" placeholder="Introdu API Key Gemini" value="">
+        <button onclick="testDirectAPI()">Test Direct API</button>
+        <div id="directResult" class="result" style="display:none;"></div>
+        <p class="info">Acest test apelează direct API-ul Google Gemini din browser.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>2️⃣ Test Vercel API (serverless function)</h2>
+        <input type="text" id="vercelUrl" placeholder="URL Vercel (ex: https://app.vercel.app)" value="">
+        <button onclick="testVercelAPI()">Test Vercel API</button>
+        <div id="vercelResult" class="result" style="display:none;"></div>
+        <p class="info">Acest test apelează funcția serverless de pe Vercel.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Rezultate</h2>
+        <div id="summary"></div>
+    </div>
+
+    <script>
+        async function testDirectAPI() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const resultDiv = document.getElementById('directResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = '⏳ Se testează...';
+
+            if (!apiKey) {
+                resultDiv.textContent = '❌ Introdu API Key!';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            
+            const requestBody = {
+                contents: [{
+                    parts: [{ text: "Spune 'API funcționează!' în română și adaugă un emoji." }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 100
+                }
+            };
+
+            try {
+                console.log('Testing direct API...');
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                console.log('Response:', data);
+
+                if (data.error) {
+                    resultDiv.textContent = `❌ Eroare: ${data.error.message}\n\nCod: ${data.error.code}\nStatus: ${data.error.status}`;
+                    resultDiv.className = 'result error';
+                    updateSummary('direct', false, data.error.message);
+                } else if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const text = data.candidates[0].content.parts[0].text;
+                    resultDiv.textContent = `✅ SUCCESS!\n\nRăspuns: ${text}`;
+                    resultDiv.className = 'result success';
+                    updateSummary('direct', true);
+                } else {
+                    resultDiv.textContent = `⚠️ Răspuns neașteptat:\n${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result error';
+                    updateSummary('direct', false, 'Unexpected response');
+                }
+            } catch (e) {
+                resultDiv.textContent = `❌ Eroare de rețea: ${e.message}`;
+                resultDiv.className = 'result error';
+                updateSummary('direct', false, e.message);
+            }
+        }
+
+        async function testVercelAPI() {
+            const vercelUrl = document.getElementById('vercelUrl').value.trim();
+            const resultDiv = document.getElementById('vercelResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = '⏳ Se testează...';
+
+            if (!vercelUrl) {
+                resultDiv.textContent = '❌ Introdu URL-ul Vercel!';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            const url = `${vercelUrl}/api/gemini`;
+
+            try {
+                console.log('Testing Vercel API at:', url);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        prompt: "Spune 'Vercel API funcționează!' și adaugă un emoji.",
+                        maxTokens: 100
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Response:', data);
+
+                if (data.success && data.response) {
+                    resultDiv.textContent = `✅ SUCCESS!\n\nRăspuns: ${data.response}`;
+                    resultDiv.className = 'result success';
+                    updateSummary('vercel', true);
+                } else if (data.error) {
+                    resultDiv.textContent = `❌ Eroare: ${data.error}\n\nDetalii: ${JSON.stringify(data.details || {}, null, 2)}`;
+                    resultDiv.className = 'result error';
+                    updateSummary('vercel', false, data.error);
+                } else {
+                    resultDiv.textContent = `⚠️ Răspuns neașteptat:\n${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result error';
+                    updateSummary('vercel', false, 'Unexpected response');
+                }
+            } catch (e) {
+                resultDiv.textContent = `❌ Eroare: ${e.message}\n\nAsigură-te că:\n1. URL-ul Vercel e corect\n2. Ai deployat proiectul\n3. Ai setat GEMINI_API_KEY în Environment Variables`;
+                resultDiv.className = 'result error';
+                updateSummary('vercel', false, e.message);
+            }
+        }
+
+        const summaryResults = {};
+        function updateSummary(test, success, error = '') {
+            summaryResults[test] = { success, error };
+            const summaryDiv = document.getElementById('summary');
+            
+            let html = '';
+            if (summaryResults.direct) {
+                html += summaryResults.direct.success 
+                    ? '✅ Direct API: Funcționează!\n' 
+                    : `❌ Direct API: ${summaryResults.direct.error}\n`;
+            }
+            if (summaryResults.vercel) {
+                html += summaryResults.vercel.success 
+                    ? '✅ Vercel API: Funcționează!\n' 
+                    : `❌ Vercel API: ${summaryResults.vercel.error}\n`;
+            }
+            
+            if (summaryResults.direct?.success || summaryResults.vercel?.success) {
+                html += '\n🎉 Cel puțin un API funcționează - aplicația va merge!';
+            }
+            
+            summaryDiv.style.display = 'block';
+            summaryDiv.className = 'result';
+            summaryDiv.textContent = html || 'Rulează testele pentru a vedea rezultatele.';
+        }
+    </script>
+</body>
+</html>

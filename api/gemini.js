@@ -36,8 +36,8 @@ export default async function handler(req, res) {
             });
         }
 
-        // Official Gemini API endpoint - using gemini-2.0-flash for best performance
-        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+        // Official Gemini API endpoint - using gemini-1.5-flash (stable)
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
         // Request body with system instruction support
         const requestBody = {

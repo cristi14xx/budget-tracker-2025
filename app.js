@@ -4321,6 +4321,1469 @@ ${accountsStatus.length > 0 ? accountsStatus.map(a => `• ${a.name}: ${safeFmt(
 }
 
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 🧠 FINLEY AI ENGINE - Advanced Financial AI with Function Calling
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FinleyAI = {
+    // Conversation history for multi-turn
+    conversationHistory: [],
+    maxHistoryLength: 20,
+    
+    // ═══════════════════════════════════════════════════════════════
+    // 📋 FUNCTION DECLARATIONS - What Finley can DO
+    // ═══════════════════════════════════════════════════════════════
+    functionDeclarations: [
+        // 💰 TRANSACTION MANAGEMENT
+        {
+            name: "add_transaction",
+            description: "Adaugă o tranzacție nouă (cheltuială sau venit). Folosește când utilizatorul vrea să înregistreze o cheltuială sau un venit.",
+            parameters: {
+                type: "object",
+                properties: {
+                    type: { 
+                        type: "string", 
+                        enum: ["expense", "income"],
+                        description: "Tipul tranzacției: 'expense' pentru cheltuială, 'income' pentru venit"
+                    },
+                    amount: { 
+                        type: "number", 
+                        description: "Suma în RON (sau moneda curentă)"
+                    },
+                    category: { 
+                        type: "string", 
+                        description: "Categoria (ex: food, transport, housing, health, shopping, entertainment, subscriptions, salary, freelance)"
+                    },
+                    subcategory: { 
+                        type: "string", 
+                        description: "Subcategoria sau numele comerciantului (ex: Lidl, KFC, Uber, Netflix)"
+                    },
+                    date: { 
+                        type: "string", 
+                        description: "Data în format YYYY-MM-DD. Folosește data de azi dacă nu e specificată."
+                    },
+                    note: { 
+                        type: "string", 
+                        description: "Notă opțională"
+                    }
+                },
+                required: ["type", "amount", "category"]
+            }
+        },
+        {
+            name: "search_transactions",
+            description: "Caută tranzacții după criterii. Folosește pentru a găsi cheltuieli specifice.",
+            parameters: {
+                type: "object",
+                properties: {
+                    query: { type: "string", description: "Text de căutat în subcategorie sau notă" },
+                    category: { type: "string", description: "Filtrare după categorie" },
+                    type: { type: "string", enum: ["expense", "income", "all"], description: "Tip tranzacție" },
+                    minAmount: { type: "number", description: "Suma minimă" },
+                    maxAmount: { type: "number", description: "Suma maximă" },
+                    startDate: { type: "string", description: "Data start (YYYY-MM-DD)" },
+                    endDate: { type: "string", description: "Data end (YYYY-MM-DD)" },
+                    limit: { type: "integer", description: "Număr maxim de rezultate (default 10)" }
+                }
+            }
+        },
+        {
+            name: "delete_transaction",
+            description: "Șterge o tranzacție după ID. Întreabă mai întâi pentru confirmare.",
+            parameters: {
+                type: "object",
+                properties: {
+                    transactionId: { type: "string", description: "ID-ul tranzacției de șters" }
+                },
+                required: ["transactionId"]
+            }
+        },
+        
+        // 📊 BUDGET MANAGEMENT
+        {
+            name: "set_budget",
+            description: "Setează sau actualizează un buget pentru o categorie.",
+            parameters: {
+                type: "object",
+                properties: {
+                    category: { type: "string", description: "Categoria pentru buget (ex: food, transport, entertainment)" },
+                    limit: { type: "number", description: "Limita bugetului în RON" }
+                },
+                required: ["category", "limit"]
+            }
+        },
+        {
+            name: "get_budget_status",
+            description: "Verifică statusul bugetelor - cât s-a cheltuit vs limită.",
+            parameters: {
+                type: "object",
+                properties: {
+                    category: { type: "string", description: "Categoria specifică (opțional, dacă lipsește returnează toate)" }
+                }
+            }
+        },
+        
+        // 🎯 GOALS MANAGEMENT
+        {
+            name: "create_goal",
+            description: "Creează un obiectiv financiar nou.",
+            parameters: {
+                type: "object",
+                properties: {
+                    name: { type: "string", description: "Numele obiectivului" },
+                    target: { type: "number", description: "Suma țintă în RON" },
+                    deadline: { type: "string", description: "Data limită (YYYY-MM-DD)" },
+                    current: { type: "number", description: "Suma deja economisită (default 0)" }
+                },
+                required: ["name", "target"]
+            }
+        },
+        {
+            name: "update_goal_progress",
+            description: "Actualizează progresul unui obiectiv.",
+            parameters: {
+                type: "object",
+                properties: {
+                    goalId: { type: "string", description: "ID-ul obiectivului" },
+                    amount: { type: "number", description: "Suma nouă economisită sau suma de adăugat" },
+                    isAddition: { type: "boolean", description: "True = adaugă la suma curentă, False = setează suma nouă" }
+                },
+                required: ["goalId", "amount"]
+            }
+        },
+        
+        // 🔄 RECURRING TRANSACTIONS
+        {
+            name: "add_recurring",
+            description: "Adaugă o tranzacție recurentă (salariu, chirie, abonament, etc).",
+            parameters: {
+                type: "object",
+                properties: {
+                    type: { type: "string", enum: ["expense", "income"], description: "Tip tranzacție" },
+                    amount: { type: "number", description: "Suma" },
+                    category: { type: "string", description: "Categoria" },
+                    frequency: { type: "string", enum: ["daily", "weekly", "monthly", "yearly"], description: "Frecvența" },
+                    nextDate: { type: "string", description: "Data următoare (YYYY-MM-DD)" },
+                    note: { type: "string", description: "Descriere (ex: Chirie apartament)" }
+                },
+                required: ["type", "amount", "category", "frequency"]
+            }
+        },
+        
+        // 📈 ANALYSIS & INSIGHTS
+        {
+            name: "get_spending_analysis",
+            description: "Analizează cheltuielile pe o perioadă. Returnează breakdown pe categorii, trends, comparații.",
+            parameters: {
+                type: "object",
+                properties: {
+                    period: { 
+                        type: "string", 
+                        enum: ["today", "week", "month", "last_month", "3months", "6months", "year"],
+                        description: "Perioada de analizat"
+                    },
+                    groupBy: { 
+                        type: "string", 
+                        enum: ["category", "day", "week", "month"],
+                        description: "Cum să grupeze datele"
+                    }
+                },
+                required: ["period"]
+            }
+        },
+        {
+            name: "get_predictions",
+            description: "Obține predicții pentru cheltuieli viitoare bazate pe istoric.",
+            parameters: {
+                type: "object",
+                properties: {
+                    months: { type: "integer", description: "Câte luni în viitor să prezică (1-6)" }
+                }
+            }
+        },
+        {
+            name: "get_anomalies",
+            description: "Detectează anomalii și cheltuieli neobișnuite.",
+            parameters: {
+                type: "object",
+                properties: {}
+            }
+        },
+        {
+            name: "get_savings_opportunities",
+            description: "Identifică oportunități de economisire bazate pe pattern-uri de cheltuieli.",
+            parameters: {
+                type: "object",
+                properties: {}
+            }
+        },
+        {
+            name: "compare_periods",
+            description: "Compară cheltuielile între două perioade.",
+            parameters: {
+                type: "object",
+                properties: {
+                    period1: { type: "string", description: "Prima perioadă (ex: 'luna aceasta', '2024-01')" },
+                    period2: { type: "string", description: "A doua perioadă (ex: 'luna trecută', '2023-12')" }
+                },
+                required: ["period1", "period2"]
+            }
+        },
+        
+        // 🎯 CHALLENGES
+        {
+            name: "start_challenge",
+            description: "Începe o provocare de economisire.",
+            parameters: {
+                type: "object",
+                properties: {
+                    challengeType: { 
+                        type: "string", 
+                        description: "Tipul provocării: 52week, noSpend, noDelivery, noCoffee, cashOnly, etc."
+                    }
+                },
+                required: ["challengeType"]
+            }
+        },
+        {
+            name: "get_challenge_status",
+            description: "Verifică statusul provocărilor active.",
+            parameters: {
+                type: "object",
+                properties: {}
+            }
+        },
+        
+        // 💳 ACCOUNTS & DEBTS
+        {
+            name: "add_account",
+            description: "Adaugă un cont nou (card, cont economii, cash, etc).",
+            parameters: {
+                type: "object",
+                properties: {
+                    name: { type: "string", description: "Numele contului" },
+                    balance: { type: "number", description: "Soldul curent" },
+                    type: { type: "string", enum: ["checking", "savings", "credit", "cash", "investment"], description: "Tipul contului" }
+                },
+                required: ["name", "balance"]
+            }
+        },
+        {
+            name: "add_debt",
+            description: "Adaugă o datorie (de plătit sau de recuperat).",
+            parameters: {
+                type: "object",
+                properties: {
+                    name: { type: "string", description: "Numele/descrierea datoriei" },
+                    amount: { type: "number", description: "Suma totală" },
+                    type: { type: "string", enum: ["owed", "lent"], description: "'owed' = de plătit, 'lent' = de recuperat" },
+                    dueDate: { type: "string", description: "Data scadentă (opțional)" }
+                },
+                required: ["name", "amount", "type"]
+            }
+        },
+        
+        // 🔧 UTILITIES
+        {
+            name: "get_financial_health",
+            description: "Calculează și explică scorul de sănătate financiară.",
+            parameters: {
+                type: "object",
+                properties: {}
+            }
+        },
+        {
+            name: "calculate_fire",
+            description: "Calculează progresul spre independența financiară (FIRE).",
+            parameters: {
+                type: "object",
+                properties: {
+                    monthlyExpense: { type: "number", description: "Cheltuieli lunare estimate pentru FIRE" },
+                    currentNetWorth: { type: "number", description: "Patrimoniul curent" }
+                }
+            }
+        },
+        {
+            name: "export_report",
+            description: "Generează un raport financiar pentru o perioadă.",
+            parameters: {
+                type: "object",
+                properties: {
+                    period: { type: "string", enum: ["month", "quarter", "year"], description: "Perioada raportului" },
+                    format: { type: "string", enum: ["summary", "detailed"], description: "Nivelul de detaliu" }
+                },
+                required: ["period"]
+            }
+        },
+        
+        // 🧭 NAVIGATION & UI
+        {
+            name: "navigate_to",
+            description: "Navighează la o secțiune din aplicație. Folosește când utilizatorul vrea să vadă o secțiune specifică.",
+            parameters: {
+                type: "object",
+                properties: {
+                    section: { 
+                        type: "string", 
+                        enum: ["home", "transactions", "analytics", "budgets", "goals", "accounts", "debts", "recurring", "subscriptions", "challenges", "insights", "settings"],
+                        description: "Secțiunea unde să navigheze"
+                    }
+                },
+                required: ["section"]
+            }
+        },
+        {
+            name: "get_quick_stats",
+            description: "Obține statistici rapide despre situația financiară curentă.",
+            parameters: {
+                type: "object",
+                properties: {}
+            }
+        },
+        {
+            name: "list_recent_transactions",
+            description: "Listează cele mai recente tranzacții.",
+            parameters: {
+                type: "object",
+                properties: {
+                    count: { type: "integer", description: "Numărul de tranzacții (default 5, max 20)" }
+                }
+            }
+        },
+        {
+            name: "list_goals",
+            description: "Listează toate obiectivele financiare și progresul lor.",
+            parameters: {
+                type: "object",
+                properties: {}
+            }
+        },
+        {
+            name: "list_budgets",
+            description: "Listează toate bugetele și statusul lor.",
+            parameters: {
+                type: "object",
+                properties: {}
+            }
+        },
+        {
+            name: "add_reminder",
+            description: "Adaugă un reminder pentru o plată sau acțiune.",
+            parameters: {
+                type: "object",
+                properties: {
+                    title: { type: "string", description: "Titlul reminderului" },
+                    date: { type: "string", description: "Data (YYYY-MM-DD)" },
+                    amount: { type: "number", description: "Suma asociată (opțional)" },
+                    recurring: { type: "boolean", description: "Dacă se repetă lunar" }
+                },
+                required: ["title", "date"]
+            }
+        },
+        {
+            name: "suggest_savings",
+            description: "Analizează și sugerează unde poate economisi utilizatorul.",
+            parameters: {
+                type: "object",
+                properties: {}
+            }
+        },
+        {
+            name: "get_category_details",
+            description: "Obține detalii despre cheltuielile dintr-o categorie specifică.",
+            parameters: {
+                type: "object",
+                properties: {
+                    category: { type: "string", description: "Categoria de analizat (food, transport, etc)" },
+                    period: { type: "string", enum: ["week", "month", "3months"], description: "Perioada" }
+                },
+                required: ["category"]
+            }
+        }
+    ],
+    
+    // ═══════════════════════════════════════════════════════════════
+    // ⚡ FUNCTION EXECUTORS - Actually perform the actions
+    // ═══════════════════════════════════════════════════════════════
+    executors: {
+        // Add Transaction
+        add_transaction: async function(args) {
+            const { type, amount, category, subcategory, date, note } = args;
+            
+            const data = {
+                type: type || 'expense',
+                amount: parseFloat(amount) || 0,
+                category: category || 'other',
+                subcategory: subcategory || '',
+                date: date || new Date().toISOString().split('T')[0],
+                note: note || '',
+                tags: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                addedByAI: true
+            };
+            
+            try {
+                const doc = await db.collection('users').doc(state.user.uid).collection('transactions').add(data);
+                state.transactions.unshift({ id: doc.id, ...data });
+                updateHome();
+                
+                const catInfo = findCat(type, category);
+                return {
+                    success: true,
+                    message: `✅ Am adăugat ${type === 'income' ? 'venitul' : 'cheltuiala'} de ${fmt(amount)} la ${catInfo?.name || category}${subcategory ? ` (${subcategory})` : ''}.`,
+                    transactionId: doc.id,
+                    data: data
+                };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Search Transactions
+        search_transactions: function(args) {
+            const { query, category, type, minAmount, maxAmount, startDate, endDate, limit = 10 } = args;
+            
+            let results = [...(state.transactions || [])];
+            
+            if (type && type !== 'all') {
+                results = results.filter(t => t.type === type);
+            }
+            if (category) {
+                results = results.filter(t => t.category === category || t.category?.includes(category));
+            }
+            if (query) {
+                const q = query.toLowerCase();
+                results = results.filter(t => 
+                    (t.subcategory || '').toLowerCase().includes(q) ||
+                    (t.note || '').toLowerCase().includes(q) ||
+                    (t.category || '').toLowerCase().includes(q)
+                );
+            }
+            if (minAmount !== undefined) {
+                results = results.filter(t => t.amount >= minAmount);
+            }
+            if (maxAmount !== undefined) {
+                results = results.filter(t => t.amount <= maxAmount);
+            }
+            if (startDate) {
+                results = results.filter(t => t.date >= startDate);
+            }
+            if (endDate) {
+                results = results.filter(t => t.date <= endDate);
+            }
+            
+            results = results.slice(0, limit);
+            
+            const total = results.reduce((s, t) => s + (t.amount || 0), 0);
+            
+            return {
+                success: true,
+                count: results.length,
+                total: total,
+                transactions: results.map(t => ({
+                    id: t.id,
+                    type: t.type,
+                    amount: t.amount,
+                    category: findCat(t.type, t.category)?.name || t.category,
+                    subcategory: t.subcategory,
+                    date: t.date,
+                    note: t.note
+                }))
+            };
+        },
+        
+        // Delete Transaction
+        delete_transaction: async function(args) {
+            const { transactionId } = args;
+            try {
+                await db.collection('users').doc(state.user.uid).collection('transactions').doc(transactionId).delete();
+                state.transactions = state.transactions.filter(t => t.id !== transactionId);
+                updateHome();
+                return { success: true, message: '✅ Tranzacția a fost ștearsă.' };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Set Budget
+        set_budget: async function(args) {
+            const { category, limit } = args;
+            
+            const existingIdx = (state.budgets || []).findIndex(b => b.category === category);
+            const data = {
+                category: category,
+                limit: parseFloat(limit) || 0
+            };
+            
+            try {
+                const ref = db.collection('users').doc(state.user.uid).collection('budgets');
+                if (existingIdx >= 0) {
+                    await ref.doc(state.budgets[existingIdx].id).update(data);
+                    state.budgets[existingIdx] = { ...state.budgets[existingIdx], ...data };
+                } else {
+                    const doc = await ref.add(data);
+                    state.budgets.push({ id: doc.id, ...data });
+                }
+                
+                const catInfo = findCat('expense', category);
+                return {
+                    success: true,
+                    message: `✅ Am setat bugetul pentru ${catInfo?.name || category} la ${fmt(limit)}.`
+                };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Get Budget Status
+        get_budget_status: function(args) {
+            const { category } = args;
+            const now = new Date();
+            const monthTx = (state.transactions || []).filter(t => {
+                const d = new Date(t.date);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && t.type === 'expense';
+            });
+            
+            let budgets = state.budgets || [];
+            if (category) {
+                budgets = budgets.filter(b => b.category === category);
+            }
+            
+            const status = budgets.map(b => {
+                const spent = monthTx.filter(t => t.category === b.category).reduce((s, t) => s + (t.amount || 0), 0);
+                const catInfo = findCat('expense', b.category);
+                return {
+                    category: catInfo?.name || b.category,
+                    limit: b.limit,
+                    spent: spent,
+                    remaining: b.limit - spent,
+                    percentUsed: Math.round((spent / b.limit) * 100),
+                    status: spent > b.limit ? '🔴 Depășit' : spent > b.limit * 0.8 ? '🟡 Aproape' : '🟢 OK'
+                };
+            });
+            
+            return { success: true, budgets: status };
+        },
+        
+        // Create Goal
+        create_goal: async function(args) {
+            const { name, target, deadline, current = 0 } = args;
+            
+            const data = {
+                name: name,
+                target: parseFloat(target) || 0,
+                current: parseFloat(current) || 0,
+                deadline: deadline || null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            try {
+                const doc = await db.collection('users').doc(state.user.uid).collection('goals').add(data);
+                state.goals.push({ id: doc.id, ...data });
+                
+                return {
+                    success: true,
+                    message: `✅ Am creat obiectivul "${name}" cu ținta de ${fmt(target)}.`,
+                    goalId: doc.id
+                };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Update Goal Progress
+        update_goal_progress: async function(args) {
+            const { goalId, amount, isAddition = true } = args;
+            
+            const goal = (state.goals || []).find(g => g.id === goalId);
+            if (!goal) {
+                return { success: false, error: 'Obiectivul nu a fost găsit.' };
+            }
+            
+            const newAmount = isAddition ? (goal.current || 0) + amount : amount;
+            
+            try {
+                await db.collection('users').doc(state.user.uid).collection('goals').doc(goalId).update({ current: newAmount });
+                goal.current = newAmount;
+                
+                const progress = Math.round((newAmount / goal.target) * 100);
+                return {
+                    success: true,
+                    message: `✅ Am actualizat "${goal.name}": ${fmt(newAmount)} / ${fmt(goal.target)} (${progress}%)`,
+                    progress: progress
+                };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Add Recurring
+        add_recurring: async function(args) {
+            const { type, amount, category, frequency, nextDate, note } = args;
+            
+            const data = {
+                type: type,
+                amount: parseFloat(amount) || 0,
+                category: category,
+                frequency: frequency,
+                nextDate: nextDate || new Date().toISOString().split('T')[0],
+                note: note || ''
+            };
+            
+            try {
+                const doc = await db.collection('users').doc(state.user.uid).collection('recurring').add(data);
+                state.recurring.push({ id: doc.id, ...data });
+                
+                const freq = { daily: 'zilnic', weekly: 'săptămânal', monthly: 'lunar', yearly: 'anual' };
+                return {
+                    success: true,
+                    message: `✅ Am adăugat ${type === 'income' ? 'venitul' : 'cheltuiala'} recurent(ă) de ${fmt(amount)} ${freq[frequency]}.`
+                };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Get Spending Analysis
+        get_spending_analysis: function(args) {
+            const { period, groupBy = 'category' } = args;
+            
+            const now = new Date();
+            let startDate, endDate = now;
+            
+            switch (period) {
+                case 'today':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    break;
+                case 'week':
+                    startDate = new Date(now);
+                    startDate.setDate(now.getDate() - 7);
+                    break;
+                case 'month':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    break;
+                case 'last_month':
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+                    break;
+                case '3months':
+                    startDate = new Date(now);
+                    startDate.setMonth(now.getMonth() - 3);
+                    break;
+                case '6months':
+                    startDate = new Date(now);
+                    startDate.setMonth(now.getMonth() - 6);
+                    break;
+                case 'year':
+                    startDate = new Date(now.getFullYear(), 0, 1);
+                    break;
+                default:
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            }
+            
+            const expenses = (state.transactions || []).filter(t => {
+                const d = new Date(t.date);
+                return t.type === 'expense' && d >= startDate && d <= endDate;
+            });
+            
+            const income = (state.transactions || []).filter(t => {
+                const d = new Date(t.date);
+                return t.type === 'income' && d >= startDate && d <= endDate;
+            });
+            
+            const totalExpense = expenses.reduce((s, t) => s + (t.amount || 0), 0);
+            const totalIncome = income.reduce((s, t) => s + (t.amount || 0), 0);
+            
+            // Group by category
+            const byCategory = {};
+            expenses.forEach(t => {
+                const cat = t.category || 'other';
+                if (!byCategory[cat]) byCategory[cat] = 0;
+                byCategory[cat] += t.amount || 0;
+            });
+            
+            const categoryBreakdown = Object.entries(byCategory)
+                .map(([cat, amount]) => ({
+                    category: findCat('expense', cat)?.name || cat,
+                    amount: amount,
+                    percent: Math.round((amount / totalExpense) * 100)
+                }))
+                .sort((a, b) => b.amount - a.amount);
+            
+            return {
+                success: true,
+                period: period,
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+                totalExpense: totalExpense,
+                totalIncome: totalIncome,
+                balance: totalIncome - totalExpense,
+                transactionCount: expenses.length + income.length,
+                categoryBreakdown: categoryBreakdown.slice(0, 10),
+                topCategory: categoryBreakdown[0] || null,
+                avgDailyExpense: Math.round(totalExpense / Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))))
+            };
+        },
+        
+        // Get Predictions
+        get_predictions: function(args) {
+            const predictions = GeniusEngine.predictSpending();
+            if (!predictions) {
+                return { success: false, error: 'Nu sunt suficiente date pentru predicții.' };
+            }
+            
+            return {
+                success: true,
+                nextMonth: predictions.nextMonth,
+                trend: predictions.trendDirection,
+                trendPercent: Math.round(predictions.trend),
+                confidence: Math.round(predictions.confidence),
+                avgExpense: predictions.avgExpense,
+                avgIncome: predictions.avgIncome,
+                topCategoryPredictions: Object.entries(predictions.categoryPredictions || {})
+                    .slice(0, 5)
+                    .map(([cat, data]) => ({
+                        category: findCat('expense', cat)?.name || cat,
+                        predicted: data.predicted,
+                        trend: data.trend > 0 ? '📈' : data.trend < 0 ? '📉' : '➡️'
+                    }))
+            };
+        },
+        
+        // Get Anomalies
+        get_anomalies: function() {
+            const anomalies = GeniusEngine.detectAnomalies();
+            return {
+                success: true,
+                count: anomalies.length,
+                anomalies: anomalies.map(a => ({
+                    type: a.type,
+                    severity: a.severity,
+                    title: a.title,
+                    message: a.message,
+                    suggestion: a.suggestion
+                }))
+            };
+        },
+        
+        // Get Savings Opportunities
+        get_savings_opportunities: function() {
+            const recs = GeniusEngine.getPersonalizedRecommendations();
+            return {
+                success: true,
+                opportunities: recs.slice(0, 5).map(r => ({
+                    icon: r.icon,
+                    title: r.title,
+                    description: r.text,
+                    potentialSavings: r.savings || null
+                }))
+            };
+        },
+        
+        // Start Challenge
+        start_challenge: async function(args) {
+            const { challengeType } = args;
+            const tpl = challengeTemplates.find(t => t.id === challengeType);
+            
+            if (!tpl) {
+                return { 
+                    success: false, 
+                    error: 'Provocare necunoscută.',
+                    availableChallenges: challengeTemplates.map(t => ({ id: t.id, name: t.name, description: t.desc }))
+                };
+            }
+            
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + tpl.duration);
+            
+            const data = {
+                templateId: challengeType,
+                name: tpl.name,
+                startDate: new Date().toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+                target: tpl.target || 500,
+                saved: 0
+            };
+            
+            try {
+                const doc = await db.collection('users').doc(state.user.uid).collection('challenges').add(data);
+                state.challenges.push({ id: doc.id, ...data });
+                
+                return {
+                    success: true,
+                    message: `🎯 Ai început provocarea "${tpl.name}"! ${tpl.desc}`,
+                    challengeId: doc.id,
+                    endDate: data.endDate
+                };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Get Challenge Status
+        get_challenge_status: function() {
+            const active = (state.challenges || []).map(c => {
+                const tpl = challengeTemplates.find(t => t.id === c.templateId);
+                const daysLeft = Math.ceil((new Date(c.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+                return {
+                    name: tpl?.name || c.name,
+                    description: tpl?.desc,
+                    progress: c.target > 0 ? Math.round((c.saved / c.target) * 100) : 0,
+                    saved: c.saved,
+                    target: c.target,
+                    daysLeft: Math.max(0, daysLeft),
+                    status: daysLeft <= 0 ? 'Terminat' : daysLeft <= 3 ? 'Aproape gata!' : 'În desfășurare'
+                };
+            });
+            
+            return {
+                success: true,
+                activeChallenges: active.length,
+                challenges: active
+            };
+        },
+        
+        // Add Account
+        add_account: async function(args) {
+            const { name, balance, type = 'checking' } = args;
+            
+            const data = {
+                name: name,
+                balance: parseFloat(balance) || 0,
+                type: type
+            };
+            
+            try {
+                const doc = await db.collection('users').doc(state.user.uid).collection('accounts').add(data);
+                state.accounts.push({ id: doc.id, ...data });
+                
+                return {
+                    success: true,
+                    message: `✅ Am adăugat contul "${name}" cu soldul de ${fmt(balance)}.`
+                };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Add Debt
+        add_debt: async function(args) {
+            const { name, amount, type, dueDate } = args;
+            
+            const data = {
+                name: name,
+                amount: parseFloat(amount) || 0,
+                remaining: parseFloat(amount) || 0,
+                type: type,
+                dueDate: dueDate || null
+            };
+            
+            try {
+                const doc = await db.collection('users').doc(state.user.uid).collection('debts').add(data);
+                state.debts.push({ id: doc.id, ...data });
+                
+                const typeText = type === 'owed' ? 'de plătit' : 'de recuperat';
+                return {
+                    success: true,
+                    message: `✅ Am adăugat datoria "${name}" de ${fmt(amount)} (${typeText}).`
+                };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Get Financial Health
+        get_financial_health: function() {
+            const health = GeniusEngine.calculateHealthScore();
+            return {
+                success: true,
+                score: health.score,
+                grade: health.grade,
+                factors: health.factors,
+                recommendations: health.recommendations?.slice(0, 3)
+            };
+        },
+        
+        // Calculate FIRE
+        calculate_fire: function(args) {
+            const monthlyExpense = args.monthlyExpense || GeniusEngine.predictSpending()?.avgExpense || 5000;
+            const netWorth = args.currentNetWorth || state.netWorth || 0;
+            
+            const annualExpense = monthlyExpense * 12;
+            const fireNumber = annualExpense * 25;
+            const progress = (netWorth / fireNumber) * 100;
+            
+            // Years to FIRE calculation with 7% annual return
+            const monthlySavings = (state.savingsRate || 10) / 100 * (GeniusEngine.predictSpending()?.avgIncome || 7000);
+            const yearsToFire = GeniusEngine.yearsToFire(netWorth, monthlySavings, fireNumber);
+            
+            return {
+                success: true,
+                fireNumber: fireNumber,
+                currentNetWorth: netWorth,
+                progress: Math.round(progress * 10) / 10,
+                yearsToFire: yearsToFire,
+                monthlyExpenseUsed: monthlyExpense,
+                monthlySavingsEstimate: monthlySavings,
+                explanation: `Ai nevoie de ${fmt(fireNumber)} pentru independență financiară (25x cheltuielile anuale de ${fmt(annualExpense)}). Cu rata actuală de economisire, vei ajunge în ~${yearsToFire} ani.`
+            };
+        },
+        
+        // Compare Periods
+        compare_periods: function(args) {
+            // Simplified - just compare current vs last month
+            const now = new Date();
+            const thisMonth = (state.transactions || []).filter(t => {
+                const d = new Date(t.date);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            });
+            const lastMonth = (state.transactions || []).filter(t => {
+                const d = new Date(t.date);
+                const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                return d.getMonth() === lm.getMonth() && d.getFullYear() === lm.getFullYear();
+            });
+            
+            const thisExpense = thisMonth.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0);
+            const lastExpense = lastMonth.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0);
+            const thisIncome = thisMonth.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0);
+            const lastIncome = lastMonth.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0);
+            
+            return {
+                success: true,
+                comparison: {
+                    thisMonth: { expense: thisExpense, income: thisIncome, balance: thisIncome - thisExpense },
+                    lastMonth: { expense: lastExpense, income: lastIncome, balance: lastIncome - lastExpense },
+                    expenseChange: lastExpense > 0 ? Math.round(((thisExpense - lastExpense) / lastExpense) * 100) : 0,
+                    incomeChange: lastIncome > 0 ? Math.round(((thisIncome - lastIncome) / lastIncome) * 100) : 0
+                }
+            };
+        },
+        
+        // Export Report
+        export_report: function(args) {
+            const { period, format = 'summary' } = args;
+            const analysis = FinleyAI.executors.get_spending_analysis({ period: period === 'quarter' ? '3months' : period });
+            
+            return {
+                success: true,
+                report: {
+                    title: `Raport Financiar - ${period}`,
+                    generatedAt: new Date().toISOString(),
+                    ...analysis
+                }
+            };
+        },
+        
+        // Navigate to section
+        navigate_to: function(args) {
+            const { section } = args;
+            const validSections = ['home', 'transactions', 'analytics', 'budgets', 'goals', 'accounts', 'debts', 'recurring', 'subscriptions', 'challenges', 'insights', 'settings'];
+            
+            if (!validSections.includes(section)) {
+                return { success: false, error: `Secțiune invalidă: ${section}` };
+            }
+            
+            // Navigate
+            nav(section);
+            
+            const sectionNames = {
+                home: 'Acasă',
+                transactions: 'Tranzacții',
+                analytics: 'Analiză',
+                budgets: 'Bugete',
+                goals: 'Obiective',
+                accounts: 'Conturi',
+                debts: 'Datorii',
+                recurring: 'Recurente',
+                subscriptions: 'Abonamente',
+                challenges: 'Provocări',
+                insights: 'AI Insights',
+                settings: 'Setări'
+            };
+            
+            return {
+                success: true,
+                message: `📱 Am deschis secțiunea "${sectionNames[section]}".`
+            };
+        },
+        
+        // Quick stats
+        get_quick_stats: function() {
+            const now = new Date();
+            const monthTx = (state.transactions || []).filter(t => {
+                const d = new Date(t.date);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            });
+            
+            const income = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0);
+            const expense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0);
+            const balance = income - expense;
+            const savingsRate = income > 0 ? Math.round((balance / income) * 100) : 0;
+            
+            // Goals progress
+            const goalsTotal = (state.goals || []).length;
+            const goalsOnTrack = (state.goals || []).filter(g => {
+                const progress = g.target > 0 ? (g.current / g.target) * 100 : 0;
+                return progress >= 50;
+            }).length;
+            
+            // Budgets
+            const budgetsTotal = (state.budgets || []).length;
+            const budgetsExceeded = (state.budgets || []).filter(b => {
+                const spent = monthTx.filter(t => t.type === 'expense' && t.category === b.category)
+                    .reduce((s, t) => s + (t.amount || 0), 0);
+                return spent > b.limit;
+            }).length;
+            
+            return {
+                success: true,
+                stats: {
+                    thisMonth: {
+                        income: income,
+                        expense: expense,
+                        balance: balance,
+                        savingsRate: savingsRate,
+                        transactionCount: monthTx.length
+                    },
+                    goals: {
+                        total: goalsTotal,
+                        onTrack: goalsOnTrack
+                    },
+                    budgets: {
+                        total: budgetsTotal,
+                        exceeded: budgetsExceeded
+                    },
+                    streak: state.streak || 0,
+                    netWorth: state.netWorth || 0
+                }
+            };
+        },
+        
+        // List recent transactions
+        list_recent_transactions: function(args) {
+            const count = Math.min(args.count || 5, 20);
+            const recent = (state.transactions || [])
+                .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+                .slice(0, count);
+            
+            return {
+                success: true,
+                transactions: recent.map(t => ({
+                    id: t.id,
+                    type: t.type,
+                    amount: t.amount,
+                    category: findCat(t.type, t.category)?.name || t.category,
+                    subcategory: t.subcategory,
+                    date: t.date,
+                    note: t.note
+                }))
+            };
+        },
+        
+        // List goals
+        list_goals: function() {
+            const goals = (state.goals || []).map(g => ({
+                id: g.id,
+                name: g.name,
+                target: g.target,
+                current: g.current || 0,
+                progress: g.target > 0 ? Math.round((g.current / g.target) * 100) : 0,
+                remaining: g.target - (g.current || 0),
+                deadline: g.deadline
+            }));
+            
+            return {
+                success: true,
+                count: goals.length,
+                goals: goals,
+                totalTarget: goals.reduce((s, g) => s + g.target, 0),
+                totalSaved: goals.reduce((s, g) => s + g.current, 0)
+            };
+        },
+        
+        // List budgets
+        list_budgets: function() {
+            const now = new Date();
+            const monthTx = (state.transactions || []).filter(t => {
+                const d = new Date(t.date);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && t.type === 'expense';
+            });
+            
+            const budgets = (state.budgets || []).map(b => {
+                const spent = monthTx.filter(t => t.category === b.category)
+                    .reduce((s, t) => s + (t.amount || 0), 0);
+                const catInfo = findCat('expense', b.category);
+                return {
+                    id: b.id,
+                    category: catInfo?.name || b.category,
+                    categoryId: b.category,
+                    limit: b.limit,
+                    spent: spent,
+                    remaining: b.limit - spent,
+                    percentUsed: Math.round((spent / b.limit) * 100),
+                    status: spent > b.limit ? 'exceeded' : spent > b.limit * 0.8 ? 'warning' : 'ok'
+                };
+            });
+            
+            return {
+                success: true,
+                count: budgets.length,
+                budgets: budgets,
+                totalLimit: budgets.reduce((s, b) => s + b.limit, 0),
+                totalSpent: budgets.reduce((s, b) => s + b.spent, 0)
+            };
+        },
+        
+        // Add reminder
+        add_reminder: async function(args) {
+            const { title, date, amount, recurring = false } = args;
+            
+            const data = {
+                title: title,
+                date: date,
+                amount: amount || null,
+                recurring: recurring,
+                completed: false,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            try {
+                const doc = await db.collection('users').doc(state.user.uid).collection('reminders').add(data);
+                state.reminders = state.reminders || [];
+                state.reminders.push({ id: doc.id, ...data });
+                
+                return {
+                    success: true,
+                    message: `⏰ Am adăugat reminder: "${title}" pentru ${date}${amount ? ` (${fmt(amount)})` : ''}.`
+                };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        },
+        
+        // Suggest savings
+        suggest_savings: function() {
+            const now = new Date();
+            const monthTx = (state.transactions || []).filter(t => {
+                const d = new Date(t.date);
+                return d.getMonth() === now.getMonth() && t.type === 'expense';
+            });
+            
+            // Analyze categories
+            const byCategory = {};
+            monthTx.forEach(t => {
+                const cat = t.category || 'other';
+                if (!byCategory[cat]) byCategory[cat] = { total: 0, count: 0, items: [] };
+                byCategory[cat].total += t.amount || 0;
+                byCategory[cat].count++;
+                byCategory[cat].items.push(t);
+            });
+            
+            const suggestions = [];
+            
+            // High spending categories
+            Object.entries(byCategory).forEach(([cat, data]) => {
+                const catInfo = findCat('expense', cat);
+                if (data.total > 500 && ['food', 'entertainment', 'shopping', 'subscriptions'].includes(cat)) {
+                    suggestions.push({
+                        category: catInfo?.name || cat,
+                        amount: data.total,
+                        suggestion: `Ai cheltuit ${fmt(data.total)} pe ${catInfo?.name || cat}. Încearcă să reduci cu 20% luna viitoare.`,
+                        potential: Math.round(data.total * 0.2)
+                    });
+                }
+            });
+            
+            // Subscriptions check
+            const subs = state.subscriptions || [];
+            if (subs.length > 3) {
+                const totalSubs = subs.reduce((s, sub) => s + (sub.monthlyAvg || 0), 0);
+                suggestions.push({
+                    category: 'Abonamente',
+                    amount: totalSubs,
+                    suggestion: `Ai ${subs.length} abonamente (${fmt(totalSubs)}/lună). Verifică dacă le folosești pe toate.`,
+                    potential: Math.round(totalSubs * 0.3)
+                });
+            }
+            
+            // Round up savings
+            const potentialRoundUp = monthTx.reduce((s, t) => {
+                const rounded = Math.ceil(t.amount / 10) * 10;
+                return s + (rounded - t.amount);
+            }, 0);
+            
+            if (potentialRoundUp > 50) {
+                suggestions.push({
+                    category: 'Rotunjiri',
+                    amount: potentialRoundUp,
+                    suggestion: `Dacă ai rotunji fiecare cheltuială în sus, ai economisi ${fmt(potentialRoundUp)} luna asta.`,
+                    potential: potentialRoundUp
+                });
+            }
+            
+            return {
+                success: true,
+                suggestions: suggestions,
+                totalPotential: suggestions.reduce((s, sug) => s + (sug.potential || 0), 0)
+            };
+        },
+        
+        // Category details
+        get_category_details: function(args) {
+            const { category, period = 'month' } = args;
+            
+            const now = new Date();
+            let startDate;
+            
+            switch (period) {
+                case 'week':
+                    startDate = new Date(now);
+                    startDate.setDate(now.getDate() - 7);
+                    break;
+                case '3months':
+                    startDate = new Date(now);
+                    startDate.setMonth(now.getMonth() - 3);
+                    break;
+                default:
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            }
+            
+            const transactions = (state.transactions || []).filter(t => {
+                const d = new Date(t.date);
+                return t.category === category && t.type === 'expense' && d >= startDate;
+            });
+            
+            const total = transactions.reduce((s, t) => s + (t.amount || 0), 0);
+            const catInfo = findCat('expense', category);
+            
+            // Group by subcategory
+            const bySubcat = {};
+            transactions.forEach(t => {
+                const sub = t.subcategory || 'Altele';
+                if (!bySubcat[sub]) bySubcat[sub] = 0;
+                bySubcat[sub] += t.amount || 0;
+            });
+            
+            const subcategories = Object.entries(bySubcat)
+                .map(([name, amount]) => ({ name, amount, percent: Math.round((amount / total) * 100) }))
+                .sort((a, b) => b.amount - a.amount);
+            
+            return {
+                success: true,
+                category: catInfo?.name || category,
+                period: period,
+                total: total,
+                transactionCount: transactions.length,
+                avgPerTransaction: transactions.length > 0 ? Math.round(total / transactions.length) : 0,
+                subcategories: subcategories.slice(0, 10),
+                recentTransactions: transactions.slice(0, 5).map(t => ({
+                    date: t.date,
+                    amount: t.amount,
+                    subcategory: t.subcategory,
+                    note: t.note
+                }))
+            };
+        }
+    },
+    
+    // ═══════════════════════════════════════════════════════════════
+    // 🎯 MAIN CONVERSATION METHOD - with full agentic loop
+    // ═══════════════════════════════════════════════════════════════
+    async chat(userMessage) {
+        const context = buildFullFinancialContext();
+        
+        const systemPrompt = `Ești FINLEY, un consilier financiar AI expert pentru aplicația Budget Pro.
+
+🎯 MISIUNEA TA:
+Ajuți utilizatorii să-și gestioneze finanțele executând acțiuni concrete în aplicație.
+
+💪 CE POȚI FACE:
+- Adăuga tranzacții (cheltuieli și venituri)
+- Seta și verifica bugete
+- Crea și urmări obiective financiare
+- Analiza cheltuielile pe perioade
+- Detecta anomalii și oferi insights
+- Gestiona datorii și conturi
+- Porni provocări de economisire
+
+📋 REGULI CRITICE:
+1. Când utilizatorul vrea să FACĂ ceva (adaugă, setează, creează), APELEAZĂ funcția corespunzătoare
+2. Extrage toate informațiile din mesaj (sumă, categorie, dată)
+3. Pentru categorii, folosește: food, transport, housing, health, shopping, entertainment, subscriptions, utilities, education, personal, family, travel, gifts, other (cheltuieli) sau salary, freelance, investments, gifts_income, other_income (venituri)
+4. Dacă lipsesc informații esențiale, întreabă
+5. Răspunde în ROMÂNĂ, prietenos dar profesionist
+6. După execuția funcțiilor, confirmă acțiunea și oferă context util
+7. Folosește emoji moderat
+
+📊 CONTEXT FINANCIAR:
+${context}
+
+🔄 FLUX DE LUCRU:
+- "Am dat 50 lei pe Lidl" → add_transaction({type:"expense", amount:50, category:"food", subcategory:"Lidl"})
+- "Cât am cheltuit luna asta?" → get_spending_analysis({period:"month"})
+- "Vreau buget 1000 lei pe mâncare" → set_budget({category:"food", limit:1000})
+- "Obiectiv: strâng 5000 lei pentru vacanță" → create_goal({name:"Vacanță", target:5000})`;
+
+        const MAX_ITERATIONS = 5;
+        let iterations = 0;
+        let allFunctionResults = [];
+        let finalText = '';
+        
+        // Build initial conversation
+        let currentHistory = [...this.conversationHistory.slice(-10)];
+        
+        // Add user message
+        currentHistory.push({
+            role: 'user',
+            parts: [{ text: userMessage }]
+        });
+
+        try {
+            // Agentic loop - keep going until model gives text response or max iterations
+            while (iterations < MAX_ITERATIONS) {
+                iterations++;
+                console.log(`[Finley] Iteration ${iterations}`);
+                
+                const response = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: iterations === 1 ? userMessage : null,
+                        systemPrompt: systemPrompt,
+                        conversationHistory: iterations === 1 ? this.conversationHistory.slice(-10) : currentHistory,
+                        tools: this.functionDeclarations,
+                        functionResponses: iterations > 1 ? allFunctionResults.slice(-5).map(fr => ({
+                            name: fr.name,
+                            response: fr.result || { error: fr.error }
+                        })) : [],
+                        maxTokens: 4096
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    return { text: `⚠️ Eroare API: ${data.error}`, functionResults: allFunctionResults };
+                }
+                
+                // Check if model wants to call functions
+                if (data.functionCalls && data.functionCalls.length > 0) {
+                    console.log(`[Finley] Model requested ${data.functionCalls.length} function(s)`);
+                    
+                    // Add model's function call to history
+                    currentHistory.push({
+                        role: 'model',
+                        parts: data.functionCalls.map(fc => ({
+                            functionCall: { name: fc.name, args: fc.args }
+                        }))
+                    });
+                    
+                    // Execute each function
+                    const functionResponseParts = [];
+                    for (const fc of data.functionCalls) {
+                        console.log(`[Finley] Executing: ${fc.name}`, fc.args);
+                        
+                        const executor = this.executors[fc.name];
+                        let result;
+                        
+                        if (executor) {
+                            try {
+                                result = await executor(fc.args);
+                            } catch (err) {
+                                result = { success: false, error: err.message };
+                            }
+                        } else {
+                            result = { success: false, error: `Funcție necunoscută: ${fc.name}` };
+                        }
+                        
+                        allFunctionResults.push({
+                            name: fc.name,
+                            args: fc.args,
+                            result: result
+                        });
+                        
+                        functionResponseParts.push({
+                            functionResponse: {
+                                name: fc.name,
+                                response: { result: result }
+                            }
+                        });
+                    }
+                    
+                    // Add function responses to history
+                    currentHistory.push({
+                        role: 'user',
+                        parts: functionResponseParts
+                    });
+                    
+                    // If there's also text, save it
+                    if (data.text) {
+                        finalText += data.text + '\n';
+                    }
+                    
+                    // Continue loop to let model process results
+                    continue;
+                }
+                
+                // Model gave text response (no more function calls)
+                if (data.text) {
+                    finalText += data.text;
+                }
+                
+                // Done - model finished
+                break;
+            }
+            
+            // Update conversation history
+            this.conversationHistory.push(
+                { role: 'user', parts: [{ text: userMessage }] }
+            );
+            
+            if (finalText) {
+                this.conversationHistory.push(
+                    { role: 'model', parts: [{ text: finalText }] }
+                );
+            }
+            
+            // Trim history
+            if (this.conversationHistory.length > this.maxHistoryLength * 2) {
+                this.conversationHistory = this.conversationHistory.slice(-this.maxHistoryLength * 2);
+            }
+            
+            // If no text but we have function results, generate summary
+            if (!finalText && allFunctionResults.length > 0) {
+                finalText = allFunctionResults.map(fr => {
+                    if (fr.result?.message) return fr.result.message;
+                    if (fr.result?.success) return `✅ Acțiune completată: ${fr.name}`;
+                    if (fr.result?.error) return `⚠️ Eroare: ${fr.result.error}`;
+                    return null;
+                }).filter(Boolean).join('\n\n');
+            }
+            
+            return {
+                text: finalText || '🤔 Nu am putut genera un răspuns.',
+                functionResults: allFunctionResults,
+                iterations: iterations
+            };
+            
+        } catch (err) {
+            console.error('[Finley] Error:', err);
+            return { 
+                text: `⚠️ Eroare: ${err.message}`, 
+                functionResults: allFunctionResults 
+            };
+        }
+    },
+    
+    // Clear conversation history
+    clearHistory() {
+        this.conversationHistory = [];
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 💬 SEND AI MESSAGE - Updated to use FinleyAI
+// ═══════════════════════════════════════════════════════════════
 async function sendAI() {
     const input = $('aiInput');
     const chat = $('aiChat');
@@ -4328,95 +5791,54 @@ async function sendAI() {
     if (!msg || !chat) return;
     
     // Add user message
-    chat.innerHTML += `<div class="ai-msg user"><div class="ai-pic">👤</div><div class="ai-bubble">${msg}</div></div>`;
+    chat.innerHTML += `<div class="ai-msg user"><div class="ai-pic">👤</div><div class="ai-bubble">${escapeHtml(msg)}</div></div>`;
     input.value = '';
     chat.scrollTop = chat.scrollHeight;
     
     // Add typing indicator
     chat.innerHTML += `<div class="ai-msg" id="aiTyping"><div class="ai-pic">🧠</div><div class="ai-bubble typing">
         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        Analizez și gândesc...
+        <span class="typing-text">Analizez și procesez...</span>
     </div></div>`;
     chat.scrollTop = chat.scrollHeight;
     
     checkAchievement('ai_user');
     
     try {
-        // Build financial context
-        const context = buildFullFinancialContext();
-        
-        // System prompt for Gemini
-        const systemPrompt = `Ești un CONSILIER FINANCIAR PERSONAL expert, prietenos și empatic. Numele tău e "Finley".
-
-CONTEXT FINANCIAR AL UTILIZATORULUI:
-${context}
-
-INSTRUCȚIUNI PENTRU RĂSPUNS:
-1. Răspunde NATURAL, ca într-o conversație reală - nu robotic
-2. Folosește DATELE CONCRETE de mai sus când sunt relevante
-3. Răspunde în ROMÂNĂ
-4. Fii detaliat dar nu plictisitor - adaptează lungimea la întrebare
-5. Folosește emoji-uri moderat 
-6. Dacă e o întrebare simplă (salut, ce faci, etc), răspunde simplu și prietenos
-7. Dacă e o întrebare despre finanțe, folosește datele de mai sus
-8. Dacă nu ai date suficiente, spune sincer și sugerează ce ar trebui să adauge
-9. Poți discuta ORICE temă, nu doar finanțe - ești un asistent complet
-10. Fii autentic, cu personalitate, nu generic
-
-EXEMPLE DE TON:
-- "Hei! Văd că luna asta ai economisit 2,300 RON - super! 🎉"
-- "Hmm, observ că ai depășit bugetul la mâncare cu 15%. Hai să vedem ce putem face..."
-- "Bună întrebare! Din datele tale, aș zice că..."
-
-Acum răspunde la întrebarea utilizatorului:`;
-
-        console.log('Sending to Gemini API...');
-        console.log('User message:', msg);
-        
-        const response = await fetch('/api/gemini', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                prompt: msg,
-                systemPrompt: systemPrompt,
-                maxTokens: 4096
-            })
-        });
-        
-        const data = await response.json();
-        console.log('Gemini response:', data);
+        // Use FinleyAI engine
+        const result = await FinleyAI.chat(msg);
         
         // Remove typing indicator
         $('aiTyping')?.remove();
         
-        if (data.success && data.response) {
-            // Got real AI response
-            const reply = formatAIResponse(data.response);
-            chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">🧠</div><div class="ai-bubble">${reply}</div></div>`;
-        } else if (data.error) {
-            // API returned error
-            console.error('Gemini API error:', data.error);
-            chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">⚠️</div><div class="ai-bubble">
-                <strong>Eroare API:</strong> ${data.error}<br><br>
-                <em>Verifică dacă GEMINI_API_KEY e setat în Vercel.</em>
-            </div></div>`;
-        } else {
-            // Unknown response format
-            console.error('Unknown response:', data);
-            chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">⚠️</div><div class="ai-bubble">
-                Nu am primit răspuns de la AI. Încearcă din nou.
-            </div></div>`;
+        // Format response
+        const reply = formatAIResponse(result.text);
+        
+        // Show function calls if any (for transparency)
+        let functionInfo = '';
+        if (result.functionResults && result.functionResults.length > 0) {
+            const actionNames = result.functionResults.map(fr => {
+                const names = {
+                    'add_transaction': '💰 Adăugat tranzacție',
+                    'set_budget': '📊 Setat buget',
+                    'create_goal': '🎯 Creat obiectiv',
+                    'search_transactions': '🔍 Căutat tranzacții',
+                    'get_spending_analysis': '📈 Analizat cheltuieli',
+                    'start_challenge': '🏆 Început provocare'
+                };
+                return names[fr.name] || fr.name;
+            });
+            functionInfo = `<div class="ai-actions">${actionNames.join(' • ')}</div>`;
         }
+        
+        chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">🧠</div><div class="ai-bubble">${functionInfo}${reply}</div></div>`;
+        
     } catch (err) {
         console.error('AI Error:', err);
         $('aiTyping')?.remove();
         
-        // Show real error, not fake response
         chat.innerHTML += `<div class="ai-msg"><div class="ai-pic">⚠️</div><div class="ai-bubble">
-            <strong>Eroare de conexiune</strong><br><br>
-            Nu m-am putut conecta la serverul AI.<br>
-            Verifică conexiunea la internet și încearcă din nou.<br><br>
-            <em>Detalii: ${err.message}</em>
+            <strong>Eroare</strong><br>${err.message}
         </div></div>`;
     }
     
@@ -4424,9 +5846,8 @@ Acum răspunde la întrebarea utilizatorului:`;
 }
 
 function formatAIResponse(text) {
-    if (!text) return '';
+    if (!text) return '<em>Nu am putut genera un răspuns.</em>';
     
-    // Convert markdown-like formatting to HTML
     return text
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')

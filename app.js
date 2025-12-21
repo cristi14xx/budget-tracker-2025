@@ -117,7 +117,7 @@ const categories = {
             'Asigurare locuință', 'Asigurare casă', 'Asigurare apartament', 'PAD', 'Asigurare incendiu', 'Asigurare inundații'
           ]},
         
-        // 💡 UTILITĂȚI - COMPREHENSIVE
+        // UTILITĂȚI - COMPREHENSIVE
         { id: 'utilities', name: 'Utilități', icon: '💡', color: '#3b82f6',
           keywords: ['utilitate', 'curent', 'gaz', 'apa', 'electricitate', 'factura', 'enel', 'engie', 'digi', 'rds'],
           subs: [
@@ -229,7 +229,7 @@ const categories = {
             'Decathlon', 'Intersport', 'Hervis', 'Sport Vision', 'SportsDirect', 'Sportisimo', 'Echipament sport', 'Echipament fitness', 'Echipament schi', 'Echipament ciclism'
           ]},
         
-        // 📱 ABONAMENTE & SUBSCRIPTIONS
+        // ABONAMENTE & SUBSCRIPTIONS
         { id: 'subscriptions', name: 'Abonamente', icon: '📱', color: '#a855f7',
           keywords: ['abonament', 'subscription', 'netflix', 'spotify', 'youtube', 'hbo', 'disney', 'streaming'],
           subs: [
@@ -447,7 +447,7 @@ const categories = {
             'Profit SRL', 'Dividende SRL', 'Facturi PFA', 'Încasări', 'Venit net afacere', 'Cifră afaceri', 'Royalties'
           ]},
         
-        // 📈 INVESTIȚII
+        // INVESTIȚII
         { id: 'investments', name: 'Investiții', icon: '📈', color: '#22c55e',
           keywords: ['investitie', 'investment', 'dividend', 'dobanda', 'profit', 'actiuni', 'etf', 'obligatiuni'],
           subs: [
@@ -517,7 +517,7 @@ const categories = {
           keywords: ['castig', 'winning', 'loto', 'pariuri', 'noroc'],
           subs: ['Loto', 'Pariuri sportive', 'Casino', 'Poker', 'Concursuri', 'Premiu', 'Giveaway', 'Tombola']},
         
-        // 💰 ALTE VENITURI
+        // ALTE VENITURI
         { id: 'other_income', name: 'Alte Venituri', icon: '💰', color: '#84cc16',
           keywords: ['venit', 'income', 'altele', 'diverse'],
           subs: ['Diverse', 'Side hustle', 'Gig economy', 'Uber driver', 'Bolt driver', 'Glovo curier', 'Tazz curier', 'Babysitting', 'Pet sitting', 'Sondaje', 'User testing', 'Împrumuturi returnate', 'Depozite recuperate']}
@@ -970,7 +970,7 @@ const SmartCategoryEngine = {
     },
     
     // ═══════════════════════════════════════════════════════════
-    // 📊 ANALYTICS - Category usage statistics
+    // ANALYTICS - Category usage statistics
     // ═══════════════════════════════════════════════════════════
     
     getUsageStats: function(transactions) {
@@ -1130,7 +1130,7 @@ const GeniusEngine = {
         };
     },
 
-    // ⚠️ ANOMALY DETECTION - Find unusual spending
+    // ANOMALY DETECTION - Find unusual spending
     detectAnomalies: function() {
         const allTx = state.transactions || [];
         if (allTx.length < 10) return [];
@@ -1252,7 +1252,7 @@ const GeniusEngine = {
         });
     },
 
-    // 💰 WHAT-IF SIMULATOR
+    // WHAT-IF SIMULATOR
     simulateScenario: function(changes) {
         const predictions = this.predictSpending();
         if (!predictions) return null;
@@ -1372,7 +1372,7 @@ const GeniusEngine = {
         return years;
     },
 
-    // ⏰ TIME ANALYSIS - When do you spend?
+    // TIME ANALYSIS - When do you spend?
     analyzeTimePatterns: function() {
         const allTx = (state.transactions || []).filter(t => t.type === 'expense');
         if (allTx.length < 10) return null;
@@ -1499,7 +1499,7 @@ const GeniusEngine = {
         };
     },
 
-    // 🎯 SMART GOALS - AI suggests achievable goals
+    // SMART GOALS - AI suggests achievable goals
     suggestSmartGoals: function() {
         const predictions = this.predictSpending();
         if (!predictions) return [];
@@ -1586,7 +1586,7 @@ const GeniusEngine = {
             category: 'lifestyle'
         });
         
-        // 📈 Start Investiții
+        // Start Investiții
         if (monthlySavings > 300) {
             goals.push({
                 icon: '📈',
@@ -1614,7 +1614,7 @@ const GeniusEngine = {
             category: 'education'
         });
         
-        // 📱 Tech Upgrade
+        // Tech Upgrade
         goals.push({
             icon: '📱',
             name: 'Telefon/Laptop Nou',
@@ -1958,7 +1958,7 @@ const GeniusEngine = {
         };
     },
 
-    // 📊 SPENDING VELOCITY - How fast are you spending?
+    // SPENDING VELOCITY - How fast are you spending?
     getSpendingVelocity: function() {
         const monthTx = getMonthTx().filter(t => t.type === 'expense');
         const now = new Date();
@@ -1992,7 +1992,7 @@ const GeniusEngine = {
         };
     },
 
-    // 🎯 PERSONALIZED RECOMMENDATIONS - AI-powered suggestions
+    // PERSONALIZED RECOMMENDATIONS - AI-powered suggestions
     getPersonalizedRecommendations: function() {
         const health = this.calculateHealthScore();
         const anomalies = this.detectAnomalies();
@@ -2092,7 +2092,7 @@ const GeniusEngine = {
         return recommendations.sort((a, b) => a.priority - b.priority).slice(0, 5);
     },
 
-    // 📈 INVESTMENT READINESS - Are you ready to invest?
+    // INVESTMENT READINESS - Are you ready to invest?
     checkInvestmentReadiness: function() {
         const health = this.calculateHealthScore();
         const predictions = this.predictSpending();
@@ -2518,7 +2518,7 @@ function updateWelcome() {
     if (hour < 12) greet = 'Bună dimineața';
     else if (hour < 18) greet = 'Bună ziua';
     
-    if ($('welcomeText')) $('welcomeText').textContent = `${greet}, ${name}! 👋`;
+    if ($('welcomeText')) $('welcomeText').textContent = `${greet}, ${name}! `;
     if ($('welcomeSub')) {
         const trans = getMonthTx();
         if (trans.length === 0) $('welcomeSub').textContent = 'Începe să adaugi tranzacții';
@@ -2559,15 +2559,15 @@ function nav(view) {
         settings: 'Setări',
         faq: 'FAQ & Ghid',
         // GENIUS views
-        anomalies: '⚠️ Anomalii',
+        anomalies: 'Anomalii',
         predictions: '🔮 Predicții',
-        timeAnalysis: '⏰ Analiză Timp',
+        timeAnalysis: 'Analiză Timp',
         merchants: '🏪 Magazine',
         smartBudgets: '📝 Bugete AI',
-        smartGoals: '🎯 Obiective AI',
+        smartGoals: 'Obiective AI',
         healthScore: '💪 Scor Sănătate',
-        investment: '📈 Investiții',
-        recommendations: '🎯 Recomandări'
+        investment: 'Investiții',
+        recommendations: 'Recomandări'
     };
     if ($('hdrTitle')) $('hdrTitle').textContent = titles[view] || 'Budget Pro';
     
@@ -3403,7 +3403,7 @@ function checkAchievement(id) {
     state.shownAchievements.push(id);
     
     const ach = achievementsList.find(a => a.id === id);
-    if (ach) toast(`🏆 ${ach.name}!`, 'success');
+    if (ach) toast(`${ach.name}!`, 'success');
     
     // Save
     if (state.user) {
@@ -3546,7 +3546,7 @@ function renderCoachTips() {
             <div class="tip-content">
                 <div class="tip-title">${tip.title}</div>
                 <div class="tip-message">${tip.message}</div>
-                <div class="tip-action">💡 ${tip.action}</div>
+                <div class="tip-action">${tip.action}</div>
             </div>
         </div>
     `).join('');
@@ -3564,7 +3564,7 @@ function renderAnomalyAlerts() {
     
     container.classList.remove('hide');
     container.innerHTML = `
-        <div class="anomaly-header">⚠️ Alerte (${anomalies.length})</div>
+        <div class="anomaly-header">Alerte (${anomalies.length})</div>
         ${anomalies.slice(0, 3).map(a => `
             <div class="anomaly-item ${a.severity}">
                 <span class="anomaly-icon">${a.icon}</span>
@@ -3616,7 +3616,7 @@ function renderAllAnomalies() {
                 <span class="severity-badge ${a.severity}">${a.severity === 'high' ? 'Urgent' : a.severity === 'medium' ? 'Atenție' : 'Info'}</span>
             </div>
             <div class="anomaly-card-msg">${a.message}</div>
-            <div class="anomaly-card-tip">💡 ${a.suggestion}</div>
+            <div class="anomaly-card-tip">${a.suggestion}</div>
         </div>
     `).join('');
 }
@@ -3657,7 +3657,7 @@ function renderPredictionsView() {
             </div>
         </div>
         
-        <h3 class="section-title">📊 Pe categorii</h3>
+        <h3 class="section-title">Pe categorii</h3>
         <div class="pred-cats">
             ${sortedCats.map(([catId, data]) => {
                 const cat = findCat('expense', catId);
@@ -3749,7 +3749,7 @@ function renderMerchantAnalytics() {
             </div>
         </div>
         
-        <h3 class="section-title">🏆 Top 10</h3>
+        <h3 class="section-title">Top 10</h3>
         <div class="merchant-list">
             ${analysis.top10.map((m, i) => `
                 <div class="merchant-item">
@@ -3765,7 +3765,7 @@ function renderMerchantAnalytics() {
         </div>
         
         ${analysis.potentialSavings.length > 0 ? `
-            <h3 class="section-title">💡 Economii potențiale</h3>
+            <h3 class="section-title">Economii potențiale</h3>
             ${analysis.potentialSavings.map(m => `
                 <div class="savings-tip">
                     <span>${m.categoryInfo?.icon || '💰'}</span>
@@ -3917,7 +3917,7 @@ function renderHealthScore() {
             <div class="health-message">${health.message}</div>
         </div>
         
-        <h3 class="section-title">📊 Factori de evaluare</h3>
+        <h3 class="section-title">Factori de evaluare</h3>
         <div class="health-factors">
             ${health.factors.map(f => `
                 <div class="health-factor ${f.status}">
@@ -3934,12 +3934,12 @@ function renderHealthScore() {
         </div>
         
         <div class="health-tip">
-            💡 Îmbunătățește factorii cu scor mic pentru a crește scorul general!
+            Îmbunătățește factorii cu scor mic pentru a crește scorul general!
         </div>
     `;
 }
 
-// 📈 INVESTMENT READINESS VIEW
+// INVESTMENT READINESS VIEW
 function renderInvestmentReadiness() {
     const container = $('investmentContent');
     if (!container) return;
@@ -3982,12 +3982,12 @@ function renderInvestmentReadiness() {
         </div>
         
         <div class="invest-disclaimer">
-            ⚠️ Aceasta nu este consiliere financiară. Consultă un specialist înainte de a investi.
+            Aceasta nu este consiliere financiară. Consultă un specialist înainte de a investi.
         </div>
     `;
 }
 
-// 🎯 RECOMMENDATIONS VIEW
+// RECOMMENDATIONS VIEW
 function renderRecommendations() {
     const container = $('recommendationsContent');
     if (!container) return;
@@ -4019,7 +4019,7 @@ function renderRecommendations() {
     `;
 }
 
-// 📊 VELOCITY WIDGET (for home)
+// VELOCITY WIDGET (for home)
 function renderVelocityWidget() {
     const container = $('velocityWidget');
     if (!container) return;
@@ -4096,7 +4096,7 @@ function updateWhatIfSimulation() {
         
         ${result.fireImpact && result.fireImpact.yearsSaved > 0 ? `
             <div class="whatif-fire">
-                🔥 Ajungi la FIRE cu <strong>${result.fireImpact.yearsSaved.toFixed(1)} ani</strong> mai devreme!
+                Ajungi la FIRE cu <strong>${result.fireImpact.yearsSaved.toFixed(1)} ani</strong> mai devreme!
             </div>
         ` : ''}
     `;
@@ -4283,23 +4283,23 @@ PROFILUL FINANCIAR AL UTILIZATORULUI
 • Balanță: ${monthBalance >= 0 ? '+' : ''}${safeFmt(monthBalance)} ${currency}
 • Rată economisire: ${monthIncome > 0 ? ((monthBalance / monthIncome) * 100).toFixed(1) : 0}%
 
-📊 COMPARAȚIE CU LUNA TRECUTĂ:
+COMPARAȚIE CU LUNA TRECUTĂ:
 • Cheltuieli luna trecută: ${safeFmt(lastMonthExpense)} ${currency}
 • Venituri luna trecută: ${safeFmt(lastMonthIncome)} ${currency}
 
-🏆 TOP CATEGORII CHELTUIELI:
+TOP CATEGORII CHELTUIELI:
 ${topCategories.length > 0 ? topCategories.join('\n') : '• Nicio cheltuială înregistrată'}
 
-📈 TENDINȚE 6 LUNI:
+TENDINȚE 6 LUNI:
 ${monthlyTrends.map(m => `• ${m.month}: V:${safeFmt(m.income)}, C:${safeFmt(m.expense)}, E:${safeFmt(m.savings)}`).join('\n')}
 
 📅 PATTERN ZILNIC:
 • Ziua cu cele mai mari cheltuieli: ${dayNames[parseInt(maxSpendingDay[0])] || 'N/A'} (${safeFmt(maxSpendingDay[1])} ${currency})
 
-🎯 OBIECTIVE (${goalsStatus.length}):
+OBIECTIVE (${goalsStatus.length}):
 ${goalsStatus.length > 0 ? goalsStatus.map(g => `• ${g.name}: ${safeFmt(g.current)}/${safeFmt(g.target)} ${currency} (${g.progress}%)`).join('\n') : '• Niciun obiectiv setat'}
 
-💰 BUGETE (${budgetStatus.length}):
+BUGETE (${budgetStatus.length}):
 ${budgetStatus.length > 0 ? budgetStatus.map(b => `• ${b.category}: ${safeFmt(b.spent)}/${safeFmt(b.limit)} ${currency} (${b.percentUsed}%)`).join('\n') : '• Niciun buget setat'}
 
 🏦 CONTURI: ${safeFmt(totalAccounts)} ${currency} total
@@ -4307,9 +4307,9 @@ ${accountsStatus.length > 0 ? accountsStatus.map(a => `• ${a.name}: ${safeFmt(
 
 💳 DATORII: ${safeFmt(totalDebt)} ${currency} de plătit, ${safeFmt(totalOwedToMe)} ${currency} de recuperat
 
-📱 ABONAMENTE: ~${safeFmt(subscriptionsTotal)} ${currency}/lună
+ABONAMENTE: ~${safeFmt(subscriptionsTotal)} ${currency}/lună
 
-🔥 FIRE:
+FIRE:
 • Patrimoniu: ${safeFmt(netWorth)} ${currency}
 • Număr FIRE necesar: ${safeFmt(fireNumber)} ${currency}
 • Progres: ${fireProgress}%
@@ -4334,7 +4334,7 @@ const FinleyAI = {
     // 📋 FUNCTION DECLARATIONS - What Finley can DO
     // ═══════════════════════════════════════════════════════════════
     functionDeclarations: [
-        // 💰 TRANSACTION MANAGEMENT
+        // TRANSACTION MANAGEMENT
         {
             name: "add_transaction",
             description: "Adaugă o tranzacție nouă (cheltuială sau venit). Folosește când utilizatorul vrea să înregistreze o cheltuială sau un venit.",
@@ -4399,7 +4399,7 @@ const FinleyAI = {
             }
         },
         
-        // 📊 BUDGET MANAGEMENT
+        // BUDGET MANAGEMENT
         {
             name: "set_budget",
             description: "Setează sau actualizează un buget pentru o categorie.",
@@ -4423,7 +4423,7 @@ const FinleyAI = {
             }
         },
         
-        // 🎯 GOALS MANAGEMENT
+        // GOALS MANAGEMENT
         {
             name: "create_goal",
             description: "Creează un obiectiv financiar nou.",
@@ -4470,7 +4470,7 @@ const FinleyAI = {
             }
         },
         
-        // 📈 ANALYSIS & INSIGHTS
+        // ANALYSIS & INSIGHTS
         {
             name: "get_spending_analysis",
             description: "Analizează cheltuielile pe o perioadă. Returnează breakdown pe categorii, trends, comparații.",
@@ -4530,7 +4530,7 @@ const FinleyAI = {
             }
         },
         
-        // 🎯 CHALLENGES
+        // CHALLENGES
         {
             name: "start_challenge",
             description: "Începe o provocare de economisire.",
@@ -4730,7 +4730,7 @@ const FinleyAI = {
                 const catInfo = findCat(type, category);
                 return {
                     success: true,
-                    message: `✅ Am adăugat ${type === 'income' ? 'venitul' : 'cheltuiala'} de ${fmt(amount)} la ${catInfo?.name || category}${subcategory ? ` (${subcategory})` : ''}.`,
+                    message: `Am adăugat ${type === 'income' ? 'venitul' : 'cheltuiala'} de ${fmt(amount)} la ${catInfo?.name || category}${subcategory ? ` (${subcategory})` : ''}.`,
                     transactionId: doc.id,
                     data: data
                 };
@@ -4799,7 +4799,7 @@ const FinleyAI = {
                 await db.collection('users').doc(state.user.uid).collection('transactions').doc(transactionId).delete();
                 state.transactions = state.transactions.filter(t => t.id !== transactionId);
                 updateHome();
-                return { success: true, message: '✅ Tranzacția a fost ștearsă.' };
+                return { success: true, message: 'Tranzacția a fost ștearsă.' };
             } catch (err) {
                 return { success: false, error: err.message };
             }
@@ -4828,7 +4828,7 @@ const FinleyAI = {
                 const catInfo = findCat('expense', category);
                 return {
                     success: true,
-                    message: `✅ Am setat bugetul pentru ${catInfo?.name || category} la ${fmt(limit)}.`
+                    message: `Am setat bugetul pentru ${catInfo?.name || category} la ${fmt(limit)}.`
                 };
             } catch (err) {
                 return { success: false, error: err.message };
@@ -4883,7 +4883,7 @@ const FinleyAI = {
                 
                 return {
                     success: true,
-                    message: `✅ Am creat obiectivul "${name}" cu ținta de ${fmt(target)}.`,
+                    message: `Am creat obiectivul "${name}" cu ținta de ${fmt(target)}.`,
                     goalId: doc.id
                 };
             } catch (err) {
@@ -4909,7 +4909,7 @@ const FinleyAI = {
                 const progress = Math.round((newAmount / goal.target) * 100);
                 return {
                     success: true,
-                    message: `✅ Am actualizat "${goal.name}": ${fmt(newAmount)} / ${fmt(goal.target)} (${progress}%)`,
+                    message: `Am actualizat "${goal.name}": ${fmt(newAmount)} / ${fmt(goal.target)} (${progress}%)`,
                     progress: progress
                 };
             } catch (err) {
@@ -4937,7 +4937,7 @@ const FinleyAI = {
                 const freq = { daily: 'zilnic', weekly: 'săptămânal', monthly: 'lunar', yearly: 'anual' };
                 return {
                     success: true,
-                    message: `✅ Am adăugat ${type === 'income' ? 'venitul' : 'cheltuiala'} recurent(ă) de ${fmt(amount)} ${freq[frequency]}.`
+                    message: `Am adăugat ${type === 'income' ? 'venitul' : 'cheltuiala'} recurent(ă) de ${fmt(amount)} ${freq[frequency]}.`
                 };
             } catch (err) {
                 return { success: false, error: err.message };
@@ -5111,7 +5111,7 @@ const FinleyAI = {
                 
                 return {
                     success: true,
-                    message: `🎯 Ai început provocarea "${tpl.name}"! ${tpl.desc}`,
+                    message: `Ai început provocarea "${tpl.name}"! ${tpl.desc}`,
                     challengeId: doc.id,
                     endDate: data.endDate
                 };
@@ -5159,7 +5159,7 @@ const FinleyAI = {
                 
                 return {
                     success: true,
-                    message: `✅ Am adăugat contul "${name}" cu soldul de ${fmt(balance)}.`
+                    message: `Am adăugat contul "${name}" cu soldul de ${fmt(balance)}.`
                 };
             } catch (err) {
                 return { success: false, error: err.message };
@@ -5185,7 +5185,7 @@ const FinleyAI = {
                 const typeText = type === 'owed' ? 'de plătit' : 'de recuperat';
                 return {
                     success: true,
-                    message: `✅ Am adăugat datoria "${name}" de ${fmt(amount)} (${typeText}).`
+                    message: `Am adăugat datoria "${name}" de ${fmt(amount)} (${typeText}).`
                 };
             } catch (err) {
                 return { success: false, error: err.message };
@@ -5303,7 +5303,7 @@ const FinleyAI = {
             
             return {
                 success: true,
-                message: `📱 Am deschis secțiunea "${sectionNames[section]}".`
+                message: `Am deschis secțiunea "${sectionNames[section]}".`
             };
         },
         
@@ -5454,7 +5454,7 @@ const FinleyAI = {
                 
                 return {
                     success: true,
-                    message: `⏰ Am adăugat reminder: "${title}" pentru ${date}${amount ? ` (${fmt(amount)})` : ''}.`
+                    message: `Am adăugat reminder: "${title}" pentru ${date}${amount ? ` (${fmt(amount)})` : ''}.`
                 };
             } catch (err) {
                 return { success: false, error: err.message };
@@ -5587,42 +5587,41 @@ const FinleyAI = {
     },
     
     // ═══════════════════════════════════════════════════════════════
-    // 🎯 MAIN CONVERSATION METHOD - with full agentic loop
+    // MAIN CONVERSATION METHOD - with full agentic loop
     // ═══════════════════════════════════════════════════════════════
     async chat(userMessage) {
         const context = buildFullFinancialContext();
         
-        const systemPrompt = `Ești FINLEY, un consilier financiar AI expert pentru aplicația Budget Pro.
+        const systemPrompt = `Ești Finley, un asistent financiar profesionist integrat în aplicația Budget Pro.
 
-🎯 MISIUNEA TA:
-Ajuți utilizatorii să-și gestioneze finanțele executând acțiuni concrete în aplicație.
+ROLUL TĂU:
+Ajuți utilizatorii să-și gestioneze finanțele prin acțiuni concrete și analize precise.
 
-💪 CE POȚI FACE:
-- Adăuga tranzacții (cheltuieli și venituri)
-- Seta și verifica bugete
-- Crea și urmări obiective financiare
-- Analiza cheltuielile pe perioade
-- Detecta anomalii și oferi insights
-- Gestiona datorii și conturi
-- Porni provocări de economisire
+CAPACITĂȚI:
+- Înregistrare tranzacții (cheltuieli și venituri)
+- Configurare și monitorizare bugete
+- Creare și urmărire obiective financiare
+- Analiză detaliată a cheltuielilor
+- Identificare pattern-uri și anomalii
+- Gestionare conturi și datorii
 
-📋 REGULI CRITICE:
-1. Când utilizatorul vrea să FACĂ ceva (adaugă, setează, creează), APELEAZĂ funcția corespunzătoare
-2. Extrage toate informațiile din mesaj (sumă, categorie, dată)
-3. Pentru categorii, folosește: food, transport, housing, health, shopping, entertainment, subscriptions, utilities, education, personal, family, travel, gifts, other (cheltuieli) sau salary, freelance, investments, gifts_income, other_income (venituri)
-4. Dacă lipsesc informații esențiale, întreabă
-5. Răspunde în ROMÂNĂ, prietenos dar profesionist
-6. După execuția funcțiilor, confirmă acțiunea și oferă context util
-7. Folosește emoji moderat
+REGULI DE OPERARE:
+1. Când utilizatorul solicită o acțiune, execută funcția corespunzătoare
+2. Extrage parametrii din context (sumă, categorie, dată)
+3. Categorii disponibile: food, transport, housing, health, shopping, entertainment, subscriptions, utilities, education, personal, family, travel, gifts, other (cheltuieli) | salary, freelance, investments, gifts_income, other_income (venituri)
+4. Solicită clarificări doar când informațiile sunt insuficiente
+5. Răspunde în română, concis și profesionist
+6. Confirmă acțiunile executate cu date relevante
+7. Nu folosi emoji-uri - menține un ton profesionist
 
-📊 CONTEXT FINANCIAR:
+CONTEXT FINANCIAR CURENT:
 ${context}
 
-🔄 FLUX DE LUCRU:
-- "Am dat 50 lei pe Lidl" → add_transaction({type:"expense", amount:50, category:"food", subcategory:"Lidl"})
-- "Cât am cheltuit luna asta?" → get_spending_analysis({period:"month"})
-- "Vreau buget 1000 lei pe mâncare" → set_budget({category:"food", limit:1000})
-- "Obiectiv: strâng 5000 lei pentru vacanță" → create_goal({name:"Vacanță", target:5000})`;
+EXEMPLE DE PROCESARE:
+- "Am cheltuit 50 lei la Lidl" → add_transaction({type:"expense", amount:50, category:"food", subcategory:"Lidl"})
+- "Care sunt cheltuielile lunii?" → get_spending_analysis({period:"month"})
+- "Setează buget 1000 lei alimentație" → set_budget({category:"food", limit:1000})
+- "Obiectiv 5000 lei pentru vacanță" → create_goal({name:"Vacanță", target:5000})`;
 
         const MAX_ITERATIONS = 5;
         let iterations = 0;
@@ -5663,7 +5662,7 @@ ${context}
                 const data = await response.json();
                 
                 if (!data.success) {
-                    return { text: `⚠️ Eroare API: ${data.error}`, functionResults: allFunctionResults };
+                    return { text: `Eroare API: ${data.error}`, functionResults: allFunctionResults };
                 }
                 
                 // Check if model wants to call functions
@@ -5754,8 +5753,8 @@ ${context}
             if (!finalText && allFunctionResults.length > 0) {
                 finalText = allFunctionResults.map(fr => {
                     if (fr.result?.message) return fr.result.message;
-                    if (fr.result?.success) return `✅ Acțiune completată: ${fr.name}`;
-                    if (fr.result?.error) return `⚠️ Eroare: ${fr.result.error}`;
+                    if (fr.result?.success) return `Acțiune completată: ${fr.name}`;
+                    if (fr.result?.error) return `Eroare: ${fr.result.error}`;
                     return null;
                 }).filter(Boolean).join('\n\n');
             }
@@ -5769,7 +5768,7 @@ ${context}
         } catch (err) {
             console.error('[Finley] Error:', err);
             return { 
-                text: `⚠️ Eroare: ${err.message}`, 
+                text: `Eroare: ${err.message}`, 
                 functionResults: allFunctionResults 
             };
         }
@@ -5819,12 +5818,12 @@ async function sendAI() {
         if (result.functionResults && result.functionResults.length > 0) {
             const actionNames = result.functionResults.map(fr => {
                 const names = {
-                    'add_transaction': '💰 Adăugat tranzacție',
-                    'set_budget': '📊 Setat buget',
-                    'create_goal': '🎯 Creat obiectiv',
+                    'add_transaction': 'Adăugat tranzacție',
+                    'set_budget': 'Setat buget',
+                    'create_goal': 'Creat obiectiv',
                     'search_transactions': '🔍 Căutat tranzacții',
-                    'get_spending_analysis': '📈 Analizat cheltuieli',
-                    'start_challenge': '🏆 Început provocare'
+                    'get_spending_analysis': 'Analizat cheltuieli',
+                    'start_challenge': 'Început provocare'
                 };
                 return names[fr.name] || fr.name;
             });
@@ -6316,15 +6315,15 @@ function openChallengeModal() {
     
     // Group challenges by category
     const categoryNames = {
-        savings: '💰 Economisire',
-        discipline: '🎯 Disciplină',
+        savings: 'Economisire',
+        discipline: 'Disciplină',
         food: '🍔 Mâncare',
         transport: '🚗 Transport',
         shopping: '🛍️ Shopping',
         income: '💵 Venituri Extra',
-        budget: '📊 Bugetare',
+        budget: 'Bugetare',
         auto: '🔄 Automat',
-        subscriptions: '📱 Abonamente'
+        subscriptions: 'Abonamente'
     };
     
     const grouped = {};
@@ -6962,7 +6961,7 @@ function renderSmartStats() {
     container.innerHTML = `
         <div class="card" style="margin-bottom: 16px;">
             <div class="card-hdr">
-                <span class="card-title">📊 Statistici Generale</span>
+                <span class="card-title">Statistici Generale</span>
             </div>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px;">
                 <div class="stat-box" style="text-align: center;">
@@ -6986,7 +6985,7 @@ function renderSmartStats() {
         
         <div class="card">
             <div class="card-hdr">
-                <span class="card-title">🏆 Top 10 Categorii</span>
+                <span class="card-title">Top 10 Categorii</span>
             </div>
             <div style="padding: 12px;">
                 ${sortedCats.map(([catId, count], i) => {

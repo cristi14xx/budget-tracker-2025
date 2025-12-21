@@ -13,7 +13,9 @@
   <!-- Splash -->
   <div id="splash">
     <div class="splash-box">
-      <div class="splash-icon">💰</div>
+      <div class="splash-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
       <div class="splash-name">Budget Pro</div>
     </div>
   </div>
@@ -21,9 +23,11 @@
   <!-- Auth -->
   <div id="auth" class="hide">
     <div class="auth-head">
-      <div class="auth-icon">💰</div>
+      <div class="auth-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
       <h1>Budget Pro</h1>
-      <p>Finanțele tale, simplificate</p>
+      <p>Managementul finanțelor personale</p>
     </div>
     
     <!-- Google Sign-In Button -->
@@ -61,7 +65,9 @@
   <!-- App -->
   <div id="app" class="hide">
     <header class="hdr">
-      <button class="hdr-btn" onclick="openModal('aiModal')">🤖</button>
+      <button class="hdr-btn" onclick="openModal('aiModal')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+      </button>
       <span class="hdr-title" id="hdrTitle">Budget Pro</span>
       <div class="hdr-avatar" id="hdrAvatar" onclick="nav('menu')">U</div>
     </header>
@@ -70,8 +76,8 @@
       <!-- HOME -->
       <section id="homeView" class="view on">
         <div class="welcome">
-          <h2 id="welcomeText">Bună! 👋</h2>
-          <p id="welcomeSub">Să vedem cum stai cu banii</p>
+          <h2 id="welcomeText">Bună ziua</h2>
+          <p id="welcomeSub">Situația financiară pentru luna curentă</p>
         </div>
 
         <div class="hero">
@@ -107,7 +113,7 @@
             <div class="stat-lbl">Media/zi</div>
           </div>
           <div class="stat-box">
-            <div class="stat-val" id="statStreak">0🔥</div>
+            <div class="stat-val" id="statStreak">0</div>
             <div class="stat-lbl">Streak</div>
           </div>
         </div>
@@ -118,7 +124,7 @@
         <!-- 🧠 GENIUS: Daily Coach Tips -->
         <section class="section genius-section">
           <div class="sec-head">
-            <h3 class="sec-title">⚡ Spending Coach</h3>
+            <h3 class="sec-title">Spending Coach</h3>
           </div>
           <div id="coachTips" class="coach-tips"></div>
         </section>
@@ -132,7 +138,7 @@
         <!-- 🧠 GENIUS: Quick Actions -->
         <div class="genius-actions">
           <button class="genius-action-btn" onclick="openWhatIfSimulator()">
-            <span>💰</span>
+            <svg class="quick-svg" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             <span>What-If</span>
           </button>
           <button class="genius-action-btn" onclick="nav('predictions')">
@@ -187,7 +193,7 @@
         </div>
         <div class="metric-grid">
           <div class="metric-box">
-            <div class="metric-icon">🔥</div>
+            <div class="metric-icon"></div>
             <div class="metric-val" id="metricFire">0%</div>
             <div class="metric-lbl">Progres FIRE</div>
           </div>
@@ -198,11 +204,11 @@
           </div>
         </div>
         <div class="chart-box">
-          <div class="chart-title">📈 Trend 6 luni</div>
+          <div class="chart-title">Trend 6 luni</div>
           <div class="chart-area"><canvas id="trendChart"></canvas></div>
         </div>
         <section class="section">
-          <div class="sec-head"><h3 class="sec-title">💡 Sfaturi smart</h3></div>
+          <div class="sec-head"><h3 class="sec-title">Recomandări</h3></div>
           <div id="tipsList"></div>
         </section>
       </section>
@@ -266,7 +272,7 @@
       <section id="smartGoalsView" class="view">
         <div class="sub-hdr">
           <button class="back-btn" onclick="nav('menu')">←</button>
-          <h2 class="sub-title">🎯 Obiective AI</h2>
+          <h2 class="sub-title">Obiective inteligente</h2>
         </div>
         <div id="smartGoalsContent" class="genius-content"></div>
       </section>
@@ -284,7 +290,7 @@
       <section id="investmentView" class="view">
         <div class="sub-hdr">
           <button class="back-btn" onclick="nav('menu')">←</button>
-          <h2 class="sub-title">📈 Pregătire Investiții</h2>
+          <h2 class="sub-title">Pregătire investiții</h2>
         </div>
         <div id="investmentContent" class="genius-content"></div>
       </section>
@@ -293,7 +299,7 @@
       <section id="recommendationsView" class="view">
         <div class="sub-hdr">
           <button class="back-btn" onclick="nav('menu')">←</button>
-          <h2 class="sub-title">🎯 Recomandări AI</h2>
+          <h2 class="sub-title">Recomandări personalizate</h2>
         </div>
         <div id="recommendationsContent" class="genius-content"></div>
       </section>
@@ -311,20 +317,20 @@
         <div class="menu-sec">
           <div class="menu-lbl">Finanțe</div>
           <div class="menu-grp">
-            <button class="menu-item" onclick="nav('goals')"><span class="menu-icon">🎯</span><span class="menu-txt">Obiective</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('goals')"><svg class="menu-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span class="menu-txt">Obiective</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('accounts')"><span class="menu-icon">🏦</span><span class="menu-txt">Conturi</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('debts')"><span class="menu-icon">🤝</span><span class="menu-txt">Datorii</span><span class="menu-arr">›</span></button>
-            <button class="menu-item" onclick="nav('recurring')"><span class="menu-icon">🔄</span><span class="menu-txt">Recurente</span><span class="menu-arr">›</span></button>
-            <button class="menu-item" onclick="nav('subscriptions')"><span class="menu-icon">📱</span><span class="menu-txt">Abonamente</span><span class="menu-arr">›</span></button>
-            <button class="menu-item" onclick="nav('challenges')"><span class="menu-icon">🎯</span><span class="menu-txt">Provocări</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('recurring')"><svg class="menu-svg" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg><span class="menu-txt">Recurente</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('subscriptions')"><svg class="menu-svg" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><span class="menu-txt">Abonamente</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('challenges')"><svg class="menu-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span class="menu-txt">Provocări</span><span class="menu-arr">›</span></button>
           </div>
         </div>
 
         <div class="menu-sec">
           <div class="menu-lbl">Analiză</div>
           <div class="menu-grp">
-            <button class="menu-item" onclick="nav('netWorth')"><span class="menu-icon">📈</span><span class="menu-txt">Evoluție Patrimoniu</span><span class="menu-arr">›</span></button>
-            <button class="menu-item" onclick="nav('insights')"><span class="menu-icon">🤖</span><span class="menu-txt">AI Insights</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('netWorth')"><svg class="menu-svg" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg><span class="menu-txt">Evoluție Patrimoniu</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('insights')"><svg class="menu-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg><span class="menu-txt">AI Insights</span><span class="menu-arr">›</span></button>
           </div>
         </div>
 
@@ -334,13 +340,13 @@
             <button class="menu-item" onclick="nav('healthScore')"><span class="menu-icon">💪</span><span class="menu-txt">Scor Sănătate</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('predictions')"><span class="menu-icon">🔮</span><span class="menu-txt">Predicții Spending</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('anomalies')"><span class="menu-icon">⚠️</span><span class="menu-txt">Anomalii Detectate</span><span class="menu-arr">›</span></button>
-            <button class="menu-item" onclick="nav('recommendations')"><span class="menu-icon">🎯</span><span class="menu-txt">Recomandări AI</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('recommendations')"><svg class="menu-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span class="menu-txt">Recomandări AI</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('timeAnalysis')"><span class="menu-icon">⏰</span><span class="menu-txt">Analiză Timp</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('merchants')"><span class="menu-icon">🏪</span><span class="menu-txt">Merchant Analytics</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('smartBudgets')"><span class="menu-icon">📝</span><span class="menu-txt">Auto-Budgeting AI</span><span class="menu-arr">›</span></button>
-            <button class="menu-item" onclick="nav('smartGoals')"><span class="menu-icon">🎯</span><span class="menu-txt">Smart Goals AI</span><span class="menu-arr">›</span></button>
-            <button class="menu-item" onclick="nav('investment')"><span class="menu-icon">📈</span><span class="menu-txt">Pregătire Investiții</span><span class="menu-arr">›</span></button>
-            <button class="menu-item" onclick="openWhatIfSimulator()"><span class="menu-icon">💰</span><span class="menu-txt">What-If Simulator</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('smartGoals')"><svg class="menu-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span class="menu-txt">Smart Goals AI</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('investment')"><svg class="menu-svg" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg><span class="menu-txt">Pregătire Investiții</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="openWhatIfSimulator()"><svg class="menu-svg" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="menu-txt">What-If Simulator</span><span class="menu-arr">›</span></button>
           </div>
         </div>
 
@@ -354,7 +360,7 @@
         <div class="menu-sec">
           <div class="menu-lbl">Casă</div>
           <div class="menu-grp">
-            <button class="menu-item" onclick="nav('utilities')"><span class="menu-icon">💡</span><span class="menu-txt">Utilități</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('utilities')"><svg class="menu-svg" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg><span class="menu-txt">Utilități</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('reminders')"><span class="menu-icon">⏰</span><span class="menu-txt">Remindere</span><span class="menu-arr">›</span></button>
           </div>
         </div>
@@ -362,8 +368,8 @@
         <div class="menu-sec">
           <div class="menu-lbl">Altele</div>
           <div class="menu-grp">
-            <button class="menu-item" onclick="nav('achievements')"><span class="menu-icon">🏆</span><span class="menu-txt">Achievements</span><span class="menu-arr">›</span></button>
-            <button class="menu-item" onclick="nav('settings')"><span class="menu-icon">⚙️</span><span class="menu-txt">Setări</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('achievements')"><svg class="menu-svg" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><span class="menu-txt">Achievements</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('settings')"><svg class="menu-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="menu-txt">Setări</span><span class="menu-arr">›</span></button>
           </div>
         </div>
 
@@ -413,12 +419,12 @@
         </div>
         <div class="util-grid">
           <div class="util-card" onclick="openUtilityModal('electricity')">
-            <div class="util-icon" style="background:rgba(234,179,8,0.2)">⚡</div>
+            <div class="util-icon" style="background:rgba(234,179,8,0.2)"></div>
             <div class="util-name">Curent</div>
             <div class="util-val" id="uElec">--</div>
           </div>
           <div class="util-card" onclick="openUtilityModal('gas')">
-            <div class="util-icon" style="background:rgba(249,115,22,0.2)">🔥</div>
+            <div class="util-icon" style="background:rgba(249,115,22,0.2)"></div>
             <div class="util-name">Gaz</div>
             <div class="util-val" id="uGas">--</div>
           </div>
@@ -498,10 +504,10 @@
         </div>
         
         <div class="menu-sec">
-          <div class="menu-lbl">💰 FIRE Calculator</div>
+          <div class="menu-lbl">FIRE Calculator</div>
           <div class="menu-grp">
             <div class="menu-item">
-              <span class="menu-icon">📊</span>
+              <svg class="menu-svg" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
               <input type="number" id="netWorthIn" placeholder="Patrimoniu total" style="flex:1;background:var(--card2);border:1px solid var(--border);color:#fff;padding:8px;border-radius:8px;">
               <button onclick="saveNetWorth()" style="background:var(--accent);border:none;color:#000;padding:8px 14px;border-radius:8px;font-weight:600;margin-left:8px;">Save</button>
             </div>
@@ -594,7 +600,7 @@
           
           <!-- Tips -->
           <div class="card" style="margin-bottom:16px;">
-            <div class="card-hdr"><span class="card-title">💡 Sfaturi Pro</span></div>
+            <div class="card-hdr"><span class="card-title">Sfaturi Pro</span></div>
             <div style="padding:16px;font-size:13px;color:var(--text2);line-height:1.6;">
               <p>✅ <strong style="color:var(--text);">Adaugă tranzacțiile zilnic</strong> - Nu amâna, uiți detaliile</p>
               <p>✅ <strong style="color:var(--text);">Folosește tag-uri</strong> - #vacanță, #business pentru filtrare ușoară</p>
@@ -689,7 +695,7 @@
         <div class="sub-tabs" style="margin: 0 16px 16px;">
           <button class="sub-tab on" onclick="showSmartTab('custom')">🏷️ Custom</button>
           <button class="sub-tab" onclick="showSmartTab('learned')">🧠 Învățate</button>
-          <button class="sub-tab" onclick="showSmartTab('stats')">📊 Statistici</button>
+          <button class="sub-tab" onclick="showSmartTab('stats')">Statistici</button>
         </div>
         
         <!-- Custom Categories Tab -->
@@ -697,7 +703,7 @@
           <div id="customCatsList"></div>
           <div style="margin: 16px; padding-top: 8px; border-top: 1px solid var(--border);">
             <p style="font-size: 12px; color: var(--text2); margin-bottom: 12px;">
-              💡 Creează categorii personalizate cu subcategorii și cuvinte cheie pentru auto-detectare
+              Creează categorii personalizate cu subcategorii și cuvinte cheie pentru auto-detectare
             </p>
           </div>
         </div>
@@ -740,7 +746,7 @@
         <div class="fab-btn">+</div>
       </button>
       <button class="nav-btn" data-v="budgets" onclick="nav('budgets')">
-        <span class="nav-icon">📊</span>Bugete
+        BugeteBugete
       </button>
       <button class="nav-btn" data-v="menu" onclick="nav('menu')">
         <span class="nav-icon">☰</span>Cont
@@ -865,7 +871,7 @@
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-head">
-        <span class="modal-title">💰 What-If Simulator</span>
+        <span class="modal-title">What-If Simulator</span>
         <button class="modal-x" onclick="closeModal('whatIfModal')">✕</button>
       </div>
       <div class="modal-body whatif-body">
@@ -874,7 +880,7 @@
         <div class="whatif-sliders">
           <div class="whatif-slider">
             <div class="whatif-slider-header">
-              <span>📱 Reducere abonamente</span>
+              <span>Reducere abonamente</span>
               <span id="simSubCutVal">0%</span>
             </div>
             <input type="range" id="simSubCut" min="0" max="100" value="0" oninput="updateWhatIfSimulation()">
@@ -932,30 +938,30 @@
           <div class="ai-msg">
             <div class="ai-pic">🧠</div>
             <div class="ai-bubble">
-              Salut! Sunt <strong>Finley</strong>, consilierul tău financiar personal. 👋<br><br>
+              Bună ziua. Sunt <strong>Finley</strong>, asistentul financiar integrat.<br><br>
               Pot să te ajut cu orice întrebare despre finanțe - sau să stăm de vorbă despre orice! Întreabă-mă ce vrei. 💬
             </div>
           </div>
         </div>
         <div class="ai-quick-grid">
           <button class="ai-qbtn full" onclick="askAI('Analizează-mi situația financiară și spune-mi cum stau')">
-            <span class="qbtn-icon">📊</span>
+            Analiză
             <span class="qbtn-text">Analiză completă</span>
           </button>
           <button class="ai-qbtn" onclick="askAI('Ce sfaturi ai pentru mine să economisesc mai mult?')">
-            <span class="qbtn-icon">💡</span>
+            Sfaturi
             <span class="qbtn-text">Sfaturi</span>
           </button>
           <button class="ai-qbtn" onclick="askAI('Când aș putea atinge independența financiară?')">
-            <span class="qbtn-icon">🔥</span>
+            <span class="qbtn-icon"></span>
             <span class="qbtn-text">FIRE</span>
           </button>
           <button class="ai-qbtn" onclick="askAI('Cum ar trebui să încep să investesc banii?')">
-            <span class="qbtn-icon">📈</span>
+            Progres
             <span class="qbtn-text">Investiții</span>
           </button>
           <button class="ai-qbtn" onclick="askAI('Ajută-mă să-mi fac un buget mai bun')">
-            <span class="qbtn-icon">💰</span>
+            Economii
             <span class="qbtn-text">Buget</span>
           </button>
           <button class="ai-qbtn" onclick="askAI('Ce predicții ai pentru cheltuielile mele luna asta?')">
@@ -976,7 +982,7 @@
     <div class="modal-bg" onclick="closeModal('goalModal')"></div>
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-head"><span class="modal-title">🎯 Obiectiv</span><button class="modal-x" onclick="closeModal('goalModal')">✕</button></div>
+      <div class="modal-head"><span class="modal-title">Obiectiv</span><button class="modal-x" onclick="closeModal('goalModal')">✕</button></div>
       <div class="modal-body">
         <form id="goalForm" onsubmit="saveGoal(event)">
           <input type="hidden" id="goalId">
@@ -995,7 +1001,7 @@
     <div class="modal-bg" onclick="closeModal('budgetModal')"></div>
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-head"><span class="modal-title">📊 Buget</span><button class="modal-x" onclick="closeModal('budgetModal')">✕</button></div>
+      <div class="modal-head"><span class="modal-title">Buget</span><button class="modal-x" onclick="closeModal('budgetModal')">✕</button></div>
       <div class="modal-body">
         <form id="budgetForm" onsubmit="saveBudget(event)">
           <input type="hidden" id="budgetId">
@@ -1070,11 +1076,11 @@
     <div class="modal-bg" onclick="closeModal('utilityModal')"></div>
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-head"><span class="modal-title">💡 Factură</span><button class="modal-x" onclick="closeModal('utilityModal')">✕</button></div>
+      <div class="modal-head"><span class="modal-title">Factură</span><button class="modal-x" onclick="closeModal('utilityModal')">✕</button></div>
       <div class="modal-body">
         <form id="utilityForm" onsubmit="saveUtility(event)">
           <input type="hidden" id="utilityId">
-          <div class="form-row"><label class="form-lbl">Tip</label><select id="utilityType" class="form-select" required><option value="">Selectează</option><option value="electricity">⚡ Curent</option><option value="gas">🔥 Gaz</option><option value="water">💧 Apă</option><option value="internet">📶 Internet</option></select></div>
+          <div class="form-row"><label class="form-lbl">Tip</label><select id="utilityType" class="form-select" required><option value="">Selectează</option><option value="electricity"> Curent</option><option value="gas"> Gaz</option><option value="water">💧 Apă</option><option value="internet">📶 Internet</option></select></div>
           <div class="form-row"><label class="form-lbl">Luna</label><input type="month" id="utilityMonth" class="form-input" required></div>
           <div class="form-row"><label class="form-lbl">Sumă</label><input type="number" id="utilityAmount" class="form-input" required></div>
           <button type="submit" class="submit-btn">Salvează</button>
@@ -1133,7 +1139,7 @@
     <div class="modal-bg" onclick="closeModal('challengeModal')"></div>
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-head"><span class="modal-title">🎯 Alege Provocare</span><button class="modal-x" onclick="closeModal('challengeModal')">✕</button></div>
+      <div class="modal-head"><span class="modal-title">Selectează provocare</span><button class="modal-x" onclick="closeModal('challengeModal')">✕</button></div>
       <div class="modal-body">
         <div id="challengeTemplates"></div>
       </div>

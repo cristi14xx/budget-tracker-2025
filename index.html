@@ -330,6 +330,7 @@
           <div class="menu-lbl">Analiză</div>
           <div class="menu-grp">
             <button class="menu-item" onclick="nav('netWorth')"><svg class="menu-svg" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg><span class="menu-txt">Evoluție Patrimoniu</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('cashFlow')"><svg class="menu-svg" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="menu-txt">Cash Flow Forecast</span><span class="menu-arr">›</span></button>
             <button class="menu-item" onclick="nav('insights')"><svg class="menu-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg><span class="menu-txt">AI Insights</span><span class="menu-arr">›</span></button>
           </div>
         </div>
@@ -408,6 +409,180 @@
           <button class="add-btn" onclick="openDebtModal()">+</button>
         </div>
         <div id="debtsList"></div>
+        <div style="padding:16px;margin-top:8px;">
+          <button class="btn full secondary" onclick="nav('debtPlanner')">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Debt Payoff Planner
+          </button>
+        </div>
+      </section>
+
+      <!-- DEBT PAYOFF PLANNER -->
+      <section id="debtPlannerView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('debts')">←</button>
+          <h2 class="sub-title">Debt Planner</h2>
+        </div>
+        <div style="padding:16px;">
+          <!-- Strategy Selection -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Strategie de plată</span>
+            </div>
+            <div class="toggle-group" style="margin-bottom:0;">
+              <button class="toggle-btn on" id="stratSnowball" onclick="setDebtStrategy('snowball')">Snowball</button>
+              <button class="toggle-btn" id="stratAvalanche" onclick="setDebtStrategy('avalanche')">Avalanche</button>
+            </div>
+            <p class="form-hint" id="strategyDesc" style="margin-top:12px;">
+              Snowball: Plătește mai întâi datoria cea mai mică. Motivație psihologică prin victorii rapide.
+            </p>
+          </div>
+
+          <!-- Monthly Payment -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Plată lunară totală</span>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <input type="number" class="form-input lg" id="monthlyDebtPayment" placeholder="1000" oninput="calculateDebtPlan()">
+              <p class="form-hint">Suma totală pe care o poți aloca lunar pentru plata datoriilor</p>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div class="card" id="debtPlanResults" style="display:none;">
+            <div class="card-header">
+              <span class="card-title">Plan de plată</span>
+            </div>
+            <div id="debtPlanSummary"></div>
+            <div id="debtPlanTimeline" style="margin-top:16px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CASH FLOW FORECAST -->
+      <section id="cashFlowView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('menu')">←</button>
+          <h2 class="sub-title">Cash Flow Forecast</h2>
+        </div>
+        <div style="padding:16px;">
+          <!-- Forecast Summary -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Predicție următoarele 6 luni</span>
+            </div>
+            <div id="cashFlowSummary">
+              <div class="stats-row" style="margin-bottom:0;">
+                <div class="stat-card">
+                  <div class="stat-val" id="cfAvgIncome">0</div>
+                  <div class="stat-lbl">Venit mediu</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-val" id="cfAvgExpense">0</div>
+                  <div class="stat-lbl">Cheltuieli medii</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-val" id="cfNetSavings">0</div>
+                  <div class="stat-lbl">Economii/lună</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Forecast Chart -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Proiecție lunară</span>
+            </div>
+            <div id="cashFlowChart"></div>
+          </div>
+
+          <!-- Recurring Impact -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Impact tranzacții recurente</span>
+            </div>
+            <div id="recurringImpact"></div>
+          </div>
+
+          <!-- Projected Balance -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Sold proiectat</span>
+            </div>
+            <div id="projectedBalance"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- IMPORT CSV -->
+      <section id="importView" class="view">
+        <div class="sub-hdr">
+          <button class="back-btn" onclick="nav('settings')">←</button>
+          <h2 class="sub-title">Import CSV</h2>
+        </div>
+        <div style="padding:16px;">
+          <!-- Bank Selection -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Selectează banca</span>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <select class="form-input" id="bankSelect">
+                <option value="">Alege banca...</option>
+                <option value="ing">ING Bank</option>
+                <option value="bt">Banca Transilvania</option>
+                <option value="bcr">BCR</option>
+                <option value="raiffeisen">Raiffeisen</option>
+                <option value="generic">Format generic (CSV)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- File Upload -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Încarcă fișierul</span>
+            </div>
+            <div style="border:2px dashed var(--border);border-radius:var(--radius-md);padding:32px;text-align:center;" id="dropZone">
+              <svg viewBox="0 0 24 24" width="48" height="48" stroke="var(--text-muted)" stroke-width="1.5" fill="none" style="margin-bottom:12px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <p style="color:var(--text-secondary);margin-bottom:12px;">Trage fișierul aici sau</p>
+              <input type="file" id="csvFileInput" accept=".csv,.xlsx,.xls" style="display:none;" onchange="handleCSVUpload(event)">
+              <button class="btn secondary" onclick="document.getElementById('csvFileInput').click()">Selectează fișier</button>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div class="card" id="csvPreview" style="display:none;">
+            <div class="card-header">
+              <span class="card-title">Previzualizare</span>
+              <span class="badge" id="csvCount">0 tranzacții</span>
+            </div>
+            <div id="csvPreviewList" style="max-height:300px;overflow-y:auto;"></div>
+            <div style="margin-top:16px;display:flex;gap:12px;">
+              <button class="btn full" onclick="importCSVTransactions()">Importă toate</button>
+              <button class="btn secondary" onclick="cancelCSVImport()">Anulează</button>
+            </div>
+          </div>
+
+          <!-- Instructions -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Instrucțiuni</span>
+            </div>
+            <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;">
+              <p><strong>ING:</strong> Home Banking → Istoric cont → Export CSV</p>
+              <p><strong>BT:</strong> BT24 → Extrase → Descarcă CSV</p>
+              <p><strong>BCR:</strong> George → Tranzacții → Export</p>
+              <p style="margin-top:12px;color:var(--text-tertiary);">Aplicația va încerca să detecteze automat categoria pentru fiecare tranzacție.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- UTILITIES -->
@@ -429,12 +604,12 @@
             <div class="util-val" id="uGas">--</div>
           </div>
           <div class="util-card" onclick="openUtilityModal('water')">
-            <div class="util-icon" style="background:rgba(59,130,246,0.2)">💧</div>
+            <div class="util-icon" style="background:rgba(59,130,246,0.2)"></div>
             <div class="util-name">Apă</div>
             <div class="util-val" id="uWater">--</div>
           </div>
           <div class="util-card" onclick="openUtilityModal('internet')">
-            <div class="util-icon" style="background:rgba(139,92,246,0.2)">📶</div>
+            <div class="util-icon" style="background:rgba(139,92,246,0.2)"></div>
             <div class="util-name">Internet</div>
             <div class="util-val" id="uNet">--</div>
           </div>
@@ -515,17 +690,31 @@
         </div>
         
         <div class="menu-sec">
-          <div class="menu-lbl">📦 Date</div>
+          <div class="menu-lbl">Date & Rapoarte</div>
           <div class="menu-grp">
-            <button class="menu-item" onclick="exportData()"><span class="menu-icon">📤</span><span class="menu-txt">Export date</span></button>
-            <button class="menu-item danger" onclick="clearData()"><span class="menu-icon">🗑️</span><span class="menu-txt">Șterge toate datele</span></button>
+            <button class="menu-item" onclick="nav('import')">
+              <svg class="menu-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span class="menu-txt">Import CSV (bancă)</span><span class="menu-arr">›</span>
+            </button>
+            <button class="menu-item" onclick="generatePDFReport()">
+              <svg class="menu-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span class="menu-txt">Export raport PDF</span><span class="menu-arr">›</span>
+            </button>
+            <button class="menu-item" onclick="exportData()">
+              <svg class="menu-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span class="menu-txt">Export date JSON</span>
+            </button>
+            <button class="menu-item danger" onclick="clearData()">
+              <svg class="menu-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span class="menu-txt">Șterge toate datele</span>
+            </button>
           </div>
         </div>
         
         <div class="menu-sec">
-          <div class="menu-lbl">ℹ️ Despre</div>
+          <div class="menu-lbl">Despre</div>
           <div class="menu-grp">
-            <button class="menu-item" onclick="nav('faq')"><span class="menu-icon">❓</span><span class="menu-txt">FAQ & Ghid Utilizare</span><span class="menu-arr">›</span></button>
+            <button class="menu-item" onclick="nav('faq')"><svg class="menu-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span class="menu-txt">FAQ & Ghid Utilizare</span><span class="menu-arr">›</span></button>
           </div>
         </div>
         
@@ -546,7 +735,7 @@
           
           <!-- Quick Start -->
           <div class="card" style="margin-bottom:16px;">
-            <div class="card-hdr"><span class="card-title">🚀 Început Rapid</span></div>
+            <div class="card-hdr"><span class="card-title">Început Rapid</span></div>
             <div style="padding:16px;font-size:14px;color:var(--text2);line-height:1.6;">
               <p><strong style="color:var(--text);">1. Adaugă prima tranzacție</strong> - Apasă butonul <strong>+</strong> din mijlocul ecranului</p>
               <p><strong style="color:var(--text);">2. Setează bugete</strong> - Mergi la Bugete și definește limite pe categorii</p>
@@ -557,7 +746,7 @@
           
           <!-- FAQ Items -->
           <div class="card" style="margin-bottom:16px;">
-            <div class="card-hdr"><span class="card-title">❓ Întrebări Frecvente</span></div>
+            <div class="card-hdr"><span class="card-title">Întrebări Frecvente</span></div>
             <div style="padding:16px;font-size:14px;">
               
               <div style="border-bottom:1px solid var(--border);padding:12px 0;">
@@ -713,12 +902,12 @@
           <div class="learned-patterns">
             <div class="learned-header">
               <div class="learned-title">🧠 Modele Învățate</div>
-              <button class="btn-clear-patterns" onclick="clearLearnedPatterns()">🗑️ Șterge tot</button>
+              <button class="btn-clear-patterns" onclick="clearLearnedPatterns()">Șterge tot</button>
             </div>
             <div id="learnedPatternsList"></div>
             <div class="smart-actions">
               <button class="smart-action-btn" onclick="exportSmartData()">
-                📤 Exportă
+                Exportă
               </button>
               <button class="smart-action-btn" onclick="importSmartData()">
                 📥 Importă
@@ -1039,7 +1228,7 @@
       <div class="modal-head"><span class="modal-title">🤝 Datorie</span><button class="modal-x" onclick="closeModal('debtModal')">✕</button></div>
       <div class="modal-body">
         <div class="type-tabs">
-          <button class="type-tab exp on" data-t="owe" onclick="setDebtType('owe')">📤 Datorez</button>
+          <button class="type-tab exp on" data-t="owe" onclick="setDebtType('owe')">Datorez</button>
           <button class="type-tab inc" data-t="owed" onclick="setDebtType('owed')">📥 Îmi datorează</button>
         </div>
         <form id="debtForm" onsubmit="saveDebt(event)">
@@ -1080,7 +1269,7 @@
       <div class="modal-body">
         <form id="utilityForm" onsubmit="saveUtility(event)">
           <input type="hidden" id="utilityId">
-          <div class="form-row"><label class="form-lbl">Tip</label><select id="utilityType" class="form-select" required><option value="">Selectează</option><option value="electricity"> Curent</option><option value="gas"> Gaz</option><option value="water">💧 Apă</option><option value="internet">📶 Internet</option></select></div>
+          <div class="form-row"><label class="form-lbl">Tip</label><select id="utilityType" class="form-select" required><option value="">Selectează</option><option value="electricity"> Curent</option><option value="gas"> Gaz</option><option value="water"> Apă</option><option value="internet"> Internet</option></select></div>
           <div class="form-row"><label class="form-lbl">Luna</label><input type="month" id="utilityMonth" class="form-input" required></div>
           <div class="form-row"><label class="form-lbl">Sumă</label><input type="number" id="utilityAmount" class="form-input" required></div>
           <button type="submit" class="submit-btn">Salvează</button>
@@ -1128,7 +1317,7 @@
             <input type="text" id="recurNote" class="form-input" placeholder="Ex: Chirie apartament">
           </div>
           <button type="submit" class="submit-btn">Salvează</button>
-          <button type="button" class="submit-btn red" id="recurDeleteBtn" style="display:none;margin-top:8px" onclick="deleteRecurring(state.editingId)">🗑️ Șterge</button>
+          <button type="button" class="submit-btn red" id="recurDeleteBtn" style="display:none;margin-top:8px" onclick="deleteRecurring(state.editingId)">Șterge</button>
         </form>
       </div>
     </div>
